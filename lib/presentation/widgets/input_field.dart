@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:identity_frontend/core/themes/app_theme.dart';
 
 class AppInput extends StatelessWidget {
   final String hint;
@@ -19,6 +20,7 @@ class AppInput extends StatelessWidget {
       obscureText: isPassword,
       decoration: InputDecoration(
         hintText: hint,
+        hintStyle: TextStyle(color: AppTheme.textPrimary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),

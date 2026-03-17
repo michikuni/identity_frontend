@@ -14,11 +14,15 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: isLoading ? null : onPressed,
-      child: isLoading
-          ? const CircularProgressIndicator(color: Colors.white)
-          : Text(title),
+    return SizedBox(
+      height: 56,
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Text(title, style: TextStyle(color: Colors.white),),
+      ),
     );
   }
 }

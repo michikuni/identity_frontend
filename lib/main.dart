@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: AppTheme.lightTheme,
-      initialRoute: '/',
+      initialRoute: '/auth',
       routes: {
         '/': (_) => const SplashScreen(),
         '/auth': (_) => const AuthScreen(),
