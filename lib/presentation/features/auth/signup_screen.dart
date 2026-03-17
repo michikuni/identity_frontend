@@ -3,42 +3,25 @@ import 'package:identity_frontend/core/themes/app_theme.dart';
 import 'package:identity_frontend/presentation/widgets/input_field.dart';
 import 'package:identity_frontend/presentation/widgets/primary_button.dart';
 
-class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<AuthScreen> createState() => _AuthScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          Icon(Icons.language, color: AppTheme.primaryColor, size: 24),
-          Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: AppTheme.primaryColor,
-            size: 24,
-          ),
-        ],
-        actionsPadding: EdgeInsets.only(right: 24),
-      ),
-      bottomSheet: Text(
-        'Phiên bản 3.0.0',
-        style: TextStyle(color: AppTheme.textPrimary),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Chào mừng quay lại",
+      appBar: AppBar(leading: Icon(Icons.arrow_back_ios_new_rounded),),
+      body: Padding(padding: EdgeInsets.all(24), child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+              "Bắt đầu đăng ký",
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -53,21 +36,12 @@ class _AuthScreenState extends State<AuthScreen> {
             AppInput(hint: "Mật khẩu", controller: passCtrl, isPassword: true),
 
             const SizedBox(height: 12),
+            AppInput(hint: "Xác nhận mật khẩu", controller: passCtrl, isPassword: true),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  'Quên mật khẩu?',
-                  style: TextStyle(fontSize: 14, color: AppTheme.textPrimary),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
             PrimaryButton(
-              title: "Đăng nhập",
+              title: "Đăng ký",
               onPressed: () {
                 Navigator.pushNamed(context, '/kyc-welcome');
               },
@@ -81,16 +55,16 @@ class _AuthScreenState extends State<AuthScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Bạn chưa có tài khoản?',
+                  'Đã có tài khoản? ',
                   style: TextStyle(color: AppTheme.textPrimary),
                 ),
                 TextButton(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero
-                  ),
-                  onPressed: () {},
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
                   child: Text(
-                    'Đăng ký',
+                    'Đăng nhập',
                     style: TextStyle(
                       color: AppTheme.primaryColor,
                       decoration: TextDecoration.underline,
@@ -100,9 +74,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+        ],
+      ),),
     );
   }
 }

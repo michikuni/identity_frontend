@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:identity_frontend/core/themes/app_theme.dart';
-import 'package:identity_frontend/presentation/features/auth/auth_screen.dart';
+import 'package:identity_frontend/presentation/features/auth/signin_screen.dart';
+import 'package:identity_frontend/presentation/features/auth/signup_screen.dart';
 import 'package:identity_frontend/presentation/features/dash_board/dash_board_screen.dart';
 import 'package:identity_frontend/presentation/features/kyc/welcome.dart';
 import 'package:identity_frontend/presentation/features/splash/splash_screen.dart';
@@ -16,10 +17,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: AppTheme.lightTheme,
-      initialRoute: '/auth',
+      initialRoute: '/sign-in',
       routes: {
         '/': (_) => const SplashScreen(),
-        '/auth': (_) => const AuthScreen(),
+        '/sign-in': (_) => const SigninScreen(),
+        '/sign-up': (_) => const SignupScreen(),
         '/kyc-welcome': (_) => const KycWelcomeScreen(),
         '/dashboard': (_) => const DashboardScreen(),
       },
