@@ -1,0 +1,267 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:identity_frontend/core/di/injection.dart';
+import 'package:identity_frontend/core/storage/secure_storage.dart';
+import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/domain/usecases/attendance_usecase.dart';
+import 'package:identity_frontend/domain/usecases/company_usecase.dart';
+import 'package:identity_frontend/domain/usecases/directory_usecase.dart';
+import 'package:identity_frontend/domain/usecases/request_usecase.dart';
+import 'package:identity_frontend/presentation/features/admin/admin_dashboard_screen.dart';
+import 'package:identity_frontend/presentation/features/attendance/attendance_history_screen.dart';
+import 'package:identity_frontend/presentation/features/attendance/attendance_screen.dart';
+import 'package:identity_frontend/presentation/features/attendance/bloc/attendance_bloc.dart';
+import 'package:identity_frontend/presentation/features/attendance/bloc/attendance_event.dart';
+import 'package:identity_frontend/presentation/features/admin/pending_accounts_screen.dart';
+import 'package:identity_frontend/presentation/features/auth/signin_screen.dart';
+import 'package:identity_frontend/presentation/features/auth/signup_screen.dart';
+import 'package:identity_frontend/presentation/features/onboarding/onboarding_screen.dart';
+import 'package:identity_frontend/presentation/features/chief/chief_screen.dart';
+import 'package:identity_frontend/presentation/features/company/company_screen.dart';
+import 'package:identity_frontend/presentation/features/contract/contract_screen.dart';
+import 'package:identity_frontend/presentation/features/directory/directory_screen.dart';
+import 'package:identity_frontend/presentation/features/home/home_screen.dart';
+import 'package:identity_frontend/presentation/features/ledger/ledger_screen.dart';
+import 'package:identity_frontend/presentation/features/manager/manager_requests_screen.dart';
+import 'package:identity_frontend/presentation/features/payroll/payroll_screen.dart';
+import 'package:identity_frontend/presentation/features/profile/profile_screen.dart';
+import 'package:identity_frontend/presentation/features/requests/bloc/request_bloc.dart';
+import 'package:identity_frontend/presentation/features/requests/bloc/request_event.dart';
+import 'package:identity_frontend/presentation/features/requests/create_request_screen.dart';
+import 'package:identity_frontend/presentation/features/requests/request_list_screen.dart';
+import 'package:identity_frontend/presentation/features/splash/splash_screen.dart';
+
+final appRouter = GoRouter(
+  initialLocation: '/',
+  redirect: (context, state) async {
+    final isLoggedIn = await SecureStorage.isLoggedIn();
+    final loc = state.matchedLocation;
+    final isAuthRoute = loc.startsWith('/auth');
+    final isSplash = loc == '/';
+
+    if (!isLoggedIn && !isAuthRoute && !isSplash) return '/auth/sign-in';
+
+    // Role guards
+    if (isLoggedIn && !isSplash && !isAuthRoute) {
+      final role = await SecureStorage.getUserRole() ?? 'EMPLOYEE';
+      if (loc.startsWith('/app/chief') && role != 'CHIEF' && role != 'ADMIN') {
+        return '/app/home';
+      }
+      if (loc.startsWith('/app/admin') && role != 'ADMIN' && role != 'CHIEF') {
+        return '/app/home';
+      }
+      if (loc.startsWith('/app/manager') && role == 'EMPLOYEE') {
+        return '/app/home';
+      }
+      if (loc.startsWith('/app/ledger') && role == 'EMPLOYEE') {
+        return '/app/home';
+      }
+    }
+    return null;
+  },
+  routes: [
+    GoRoute(path: '/', builder: (_, _) => const SplashScreen()),
+    GoRoute(path: '/auth/sign-in', builder: (_, _) => const SignInScreen()),
+    GoRoute(path: '/auth/sign-up', builder: (_, _) => const SignUpScreen()),
+    GoRoute(path: '/auth/onboarding', builder: (_, _) => const OnboardingScreen()),
+
+    // Standalone routes (pushed on top of shell)
+    GoRoute(
+      path: '/app/requests/create',
+      builder: (context, _) => BlocProvider(
+        create: (_) => RequestBloc(useCase: sl<RequestUseCase>()),
+        child: const CreateRequestScreen(),
+      ),
+    ),
+
+    ShellRoute(
+      builder: (context, state, child) => _AppShell(child: child),
+      routes: [
+        GoRoute(path: '/app/home', builder: (_, _) => const HomeScreen()),
+        GoRoute(path: '/app/profile', builder: (_, _) => const ProfileScreen()),
+        GoRoute(path: '/app/contract', builder: (_, _) => const ContractScreen()),
+        GoRoute(path: '/app/payroll', builder: (_, _) => const PayrollScreen()),
+
+        // Attendance
+        GoRoute(
+          path: '/app/attendance',
+          builder: (context, _) => BlocProvider(
+            create: (_) => AttendanceBloc(useCase: sl<AttendanceUseCase>())
+              ..add(const AttendanceFetchToday()),
+            child: const AttendanceScreen(),
+          ),
+        ),
+        GoRoute(
+          path: '/app/attendance/history',
+          builder: (context, _) => BlocProvider(
+            create: (_) => AttendanceBloc(useCase: sl<AttendanceUseCase>()),
+            child: const AttendanceHistoryScreen(),
+          ),
+        ),
+
+        // Requests
+        GoRoute(
+          path: '/app/requests',
+          builder: (context, _) => BlocProvider(
+            create: (_) => RequestBloc(useCase: sl<RequestUseCase>())
+              ..add(const RequestFetchMine()),
+            child: const RequestListScreen(),
+          ),
+        ),
+
+        // Directory
+        GoRoute(
+          path: '/app/directory',
+          builder: (context, _) => BlocProvider(
+            create: (_) => DirectoryBloc(sl<DirectoryUseCase>()),
+            child: const DirectoryScreen(),
+          ),
+        ),
+
+        // Company
+        GoRoute(
+          path: '/app/company',
+          builder: (context, _) => BlocProvider(
+            create: (_) => CompanyBloc(sl<CompanyUseCase>()),
+            child: const CompanyInfoScreen(),
+          ),
+        ),
+
+        // Ledger (CHIEF + ADMIN)
+        GoRoute(path: '/app/ledger', builder: (_, _) => const LedgerScreen()),
+        GoRoute(path: '/app/admin/ledger', builder: (_, _) => const LedgerScreen()),
+
+        // Manager
+        GoRoute(
+          path: '/app/manager/requests',
+          builder: (context, _) => BlocProvider(
+            create: (_) => RequestBloc(useCase: sl<RequestUseCase>()),
+            child: const ManagerRequestsScreen(),
+          ),
+        ),
+
+        // Chief
+        GoRoute(path: '/app/chief', builder: (_, _) => const ChiefScreen()),
+
+        // Admin
+        GoRoute(path: '/app/admin', builder: (_, _) => const AdminDashboardScreen()),
+        GoRoute(path: '/app/admin/pending-accounts', builder: (_, _) => const PendingAccountsScreen()),
+      ],
+    ),
+  ],
+);
+
+// ── Role-aware Shell ──────────────────────────────────────────────────────────
+
+class _AppShell extends StatefulWidget {
+  final Widget child;
+  const _AppShell({required this.child});
+
+  @override
+  State<_AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<_AppShell> {
+  String _role = 'EMPLOYEE';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final role = await SecureStorage.getUserRole() ?? 'EMPLOYEE';
+    if (mounted) setState(() => _role = role);
+  }
+
+  List<_NavItem> get _navItems {
+    final base = [
+      _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, 'Trang chủ'),
+      _NavItem('/app/attendance', Icons.fingerprint_rounded, Icons.fingerprint_rounded, 'Chấm công'),
+      _NavItem('/app/requests', Icons.description_outlined, Icons.description_rounded, 'Đơn từ'),
+      _NavItem('/app/directory', Icons.group_outlined, Icons.group_rounded, 'Nhân viên'),
+      _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, 'Hồ sơ'),
+    ];
+
+    if (_role == 'MANAGER') {
+      return [
+        ...base,
+        _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, 'Duyệt đơn'),
+      ];
+    }
+
+    if (_role == 'CHIEF') {
+      return [
+        ...base,
+        _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, 'Duyệt đơn'),
+        _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, 'Nhân sự'),
+        _NavItem('/app/ledger', Icons.account_tree_outlined, Icons.account_tree_rounded, 'Ledger'),
+      ];
+    }
+
+    if (_role == 'ADMIN') {
+      return [
+        ...base,
+        _NavItem('/app/admin', Icons.admin_panel_settings_outlined, Icons.admin_panel_settings_rounded, 'Admin'),
+        _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, 'Nhân sự'),
+        _NavItem('/app/ledger', Icons.account_tree_outlined, Icons.account_tree_rounded, 'Ledger'),
+      ];
+    }
+
+    return base;
+  }
+
+  int _currentIndex(String loc) {
+    final items = _navItems;
+    for (int i = 0; i < items.length; i++) {
+      if (loc.startsWith(items[i].path)) return i;
+    }
+    return 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = GoRouterState.of(context).matchedLocation;
+    final items = _navItems;
+    final currentIndex = _currentIndex(loc);
+
+    return Scaffold(
+      body: widget.child,
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(top: BorderSide(color: AppColors.border)),
+          boxShadow: [BoxShadow(color: AppColors.shadowLight, blurRadius: 16, offset: Offset(0, -4))],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: currentIndex.clamp(0, items.length - 1),
+          onTap: (i) => context.go(items[i].path),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.inactive,
+          type: BottomNavigationBarType.fixed,
+          selectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+          unselectedLabelStyle: const TextStyle(fontSize: 10),
+          items: items
+              .map((item) => BottomNavigationBarItem(
+                    icon: Icon(item.icon),
+                    activeIcon: Icon(item.activeIcon),
+                    label: item.label,
+                  ))
+              .toList(),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem {
+  final String path;
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  const _NavItem(this.path, this.icon, this.activeIcon, this.label);
+}

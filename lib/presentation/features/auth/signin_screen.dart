@@ -1,113 +1,211 @@
 import 'package:flutter/material.dart';
-import 'package:identity_frontend/core/themes/app_theme.dart';
-import 'package:identity_frontend/presentation/widgets/input_field.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:identity_frontend/core/di/injection.dart';
+import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
+import 'package:identity_frontend/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:identity_frontend/presentation/widgets/app_input.dart';
 import 'package:identity_frontend/presentation/widgets/primary_button.dart';
 
-class SigninScreen extends StatefulWidget {
-  const SigninScreen({super.key});
-
-  @override
-  State<SigninScreen> createState() => _SigninScreenState();
-}
-
-class _SigninScreenState extends State<SigninScreen> {
-  final emailCtrl = TextEditingController();
-  final passCtrl = TextEditingController();
+class SignInScreen extends StatelessWidget {
+  const SignInScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: Icon(Icons.arrow_back_ios_new_rounded),
-        actions: [
-          Icon(Icons.language, color: AppTheme.primaryColor, size: 24),
-          Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: AppTheme.primaryColor,
-            size: 24,
-          ),
-        ],
-        actionsPadding: EdgeInsets.only(right: 24),
+    return BlocProvider(
+      create: (_) => AuthBloc(
+        signInUseCase: sl(),
+        signUpUseCase: sl(),
       ),
-      bottomSheet: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(12),
-        color: Colors.white,
-        child: Text(
-          'Phiên bản 3.0.0',
-          style: TextStyle(color: AppTheme.textPrimary),
-          textAlign: TextAlign.center,
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Chào mừng quay lại",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
+      child: const _SignInView(),
+    );
+  }
+}
+
+class _SignInView extends StatefulWidget {
+  const _SignInView();
+
+  @override
+  State<_SignInView> createState() => _SignInViewState();
+}
+
+class _SignInViewState extends State<_SignInView> {
+  final _userCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _userCtrl.dispose();
+    _passCtrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_formKey.currentState?.validate() != true) return;
+    context.read<AuthBloc>().add(SignInSubmitted(
+          username: _userCtrl.text.trim(),
+          password: _passCtrl.text,
+        ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state.status == AuthStatus.success) {
+          context.go('/app/home');
+        } else if (state.status == AuthStatus.failure) {
+          final msg = state.errorMessage ?? '';
+          final isPending = msg.contains('pending approval');
+          final isRejected = msg.contains('rejected');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isPending
+                    ? 'Tài khoản đang chờ Admin duyệt. Vui lòng thử lại sau.'
+                    : isRejected
+                        ? 'Tài khoản đã bị từ chối. Vui lòng liên hệ Admin.'
+                        : 'Đăng nhập thất bại. Kiểm tra lại thông tin.',
               ),
+              backgroundColor: isPending ? AppColors.warning : AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: Duration(seconds: isPending ? 4 : 3),
             ),
-
-            const SizedBox(height: 24),
-
-            AppInput(hint: "Email", controller: emailCtrl),
-            const SizedBox(height: 12),
-            AppInput(hint: "Mật khẩu", controller: passCtrl, isPassword: true),
-
-            const SizedBox(height: 12),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
               children: [
-                Text(
-                  'Quên mật khẩu?',
-                  style: TextStyle(fontSize: 14, color: AppTheme.textPrimary),
+                // ── Header gradient banner ──────────────────────────────
+                Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: AppColors.primaryGradient,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(32),
+                    ),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(28, 48, 28, 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.verified_user_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        l10n.signinWelcomeBack,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.signinSubtitle,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.75),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            PrimaryButton(
-              title: "Đăng nhập",
-              onPressed: () {
-                Navigator.pushNamed(context, '/kyc-welcome');
-              },
-            ),
-
-            const SizedBox(height: 36),
-            const Divider(height: 1, indent: 24),
-            const SizedBox(height: 12),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Bạn chưa có tài khoản?',
-                  style: TextStyle(color: AppTheme.textPrimary),
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/sign-up');
-                  },
-                  child: Text(
-                    'Đăng ký',
-                    style: TextStyle(
-                      color: AppTheme.primaryColor,
-                      decoration: TextDecoration.underline,
-                      decorationColor: AppTheme.primaryColor,
+                // ── Form ────────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        AppInput(
+                          hint: l10n.emailHint,
+                          label: l10n.email,
+                          controller: _userCtrl,
+                          keyboardType: TextInputType.emailAddress,
+                          prefixIcon: const Icon(Icons.mail_outline_rounded,
+                              size: 20, color: AppColors.inactive),
+                        ),
+                        const SizedBox(height: 16),
+                        AppInput(
+                          hint: l10n.passwordHint,
+                          label: l10n.password,
+                          controller: _passCtrl,
+                          isPassword: true,
+                          prefixIcon: const Icon(Icons.lock_outline_rounded,
+                              size: 20, color: AppColors.inactive),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {},
+                            child: Text(l10n.forgotPassword),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        BlocBuilder<AuthBloc, AuthState>(
+                          builder: (context, state) => PrimaryButton(
+                            title: l10n.signIn,
+                            isLoading: state.status == AuthStatus.loading,
+                            onPressed: _submit,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(l10n.noAccount,
+                                style: const TextStyle(
+                                    color: AppColors.textSecondary)),
+                            TextButton(
+                              onPressed: () =>
+                                  context.go('/auth/sign-up'),
+                              child: Text(l10n.signUp),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Center(
+                          child: Text(
+                            l10n.appVersion,
+                            style: const TextStyle(
+                                fontSize: 12, color: AppColors.textHint),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

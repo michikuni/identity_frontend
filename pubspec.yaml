@@ -1,7 +1,7 @@
 name: identity_frontend
-description: "A new Flutter project."
+description: "TrustID - Identity Fabric Mobile Application"
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+1
 
 environment:
   sdk: ^3.11.1
@@ -9,14 +9,35 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  mobile_scanner: ^7.2.0
+  flutter_localizations:
+    sdk: flutter
+
+  # Navigation
   go_router: ^17.1.0
+
+  # HTTP Client
   dio: ^5.9.2
-  equatable: ^2.0.8
-  flutter_svg: ^2.2.4
+
+  # State Management
   flutter_bloc: ^9.1.1
-  injectable: ^2.7.1+4
+  equatable: ^2.0.8
+
+  # Dependency Injection
   get_it: ^9.2.1
+  injectable: ^2.7.1+4
+
+  # Form Validation
+  formz: ^0.7.0
+
+  # Secure Storage
+  flutter_secure_storage: ^9.2.2
+
+  # Preferences
+  shared_preferences: ^2.3.4
+
+  # UI
+  flutter_svg: ^2.2.4
+  mobile_scanner: ^7.2.0
 
 dev_dependencies:
   flutter_test:
@@ -26,4 +47,5 @@ dev_dependencies:
   build_runner: ^2.12.2
 
 flutter:
+  generate: true
   uses-material-design: true

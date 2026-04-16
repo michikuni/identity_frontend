@@ -1,0 +1,228 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/domain/entities/request_entity.dart';
+import 'package:identity_frontend/presentation/features/requests/bloc/request_bloc.dart';
+import 'package:identity_frontend/presentation/features/requests/bloc/request_event.dart';
+import 'package:identity_frontend/presentation/features/requests/bloc/request_state.dart';
+
+class ManagerRequestsScreen extends StatefulWidget {
+  const ManagerRequestsScreen({super.key});
+
+  @override
+  State<ManagerRequestsScreen> createState() => _ManagerRequestsScreenState();
+}
+
+class _ManagerRequestsScreenState extends State<ManagerRequestsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<RequestBloc>().add(const RequestFetchSubordinate());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          title: const Text('Duyệt đơn'),
+          elevation: 0,
+          bottom: const TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white60,
+            indicatorColor: Colors.white,
+            tabs: [Tab(text: 'Chờ duyệt'), Tab(text: 'Đã xử lý')],
+          ),
+        ),
+        body: BlocConsumer<RequestBloc, RequestState>(
+          listener: (context, state) {
+            if (state.actionSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Đã xử lý đơn'), backgroundColor: AppColors.success),
+              );
+            }
+          },
+          builder: (context, state) {
+            final pending = state.subordinateRequests.where((r) => r.isPending).toList();
+            final done = state.subordinateRequests.where((r) => !r.isPending).toList();
+            return TabBarView(children: [
+              _buildList(context, pending, showActions: true),
+              _buildList(context, done, showActions: false),
+            ]);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildList(BuildContext context, List<RequestEntity> items, {required bool showActions}) {
+    if (items.isEmpty) {
+      return const Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.task_alt_rounded, size: 56, color: AppColors.inactive),
+          SizedBox(height: 12),
+          Text('Không có đơn nào', style: TextStyle(color: AppColors.textSecondary)),
+        ]),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: () async => context.read<RequestBloc>().add(const RequestFetchSubordinate()),
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: items.length,
+        separatorBuilder: (_, idx) => const SizedBox(height: 12),
+        itemBuilder: (_, i) => _ApprovalCard(item: items[i], showActions: showActions),
+      ),
+    );
+  }
+}
+
+class _ApprovalCard extends StatelessWidget {
+  final RequestEntity item;
+  final bool showActions;
+  const _ApprovalCard({required this.item, required this.showActions});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [BoxShadow(color: AppColors.shadowLight, blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: Row(children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                child: Text(
+                  (item.approverName ?? '?')[0].toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 13),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(_typeLabel(item.requestType), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                  Text('${item.startDate} → ${item.endDate}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                ]),
+              ),
+              _StatusBadge(status: item.status),
+            ]),
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Text(item.reason, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          ),
+          if (showActions) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.close_rounded, size: 16),
+                    label: const Text('Từ chối'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                    ),
+                    onPressed: () => _showRejectDialog(context, item.id!),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.check_rounded, size: 16),
+                    label: const Text('Duyệt'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () => context.read<RequestBloc>().add(RequestApprove(item.id!)),
+                  ),
+                ),
+              ]),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showRejectDialog(BuildContext context, int id) {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Lý do từ chối'),
+        content: TextField(
+          controller: ctrl,
+          maxLines: 3,
+          decoration: const InputDecoration(hintText: 'Nhập lý do...'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Huỷ')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<RequestBloc>().add(RequestReject(id, ctrl.text));
+            },
+            child: const Text('Xác nhận', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _typeLabel(String t) => switch (t) {
+        'LEAVE' => 'Đơn nghỉ phép',
+        'WFH' => 'Làm tại nhà',
+        'BUSINESS_TRIP' => 'Công tác',
+        'ATTENDANCE_CORRECTION' => 'Sửa chấm công',
+        _ => t,
+      };
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String status;
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (status) {
+      'APPROVED' => AppColors.success,
+      'REJECTED' => AppColors.error,
+      _ => AppColors.warning,
+    };
+    final label = switch (status) {
+      'APPROVED' => 'Đã duyệt',
+      'REJECTED' => 'Từ chối',
+      _ => 'Chờ duyệt',
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+    );
+  }
+}
