@@ -16,3 +16,10 @@ class ProfileUpdate extends ProfileEvent {
   @override
   List<Object?> get props => [data];
 }
+
+class ProfileCreate extends ProfileEvent {
+  final Map<String, dynamic> data;
+  const ProfileCreate(this.data);
+  @override
+  List<Object?> get props => [data];
+}

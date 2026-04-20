@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/extensions.dart';
 
 class PendingAccountsScreen extends StatefulWidget {
   const PendingAccountsScreen({super.key});
@@ -128,19 +129,20 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _accounts.isEmpty
-              ? _buildEmpty()
-              : _buildList(),
+              ? _buildEmpty(context)
+              : _buildList(context),
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(BuildContext context) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.check_circle_outline_rounded,
-              size: 56, color: AppColors.success.withValues(alpha: 0.7)),
-          const SizedBox(height: 12),
+              size: context.r(56),
+              color: AppColors.success.withValues(alpha: 0.7)),
+          SizedBox(height: context.r(12)),
           const Text('Không có tài khoản nào chờ duyệt',
               style: TextStyle(color: AppColors.textSecondary)),
         ],
@@ -148,23 +150,23 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
     );
   }
 
-  Widget _buildList() {
+  Widget _buildList(BuildContext context) {
     return Column(
       children: [
-        // Summary bar
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: EdgeInsets.symmetric(
+              horizontal: context.r(16), vertical: context.r(10)),
           color: AppColors.warningLight,
           child: Row(
             children: [
-              const Icon(Icons.pending_actions_rounded,
-                  size: 18, color: AppColors.warning),
-              const SizedBox(width: 8),
+              Icon(Icons.pending_actions_rounded,
+                  size: context.r(18), color: AppColors.warning),
+              SizedBox(width: context.r(8)),
               Text(
                 '${_accounts.length} tài khoản đang chờ duyệt',
-                style: const TextStyle(
-                    fontSize: 13,
+                style: TextStyle(
+                    fontSize: context.r(13),
                     fontWeight: FontWeight.w600,
                     color: AppColors.warning),
               ),
@@ -173,9 +175,9 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
         ),
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(context.r(16)),
             itemCount: _accounts.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 10),
+            separatorBuilder: (_, _) => SizedBox(height: context.r(10)),
             itemBuilder: (_, i) => _AccountCard(
               account: _accounts[i],
               isProcessing: _processingIds.contains(_accounts[i]['id']),
@@ -211,71 +213,64 @@ class _AccountCard extends StatelessWidget {
     final phone = account['phone'] as String? ?? '';
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(context.r(14)),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(context.r(12)),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
+          BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       child: Row(
         children: [
-          // Avatar
           CircleAvatar(
-            radius: 22,
+            radius: context.r(22),
             backgroundColor: AppColors.primary.withValues(alpha: 0.1),
             child: Text(
               email.isNotEmpty ? email[0].toUpperCase() : '?',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w700, color: AppColors.primary),
+              style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                  fontSize: context.r(14)),
             ),
           ),
-          const SizedBox(width: 12),
-          // Info
+          SizedBox(width: context.r(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(email,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontSize: context.r(14),
                         color: AppColors.textPrimary)),
-                const SizedBox(height: 2),
+                SizedBox(height: context.r(2)),
                 Text(phone,
-                    style: const TextStyle(
-                        fontSize: 13, color: AppColors.textSecondary)),
+                    style: TextStyle(
+                        fontSize: context.r(13), color: AppColors.textSecondary)),
               ],
             ),
           ),
-          // Actions
           if (isProcessing)
-            const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
+            SizedBox(
+              width: context.r(24),
+              height: context.r(24),
+              child: const CircularProgressIndicator(strokeWidth: 2),
             )
           else
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Approve
                 IconButton(
-                  icon: const Icon(Icons.check_circle_rounded,
-                      color: AppColors.success),
+                  icon: Icon(Icons.check_circle_rounded,
+                      color: AppColors.success, size: context.r(24)),
                   tooltip: 'Duyệt',
                   onPressed: onApprove,
                 ),
-                // Reject
                 IconButton(
-                  icon: const Icon(Icons.cancel_rounded,
-                      color: AppColors.error),
+                  icon: Icon(Icons.cancel_rounded,
+                      color: AppColors.error, size: context.r(24)),
                   tooltip: 'Từ chối',
                   onPressed: onReject,
                 ),

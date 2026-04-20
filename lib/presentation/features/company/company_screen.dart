@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/company_entity.dart';
 import 'package:identity_frontend/domain/usecases/company_usecase.dart';
 
@@ -85,92 +86,128 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
     );
   }
 
-  Widget _buildInfo(CompanyEntity c) => ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Hero banner
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: AppColors.primaryGradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 72, height: 72,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
-                  ),
-                  child: const Icon(Icons.business_rounded, color: Colors.white, size: 36),
-                ),
-                const SizedBox(height: 12),
-                Text(c.companyName, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
-                const SizedBox(height: 4),
-                Text('MST: ${c.taxCode}', style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 13)),
-              ],
-            ),
+  Widget _buildInfo(CompanyEntity c) {
+    final context = this.context;
+    return ListView(
+      padding: EdgeInsets.all(context.r(20)),
+      children: [
+        Container(
+          padding: EdgeInsets.all(context.r(20)),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+                colors: AppColors.primaryGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight),
+            borderRadius: BorderRadius.circular(context.r(18)),
           ),
-          const SizedBox(height: 20),
+          child: Column(
+            children: [
+              Container(
+                width: context.r(72),
+                height: context.r(72),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3), width: 2),
+                ),
+                child: Icon(Icons.business_rounded,
+                    color: Colors.white, size: context.r(36)),
+              ),
+              SizedBox(height: context.r(12)),
+              Text(c.companyName,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: context.r(18),
+                      fontWeight: FontWeight.w800),
+                  textAlign: TextAlign.center),
+              SizedBox(height: context.r(4)),
+              Text('MST: ${c.taxCode}',
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      fontSize: context.r(13))),
+            ],
+          ),
+        ),
+        SizedBox(height: context.r(20)),
+        _infoCard(context, 'Thông tin pháp nhân', Icons.gavel_rounded, [
+          _row(context, 'Người đại diện', c.legalRepName),
+          _row(context, 'Chức danh', c.legalRepTitle),
+          _row(context, 'CCCD/CMND', c.legalRepIdNumber),
+          _row(context, 'Ngày đăng ký', c.registeredAt),
+        ]),
+        SizedBox(height: context.r(14)),
+        _infoCard(context, 'Liên hệ', Icons.contact_phone_rounded, [
+          _row(context, 'Điện thoại', c.phone),
+          _row(context, 'Email', c.email),
+          _row(context, 'Địa chỉ', c.address, multiline: true),
+        ]),
+      ],
+    );
+  }
 
-          _infoCard('Thông tin pháp nhân', Icons.gavel_rounded, [
-            _row('Người đại diện', c.legalRepName),
-            _row('Chức danh', c.legalRepTitle),
-            _row('CCCD/CMND', c.legalRepIdNumber),
-            _row('Ngày đăng ký', c.registeredAt),
-          ]),
-          const SizedBox(height: 14),
-
-          _infoCard('Liên hệ', Icons.contact_phone_rounded, [
-            _row('Điện thoại', c.phone),
-            _row('Email', c.email),
-            _row('Địa chỉ', c.address, multiline: true),
-          ]),
-        ],
-      );
-
-  Widget _infoCard(String title, IconData icon, List<Widget> rows) => Container(
-        padding: const EdgeInsets.all(16),
+  Widget _infoCard(BuildContext context, String title, IconData icon,
+          List<Widget> rows) =>
+      Container(
+        padding: EdgeInsets.all(context.r(16)),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(context.r(14)),
           border: Border.all(color: AppColors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              Icon(icon, size: 18, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              Icon(icon, size: context.r(18), color: AppColors.primary),
+              SizedBox(width: context.r(8)),
+              Text(title,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: context.r(14))),
             ]),
-            const SizedBox(height: 12),
+            SizedBox(height: context.r(12)),
             const Divider(height: 1),
             ...rows,
           ],
         ),
       );
 
-  Widget _row(String label, String value, {bool multiline = false}) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+  Widget _row(BuildContext context, String label, String value,
+          {bool multiline = false}) =>
+      Padding(
+        padding: EdgeInsets.symmetric(vertical: context.r(10)),
         child: Row(
-          crossAxisAlignment: multiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          crossAxisAlignment:
+              multiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
           children: [
-            SizedBox(width: 130, child: Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
-            Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
+            SizedBox(
+              width: context.r(130),
+              child: Text(label,
+                  style: TextStyle(
+                      fontSize: context.r(13),
+                      color: AppColors.textSecondary)),
+            ),
+            Expanded(
+                child: Text(value,
+                    style: TextStyle(
+                        fontSize: context.r(13),
+                        fontWeight: FontWeight.w500))),
           ],
         ),
       );
 
   Widget _buildEmpty(BuildContext context) => Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.business_outlined, size: 64, color: AppColors.inactive),
-          const SizedBox(height: 16),
-          const Text('Chưa có thông tin công ty', style: TextStyle(color: AppColors.textSecondary)),
-          const SizedBox(height: 8),
-          const Text('Giám đốc có thể đăng ký pháp nhân', style: TextStyle(fontSize: 12, color: AppColors.textHint)),
+          Icon(Icons.business_outlined,
+              size: context.r(64), color: AppColors.inactive),
+          SizedBox(height: context.r(16)),
+          Text('Chưa có thông tin công ty',
+              style:
+                  TextStyle(color: AppColors.textSecondary, fontSize: context.r(14))),
+          SizedBox(height: context.r(8)),
+          Text('Giám đốc có thể đăng ký pháp nhân',
+              style: TextStyle(
+                  fontSize: context.r(12), color: AppColors.textHint)),
         ]),
       );
 }

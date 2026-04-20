@@ -16,22 +16,13 @@ class AuthModel {
   });
 
   factory AuthModel.fromJson(Map<String, dynamic> json) {
-    // Response wraps data, token is at top level
-    final token = json['token'] as String? ?? '';
-    final data = json['data'] as Map<String, dynamic>?;
-
-    if (data != null) {
-      final idMap = data['id'] as Map<String, dynamic>?;
-      return AuthModel(
-        id: idMap?['value'] as String?,
-        email: data['email'] as String?,
-        phone: data['phone'] as String?,
-        role: data['role'] as String?,
-        token: token,
-      );
-    }
-
-    return AuthModel(token: token);
+    return AuthModel(
+      token: json['token'] as String? ?? '',
+      id: json['id'] as String?,
+      role: json['role'] as String?,
+      email: json['email'] as String?,
+      phone: json['phone'] as String?,
+    );
   }
 
   AuthEntity toEntity() => AuthEntity(

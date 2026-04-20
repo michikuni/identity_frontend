@@ -12,6 +12,7 @@ class OnboardingSubmitted extends OnboardingEvent {
   final String workingType;
   final String createdBy;
   final String? note;
+  final String? publicKeyJwk;
 
   const OnboardingSubmitted({
     required this.department,
@@ -19,8 +20,9 @@ class OnboardingSubmitted extends OnboardingEvent {
     required this.workingType,
     required this.createdBy,
     this.note,
+    this.publicKeyJwk,
   });
 
   @override
-  List<Object?> get props => [department, position, workingType, createdBy, note];
+  List<Object?> get props => [department, position, workingType, createdBy, note, publicKeyJwk];
 }

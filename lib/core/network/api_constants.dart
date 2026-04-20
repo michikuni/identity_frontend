@@ -1,6 +1,7 @@
 class ApiConstants {
   ApiConstants._();
 
+  // Dùng IP Windows host khi backend chạy trên WSL2/Ubuntu
   static const String baseUrl = 'http://188.122.1.106:8080/api/v1';
 
   // Auth
@@ -33,6 +34,8 @@ class ApiConstants {
 
   // Chief
   static const String chiefEmployees = '/chief/employees';
+  static String chiefChangeRole(String id) => '/chief/employees/$id/role';
+  static String chiefTerminate(String id) => '/chief/employees/$id/terminate';
 
   // Admin
   static const String adminDashboard = '/admin/dashboard';
@@ -44,6 +47,19 @@ class ApiConstants {
   static const String ledger = '/ledger';
   static const String ledgerInit = '/ledger/init';
   static const String ledgerRecords = '/ledger/records';
+
+  // DID + VC Identity (public — no auth required)
+  static String resolveDid(String did) => '/identity/did/${Uri.encodeComponent(did)}';
+  static String getEmploymentVC(String employeeId) => '/identity/vc/employment/$employeeId';
+  static String getTerminationVC(String employeeId) => '/identity/vc/termination/$employeeId';
+  static String getSalaryRangeVC(String employeeId) => '/identity/vc/salary/$employeeId';
+  static String getPromotionVC(String employeeId)   => '/identity/vc/promotion/$employeeId';
+  static const String verifyVC = '/identity/vc/verify';
+
+  // OID4VP — Verifiable Presentation flow
+  static const String oidcVpRequest = '/oidc/vp/request';
+  static const String oidcVpSubmit  = '/oidc/vp/submit';
+  static String oidcVpResult(String state) => '/oidc/vp/result/$state';
 
   // Headers
   static const String authHeader = 'Authorization';

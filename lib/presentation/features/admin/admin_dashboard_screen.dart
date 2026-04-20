@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/extensions.dart';
+import 'package:identity_frontend/presentation/features/auth/bloc/auth_bloc.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -13,6 +16,7 @@ class AdminDashboardScreen extends StatefulWidget {
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Map<String, dynamic>? _stats;
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -21,204 +25,399 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    if (!mounted) return;
+    setState(() { _loading = true; _error = null; });
     try {
       final res = await ApiClient.instance.get(ApiConstants.adminDashboard);
+      if (!mounted) return;
       setState(() {
         _stats = res.data['data'] as Map<String, dynamic>?;
         _loading = false;
       });
-    } catch (_) {
-      setState(() => _loading = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _loading = false; _error = e.toString(); });
     }
+  }
+
+  int _int(String key) => ((_stats ?? {})[key] as num?)?.toInt() ?? 0;
+
+  Future<void> _showIssueSalaryVcSheet(BuildContext context) async {
+    final idCtrl = TextEditingController();
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Issue Salary Range VC'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Nhập Employee ID để phát hành SalaryRangeVC.\nYêu cầu nhân viên đã có payroll được gán.',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: idCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Employee ID',
+                hintText: 'VD: 5',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Huỷ'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final id = idCtrl.text.trim();
+              if (id.isEmpty) return;
+              Navigator.pop(ctx);
+              try {
+                await ApiClient.instance.put('/admin/employees/$id/issue-salary-vc');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('SalaryRangeVC đã được phát hành'),
+                    backgroundColor: AppColors.success,
+                    behavior: SnackBarBehavior.floating,
+                  ));
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Lỗi: $e'),
+                    backgroundColor: AppColors.error,
+                    behavior: SnackBarBehavior.floating,
+                  ));
+                }
+              }
+            },
+            child: const Text('Issue VC'),
+          ),
+        ],
+      ),
+    );
+    idCtrl.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(),
-          if (_loading)
-            const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
-          else
-            SliverPadding(
-              padding: const EdgeInsets.all(20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildPendingAccountsBanner(context),
-                  _buildStatsGrid(),
-                  const SizedBox(height: 24),
-                  _buildLedgerBanner(context),
-                ]),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  SliverAppBar _buildAppBar() => SliverAppBar(
-        expandedHeight: 160,
-        pinned: true,
+      appBar: AppBar(
         backgroundColor: AppColors.primary,
-        flexibleSpace: FlexibleSpaceBar(
-          background: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: AppColors.primaryGradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            padding: const EdgeInsets.fromLTRB(24, 60, 24, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Row(children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('Bảng điều hành', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
-                    Text('Tổng quan hệ thống', style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 13)),
-                  ]),
-                ]),
-              ],
-            ),
-          ),
-        ),
+        foregroundColor: Colors.white,
+        title: const Text('Bảng điều hành', style: TextStyle(fontWeight: FontWeight.w700)),
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+            icon: const Icon(Icons.refresh_rounded),
             onPressed: _load,
+            tooltip: 'Tải lại',
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: 'Đăng xuất',
+            onPressed: () {
+              context.read<AuthBloc>().add(const AuthLoggedOut());
+              context.go('/auth/sign-in');
+            },
           ),
         ],
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? _buildError()
+              : _buildContent(context),
+    );
+  }
+
+  Widget _buildError() => Center(
+        child: Padding(
+          padding: EdgeInsets.all(context.r(32)),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.error_outline_rounded, size: context.r(52), color: AppColors.error),
+            SizedBox(height: context.r(12)),
+            const Text('Không tải được dữ liệu',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            SizedBox(height: context.r(8)),
+            Text(_error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            SizedBox(height: context.r(20)),
+            ElevatedButton.icon(
+              icon: Icon(Icons.refresh_rounded, size: context.r(18)),
+              label: const Text('Thử lại'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: _load,
+            ),
+          ]),
+        ),
       );
 
-  Widget _buildStatsGrid() {
-    final s = _stats ?? {};
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 14,
-      crossAxisSpacing: 14,
-      childAspectRatio: 1.5,
-      children: [
-        _statCard('Tổng NV', '${s['totalEmployees'] ?? 0}', Icons.group_rounded, AppColors.primary),
-        _statCard('Đang làm', '${s['activeEmployees'] ?? 0}', Icons.how_to_reg_rounded, AppColors.success),
-        _statCard('Vào hôm nay', '${s['todayAttendance'] ?? 0}', Icons.login_rounded, AppColors.info),
-        _statCard('Đơn chờ', '${s['pendingRequests'] ?? 0}', Icons.pending_actions_rounded, AppColors.warning),
-      ],
-    );
-  }
-
-  Widget _buildPendingAccountsBanner(BuildContext context) {
-    final count = (_stats ?? {})['pendingAccounts'] as int? ?? 0;
-    if (count == 0) return const SizedBox.shrink();
-    return GestureDetector(
-      onTap: () => context.push('/app/admin/pending-accounts'),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.warningLight,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.pending_actions_rounded, color: AppColors.warning, size: 22),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '$count tài khoản đang chờ duyệt',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.warning,
-                  fontSize: 14,
-                ),
-              ),
+  Widget _buildContent(BuildContext context) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(context.r(20)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        // Header card
+        Container(
+          padding: EdgeInsets.all(context.r(18)),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: AppColors.primaryGradient,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.warning, size: 14),
+            borderRadius: BorderRadius.circular(context.r(16)),
+          ),
+          child: Row(children: [
+            Container(
+              padding: EdgeInsets.all(context.r(10)),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(context.r(12)),
+              ),
+              child: Icon(Icons.admin_panel_settings_rounded,
+                  color: Colors.white, size: context.r(26)),
+            ),
+            SizedBox(width: context.r(14)),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Tổng quan hệ thống',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: context.r(17),
+                      fontWeight: FontWeight.w700)),
+              SizedBox(height: context.r(2)),
+              Text('Dữ liệu thời gian thực',
+                  style: TextStyle(color: Colors.white70, fontSize: context.r(12))),
+            ]),
+          ]),
+        ),
+        SizedBox(height: context.r(16)),
+
+        // Pending accounts banner
+        if (_int('pendingAccounts') > 0) ...[
+          GestureDetector(
+            onTap: () => context.push('/app/admin/pending-accounts'),
+            child: Container(
+              padding: EdgeInsets.all(context.r(14)),
+              decoration: BoxDecoration(
+                color: AppColors.warningLight,
+                borderRadius: BorderRadius.circular(context.r(14)),
+                border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+              ),
+              child: Row(children: [
+                Icon(Icons.pending_actions_rounded, color: AppColors.warning, size: context.r(22)),
+                SizedBox(width: context.r(10)),
+                Expanded(
+                  child: Text(
+                    '${_int('pendingAccounts')} tài khoản đang chờ duyệt',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.warning,
+                        fontSize: context.r(14)),
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios_rounded,
+                    color: AppColors.warning, size: context.r(14)),
+              ]),
+            ),
+          ),
+          SizedBox(height: context.r(16)),
+        ],
+
+        // Stats grid
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: context.r(14),
+          crossAxisSpacing: context.r(14),
+          childAspectRatio: 1.45,
+          children: [
+            _statCard(context, 'Tổng NV', _int('totalEmployees'),
+                Icons.group_rounded, AppColors.primary),
+            _statCard(context, 'Đang làm', _int('activeEmployees'),
+                Icons.how_to_reg_rounded, AppColors.success),
+            _statCard(context, 'Vào hôm nay', _int('todayAttendance'),
+                Icons.login_rounded, AppColors.info),
+            _statCard(context, 'Đơn chờ', _int('pendingRequests'),
+                Icons.pending_actions_rounded, AppColors.warning),
           ],
         ),
-      ),
+        SizedBox(height: context.r(20)),
+
+        // Quick links row 1
+        Row(children: [
+          Expanded(
+            child: _quickCard(
+              context,
+              icon: Icons.people_alt_rounded,
+              label: 'Quản lý nhân sự',
+              color: AppColors.primary,
+              onTap: () => context.go('/app/chief'),
+            ),
+          ),
+          SizedBox(width: context.r(12)),
+          Expanded(
+            child: _quickCard(
+              context,
+              icon: Icons.manage_accounts_rounded,
+              label: 'Duyệt tài khoản',
+              color: AppColors.warning,
+              onTap: () => context.push('/app/admin/pending-accounts'),
+            ),
+          ),
+        ]),
+        SizedBox(height: context.r(12)),
+
+        // Quick links row 2
+        Row(children: [
+          Expanded(
+            child: _quickCard(
+              context,
+              icon: Icons.attach_money_rounded,
+              label: 'Issue Salary VC',
+              color: AppColors.accent,
+              onTap: () => _showIssueSalaryVcSheet(context),
+            ),
+          ),
+          SizedBox(width: context.r(12)),
+          Expanded(
+            child: _quickCard(
+              context,
+              icon: Icons.qr_code_scanner_rounded,
+              label: 'Verifier Scanner',
+              color: AppColors.info,
+              onTap: () => context.push('/app/verifier'),
+            ),
+          ),
+        ]),
+        SizedBox(height: context.r(12)),
+
+        // Ledger banner
+        Container(
+          padding: EdgeInsets.all(context.r(18)),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(context.r(18)),
+          ),
+          child: Row(children: [
+            Icon(Icons.account_tree_rounded, color: const Color(0xFF34D399), size: context.r(36)),
+            SizedBox(width: context.r(14)),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Blockchain Ledger',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: context.r(15))),
+                SizedBox(height: context.r(4)),
+                Text('Xem toàn bộ audit trail',
+                    style: TextStyle(color: Colors.white54, fontSize: context.r(12))),
+              ]),
+            ),
+            SizedBox(
+              width: context.r(72),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF34D399),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(context.r(10))),
+                  padding: EdgeInsets.symmetric(horizontal: context.r(8), vertical: context.r(8)),
+                ),
+                onPressed: () => context.go('/app/admin/ledger'),
+                child: Text('Xem',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: context.r(13))),
+              ),
+            ),
+          ]),
+        ),
+        SizedBox(height: context.r(24)),
+      ]),
     );
   }
 
-  Widget _statCard(String label, String value, IconData icon, Color color) => Container(
-        padding: const EdgeInsets.all(16),
+  Widget _statCard(BuildContext context, String label, int value, IconData icon, Color color) =>
+      Container(
+        padding: EdgeInsets.all(context.r(16)),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(context.r(16)),
           border: Border.all(color: color.withValues(alpha: 0.2)),
-          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+                color: color.withValues(alpha: 0.08),
+                blurRadius: context.r(10),
+                offset: const Offset(0, 4))
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-              child: Icon(icon, color: color, size: 18),
+              padding: EdgeInsets.all(context.r(8)),
+              decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(context.r(8))),
+              child: Icon(icon, color: color, size: context.r(18)),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(value, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: color)),
-                Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-              ],
-            ),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('$value',
+                  style: TextStyle(
+                      fontSize: context.r(26), fontWeight: FontWeight.w900, color: color)),
+              Text(label,
+                  style: TextStyle(
+                      fontSize: context.r(11), color: AppColors.textSecondary)),
+            ]),
           ],
         ),
       );
 
-  Widget _buildLedgerBanner(BuildContext context) => Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+  Widget _quickCard(BuildContext context,
+          {required IconData icon,
+          required String label,
+          required Color color,
+          required VoidCallback onTap}) =>
+      GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.all(context.r(16)),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(context.r(14)),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
+            boxShadow: [
+              BoxShadow(
+                  color: color.withValues(alpha: 0.06),
+                  blurRadius: context.r(8),
+                  offset: const Offset(0, 3))
+            ],
           ),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.account_tree_rounded, color: Color(0xFF34D399), size: 36),
-            const SizedBox(width: 14),
+          child: Row(children: [
+            Icon(icon, color: color, size: context.r(22)),
+            SizedBox(width: context.r(10)),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Blockchain Ledger', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
-                  const SizedBox(height: 4),
-                  Text('Xem toàn bộ audit trail', style: TextStyle(color: Colors.white.withValues(alpha: 0.65), fontSize: 12)),
-                ],
-              ),
+              child: Text(label,
+                  style: TextStyle(
+                      fontSize: context.r(13), fontWeight: FontWeight.w600)),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF34D399),
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              ),
-              onPressed: () => context.go('/app/admin/ledger'),
-              child: const Text('Xem', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-            ),
-          ],
+          ]),
         ),
       );
 }

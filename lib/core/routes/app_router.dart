@@ -17,6 +17,7 @@ import 'package:identity_frontend/presentation/features/admin/pending_accounts_s
 import 'package:identity_frontend/presentation/features/auth/signin_screen.dart';
 import 'package:identity_frontend/presentation/features/auth/signup_screen.dart';
 import 'package:identity_frontend/presentation/features/onboarding/onboarding_screen.dart';
+import 'package:identity_frontend/presentation/features/onboarding/profile_onboarding_screen.dart';
 import 'package:identity_frontend/presentation/features/chief/chief_screen.dart';
 import 'package:identity_frontend/presentation/features/company/company_screen.dart';
 import 'package:identity_frontend/presentation/features/contract/contract_screen.dart';
@@ -31,6 +32,8 @@ import 'package:identity_frontend/presentation/features/requests/bloc/request_ev
 import 'package:identity_frontend/presentation/features/requests/create_request_screen.dart';
 import 'package:identity_frontend/presentation/features/requests/request_list_screen.dart';
 import 'package:identity_frontend/presentation/features/splash/splash_screen.dart';
+import 'package:identity_frontend/presentation/features/wallet/wallet_screen.dart';
+import 'package:identity_frontend/presentation/features/verifier/verifier_scan_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -65,6 +68,7 @@ final appRouter = GoRouter(
     GoRoute(path: '/auth/sign-in', builder: (_, _) => const SignInScreen()),
     GoRoute(path: '/auth/sign-up', builder: (_, _) => const SignUpScreen()),
     GoRoute(path: '/auth/onboarding', builder: (_, _) => const OnboardingScreen()),
+    GoRoute(path: '/auth/onboarding/profile', builder: (_, _) => const ProfileOnboardingScreen()),
 
     // Standalone routes (pushed on top of shell)
     GoRoute(
@@ -147,6 +151,12 @@ final appRouter = GoRouter(
         // Admin
         GoRoute(path: '/app/admin', builder: (_, _) => const AdminDashboardScreen()),
         GoRoute(path: '/app/admin/pending-accounts', builder: (_, _) => const PendingAccountsScreen()),
+
+        // Wallet (all roles)
+        GoRoute(path: '/app/wallet', builder: (_, _) => const WalletScreen()),
+
+        // Verifier QR scanner (all roles)
+        GoRoute(path: '/app/verifier', builder: (_, _) => const VerifierScanScreen()),
       ],
     ),
   ],
@@ -182,6 +192,8 @@ class _AppShellState extends State<_AppShell> {
       _NavItem('/app/attendance', Icons.fingerprint_rounded, Icons.fingerprint_rounded, 'Chấm công'),
       _NavItem('/app/requests', Icons.description_outlined, Icons.description_rounded, 'Đơn từ'),
       _NavItem('/app/directory', Icons.group_outlined, Icons.group_rounded, 'Nhân viên'),
+      _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, 'Wallet'),
+      _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, 'Verifier'),
       _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, 'Hồ sơ'),
     ];
 
@@ -203,10 +215,10 @@ class _AppShellState extends State<_AppShell> {
 
     if (_role == 'ADMIN') {
       return [
-        ...base,
-        _NavItem('/app/admin', Icons.admin_panel_settings_outlined, Icons.admin_panel_settings_rounded, 'Admin'),
+        _NavItem('/app/admin', Icons.admin_panel_settings_outlined, Icons.admin_panel_settings_rounded, 'Dashboard'),
         _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, 'Nhân sự'),
         _NavItem('/app/ledger', Icons.account_tree_outlined, Icons.account_tree_rounded, 'Ledger'),
+        _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, 'Hồ sơ'),
       ];
     }
 

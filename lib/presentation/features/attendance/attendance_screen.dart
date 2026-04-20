@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/attendance_entity.dart';
 import 'bloc/attendance_bloc.dart';
 import 'bloc/attendance_event.dart';
@@ -30,13 +31,13 @@ class AttendanceScreen extends StatelessWidget {
               slivers: [
                 _buildAppBar(context),
                 SliverPadding(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(context.r(20)),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       _buildCheckCard(context, state),
-                      const SizedBox(height: 20),
+                      SizedBox(height: context.r(20)),
                       _buildTodayInfo(context, state.today),
-                      const SizedBox(height: 20),
+                      SizedBox(height: context.r(20)),
                       _buildQuickActions(context),
                     ]),
                   ),
@@ -50,7 +51,7 @@ class AttendanceScreen extends StatelessWidget {
   }
 
   SliverAppBar _buildAppBar(BuildContext context) => SliverAppBar(
-        expandedHeight: 140,
+        expandedHeight: context.r(140),
         pinned: true,
         backgroundColor: AppColors.primary,
         flexibleSpace: FlexibleSpaceBar(
@@ -62,14 +63,21 @@ class AttendanceScreen extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
             ),
-            padding: const EdgeInsets.fromLTRB(24, 60, 24, 16),
+            padding: EdgeInsets.fromLTRB(
+                context.r(24), context.r(60), context.r(24), context.r(16)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const Text('Chấm Công',
-                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700)),
-                Text(_today(), style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 13)),
+                Text('Chấm Công',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: context.r(24),
+                        fontWeight: FontWeight.w700)),
+                Text(_today(),
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: context.r(13))),
               ],
             ),
           ),
@@ -89,22 +97,34 @@ class AttendanceScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))],
+        borderRadius: BorderRadius.circular(context.r(20)),
+        boxShadow: [
+          BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: context.r(20),
+              offset: const Offset(0, 8))
+        ],
       ),
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(context.r(24)),
       child: Column(
         children: [
           StreamBuilder(
             stream: Stream.periodic(const Duration(seconds: 1)),
             builder: (context2, snap) => Text(
               _currentTime(),
-              style: const TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.w300, letterSpacing: 2),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: context.r(42),
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 2),
             ),
           ),
-          const SizedBox(height: 4),
-          Text(_today(), style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 13)),
-          const SizedBox(height: 24),
+          SizedBox(height: context.r(4)),
+          Text(_today(),
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.75),
+                  fontSize: context.r(13))),
+          SizedBox(height: context.r(24)),
           if (!hasCheckedIn)
             _actionButton(
               context,
@@ -127,18 +147,24 @@ class AttendanceScreen extends StatelessWidget {
             )
           else
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                  horizontal: context.r(20), vertical: context.r(12)),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(context.r(12)),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.check_circle_outline_rounded, color: Colors.white, size: 18),
-                  const SizedBox(width: 8),
-                  const Text('Đã hoàn thành hôm nay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                  Icon(Icons.check_circle_outline_rounded,
+                      color: Colors.white, size: context.r(18)),
+                  SizedBox(width: context.r(8)),
+                  Text('Đã hoàn thành hôm nay',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: context.r(14))),
                 ],
               ),
             ),
@@ -162,36 +188,47 @@ class AttendanceScreen extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: color,
             foregroundColor: textColor,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            padding: EdgeInsets.symmetric(vertical: context.r(14)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(context.r(12))),
             elevation: 0,
           ),
           icon: isLoading
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              ? SizedBox(
+                  width: context.r(18),
+                  height: context.r(18),
+                  child: const CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white))
               : Icon(icon),
-          label: Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+          label: Text(label,
+              style: TextStyle(
+                  fontWeight: FontWeight.w700, fontSize: context.r(15))),
           onPressed: isLoading ? null : onTap,
         ),
       );
 
   Widget _buildTodayInfo(BuildContext context, AttendanceEntity? today) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(context.r(16)),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(context.r(16)),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Hôm nay', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 12),
+          SizedBox(height: context.r(12)),
           Row(
             children: [
-              Expanded(child: _timeCell('Giờ vào', today?.checkInTime, Icons.login_rounded, AppColors.success)),
-              const SizedBox(width: 12),
-              Expanded(child: _timeCell('Giờ ra', today?.checkOutTime, Icons.logout_rounded, AppColors.error)),
+              Expanded(
+                  child: _timeCell(context, 'Giờ vào', today?.checkInTime,
+                      Icons.login_rounded, AppColors.success)),
+              SizedBox(width: context.r(12)),
+              Expanded(
+                  child: _timeCell(context, 'Giờ ra', today?.checkOutTime,
+                      Icons.logout_rounded, AppColors.error)),
             ],
           ),
         ],
@@ -199,24 +236,32 @@ class AttendanceScreen extends StatelessWidget {
     );
   }
 
-  Widget _timeCell(String label, String? time, IconData icon, Color color) => Container(
-        padding: const EdgeInsets.all(12),
+  Widget _timeCell(BuildContext context, String label, String? time,
+      IconData icon, Color color) =>
+      Container(
+        padding: EdgeInsets.all(context.r(12)),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.07),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(context.r(10)),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: color),
-            const SizedBox(width: 8),
+            Icon(icon, size: context.r(18), color: color),
+            SizedBox(width: context.r(8)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text(label,
+                      style: TextStyle(
+                          fontSize: context.r(11),
+                          color: AppColors.textSecondary)),
                   Text(
                     time != null ? _formatTime(time) : '--:--',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: time != null ? color : AppColors.inactive),
+                    style: TextStyle(
+                        fontSize: context.r(15),
+                        fontWeight: FontWeight.w700,
+                        color: time != null ? color : AppColors.inactive),
                   ),
                 ],
               ),
@@ -228,46 +273,50 @@ class AttendanceScreen extends StatelessWidget {
   Widget _buildQuickActions(BuildContext context) => Row(
         children: [
           Expanded(
-            child: _quickBtn(
-              context,
-              icon: Icons.calendar_month_rounded,
-              label: 'Lịch sử',
-              color: AppColors.info,
-              onTap: () => context.go('/app/attendance/history'),
-            ),
+            child: _quickBtn(context,
+                icon: Icons.calendar_month_rounded,
+                label: 'Lịch sử',
+                color: AppColors.info,
+                onTap: () => context.go('/app/attendance/history')),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: context.r(12)),
           Expanded(
-            child: _quickBtn(
-              context,
-              icon: Icons.table_chart_outlined,
-              label: 'Bảng công',
-              color: AppColors.accent,
-              onTap: () => context.go('/app/attendance/timesheet'),
-            ),
+            child: _quickBtn(context,
+                icon: Icons.table_chart_outlined,
+                label: 'Bảng công',
+                color: AppColors.accent,
+                onTap: () => context.go('/app/attendance/timesheet')),
           ),
         ],
       );
 
-  Widget _quickBtn(BuildContext context, {required IconData icon, required String label, required Color color, required VoidCallback onTap}) =>
+  Widget _quickBtn(BuildContext context,
+          {required IconData icon,
+          required String label,
+          required Color color,
+          required VoidCallback onTap}) =>
       GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(context.r(16)),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(context.r(14)),
             border: Border.all(color: AppColors.border),
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                child: Icon(icon, color: color, size: 18),
+                padding: EdgeInsets.all(context.r(8)),
+                decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(context.r(8))),
+                child: Icon(icon, color: color, size: context.r(18)),
               ),
-              const SizedBox(width: 10),
-              Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              SizedBox(width: context.r(10)),
+              Text(label,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: context.r(13))),
             ],
           ),
         ),

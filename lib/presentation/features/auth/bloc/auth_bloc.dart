@@ -34,6 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await SecureStorage.saveUserId(auth.id);
       await SecureStorage.saveUserEmail(auth.email);
       await SecureStorage.saveUserRole(auth.role);
+      if (auth.phone != null) await SecureStorage.saveUserPhone(auth.phone!);
       emit(state.copyWith(status: AuthStatus.success, auth: auth));
     } catch (e) {
       emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()));
@@ -50,7 +51,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       await SecureStorage.saveToken(auth.token);
       await SecureStorage.saveUserId(auth.id);
-      await SecureStorage.saveUserEmail(auth.email);
+      await SecureStorage.saveUserEmail(event.email);
+      await SecureStorage.saveUserPhone(event.phone);
       emit(state.copyWith(status: AuthStatus.signedUp, auth: auth));
     } catch (e) {
       emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()));

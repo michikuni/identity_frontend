@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/di/injection.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/ledger_entity.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/presentation/features/ledger/bloc/ledger_bloc.dart';
@@ -36,12 +37,19 @@ class _LedgerViewState extends State<_LedgerView> {
   }
 
   Future<void> _loadRecords() async {
-    final empId = await SecureStorage.getUserId();
     if (!mounted) return;
-    if (empId != null && empId.isNotEmpty) {
-      context.read<LedgerBloc>().add(LedgerFetchForEmployee(empId));
-    } else {
+    final role = await SecureStorage.getUserRole() ?? 'EMPLOYEE';
+    if (!mounted) return;
+    if (role == 'ADMIN' || role == 'CHIEF') {
       context.read<LedgerBloc>().add(const LedgerFetchAll());
+    } else {
+      final empId = await SecureStorage.getUserId();
+      if (!mounted) return;
+      if (empId != null && empId.isNotEmpty) {
+        context.read<LedgerBloc>().add(LedgerFetchForEmployee(empId));
+      } else {
+        context.read<LedgerBloc>().add(const LedgerFetchAll());
+      }
     }
   }
 
@@ -82,14 +90,15 @@ class _LedgerViewState extends State<_LedgerView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(context.r(16)),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.link_off_rounded, size: 40, color: AppColors.primary),
+                    child: Icon(Icons.link_off_rounded,
+                        size: context.r(40), color: AppColors.primary),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: context.r(16)),
                   Text(l10n.ledgerNoData,
                       style: const TextStyle(color: AppColors.textSecondary)),
                 ],
@@ -102,39 +111,41 @@ class _LedgerViewState extends State<_LedgerView> {
     );
   }
 
-  Widget _buildList(BuildContext context, AppLocalizations l10n, List<LedgerRecordEntity> records) {
+  Widget _buildList(BuildContext context, AppLocalizations l10n,
+      List<LedgerRecordEntity> records) {
     return CustomScrollView(
       slivers: [
-        // ── Blockchain banner ────────────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(context.r(16)),
             child: GradientCard(
               gradient: const [Color(0xFF1A237E), Color(0xFF4A148C)],
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: EdgeInsets.all(context.r(10)),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(context.r(12)),
                     ),
-                    child: const Icon(Icons.link_rounded, color: Colors.white, size: 24),
+                    child: Icon(Icons.link_rounded,
+                        color: Colors.white, size: context.r(24)),
                   ),
-                  const SizedBox(width: 14),
+                  SizedBox(width: context.r(14)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Hyperledger Fabric',
+                        Text('Hyperledger Fabric',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
-                                fontSize: 15)),
+                                fontSize: context.r(15))),
                         Text(
                           '${records.length} ${l10n.ledgerRecords}',
                           style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.75), fontSize: 12),
+                              color: Colors.white.withValues(alpha: 0.75),
+                              fontSize: context.r(12)),
                         ),
                       ],
                     ),
@@ -146,11 +157,12 @@ class _LedgerViewState extends State<_LedgerView> {
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          padding: EdgeInsets.fromLTRB(
+              context.r(16), 0, context.r(16), context.r(24)),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: EdgeInsets.only(bottom: context.r(10)),
                 child: _RecordCard(record: records[index], l10n: l10n),
               ),
               childCount: records.length,
@@ -179,65 +191,72 @@ class _RecordCard extends StatelessWidget {
     };
 
     return AppCard(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(context.r(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: EdgeInsets.symmetric(
+                    horizontal: context.r(10), vertical: context.r(5)),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(context.r(8)),
                 ),
                 child: Text(
                   record.recordType,
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: AppColors.primary,
-                      fontSize: 12,
+                      fontSize: context.r(12),
                       fontWeight: FontWeight.w700),
                 ),
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(
+                    horizontal: context.r(8), vertical: context.r(4)),
                 decoration: BoxDecoration(
                   color: actionColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(context.r(6)),
                 ),
                 child: Text(record.action,
                     style: TextStyle(
-                        color: actionColor, fontSize: 11, fontWeight: FontWeight.w600)),
+                        color: actionColor,
+                        fontSize: context.r(11),
+                        fontWeight: FontWeight.w600)),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: context.r(6)),
               StatusBadge(
                 label: isActive ? l10n.ledgerActive : l10n.ledgerDeleted,
                 type: isActive ? BadgeType.success : BadgeType.error,
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: context.r(12)),
           if (record.timestamp != null)
             Row(
               children: [
-                const Icon(Icons.access_time_rounded, size: 13, color: AppColors.inactive),
-                const SizedBox(width: 4),
+                Icon(Icons.access_time_rounded,
+                    size: context.r(13), color: AppColors.inactive),
+                SizedBox(width: context.r(4)),
                 Text(record.timestamp!,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    style: TextStyle(
+                        fontSize: context.r(12), color: AppColors.textSecondary)),
               ],
             ),
           if (record.dataHash != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: context.r(8)),
             Row(
               children: [
-                const Icon(Icons.fingerprint_rounded, size: 13, color: AppColors.inactive),
-                const SizedBox(width: 4),
+                Icon(Icons.fingerprint_rounded,
+                    size: context.r(13), color: AppColors.inactive),
+                SizedBox(width: context.r(4)),
                 Expanded(
                   child: Text(
                     record.dataHash!,
-                    style: const TextStyle(
-                        fontSize: 11,
+                    style: TextStyle(
+                        fontSize: context.r(11),
                         color: AppColors.textHint,
                         fontFamily: 'monospace'),
                     overflow: TextOverflow.ellipsis,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/directory_entity.dart';
 import 'package:identity_frontend/domain/usecases/directory_usecase.dart';
 
@@ -76,24 +77,29 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
         title: const Text('Danh sách nhân viên'),
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
+          preferredSize: Size.fromHeight(context.r(56)),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            padding: EdgeInsets.fromLTRB(
+                context.r(16), 0, context.r(16), context.r(10)),
             child: TextField(
               controller: _searchCtrl,
               onChanged: (q) => context.read<DirectoryBloc>().search(q),
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Tìm tên, phòng ban, chức vụ...',
-                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
-                prefixIcon: Icon(Icons.search_rounded, color: Colors.white.withValues(alpha: 0.7), size: 20),
+                hintStyle:
+                    TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                prefixIcon: Icon(Icons.search_rounded,
+                    color: Colors.white.withValues(alpha: 0.7),
+                    size: context.r(20)),
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: 0.15),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(context.r(10)),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: context.r(10)),
               ),
             ),
           ),
@@ -103,20 +109,24 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
         builder: (context, state) {
           if (state.loading) return const Center(child: CircularProgressIndicator());
           if (state.items.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.group_off_rounded, size: 56, color: AppColors.inactive),
-                SizedBox(height: 12),
-                Text('Không tìm thấy', style: TextStyle(color: AppColors.textSecondary)),
+                Icon(Icons.group_off_rounded,
+                    size: context.r(56), color: AppColors.inactive),
+                SizedBox(height: context.r(12)),
+                Text('Không tìm thấy',
+                    style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: context.r(14))),
               ]),
             );
           }
           return RefreshIndicator(
             onRefresh: () => context.read<DirectoryBloc>().load(),
             child: ListView.separated(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(context.r(16)),
               itemCount: state.items.length,
-              separatorBuilder: (_, idx) => const SizedBox(height: 10),
+              separatorBuilder: (_, idx) => SizedBox(height: context.r(10)),
               itemBuilder: (_, i) => _EmployeeCard(item: state.items[i]),
             ),
           );
@@ -134,36 +144,52 @@ class _EmployeeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final roleColor = _roleColor(item.role);
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(context.r(14)),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(context.r(14)),
         border: Border.all(color: AppColors.border),
-        boxShadow: [BoxShadow(color: AppColors.shadowLight, blurRadius: 6, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: AppColors.shadowLight,
+              blurRadius: context.r(6),
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 24,
+            radius: context.r(24),
             backgroundColor: AppColors.primary.withValues(alpha: 0.12),
             child: Text(
               item.initials,
-              style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 16),
+              style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                  fontSize: context.r(16)),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: context.r(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                const SizedBox(height: 2),
-                Text(item.position, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                const SizedBox(height: 4),
+                Text(item.name,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: context.r(14))),
+                SizedBox(height: context.r(2)),
+                Text(item.position,
+                    style: TextStyle(
+                        fontSize: context.r(12),
+                        color: AppColors.textSecondary)),
+                SizedBox(height: context.r(4)),
                 Row(children: [
-                  _chip(Icons.corporate_fare_rounded, item.department, AppColors.info),
-                  const SizedBox(width: 6),
-                  _chip(Icons.shield_outlined, _roleLabel(item.role), roleColor),
+                  _chip(context, Icons.corporate_fare_rounded,
+                      item.department, AppColors.info),
+                  SizedBox(width: context.r(6)),
+                  _chip(context, Icons.shield_outlined,
+                      _roleLabel(item.role), roleColor),
                 ]),
               ],
             ),
@@ -173,16 +199,21 @@ class _EmployeeCard extends StatelessWidget {
     );
   }
 
-  Widget _chip(IconData icon, String label, Color color) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+  Widget _chip(BuildContext context, IconData icon, String label, Color color) => Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: context.r(7), vertical: context.r(3)),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(context.r(6)),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 11, color: color),
-          const SizedBox(width: 4),
-          Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
+          Icon(icon, size: context.r(11), color: color),
+          SizedBox(width: context.r(4)),
+          Text(label,
+              style: TextStyle(
+                  fontSize: context.r(10),
+                  fontWeight: FontWeight.w600,
+                  color: color)),
         ]),
       );
 

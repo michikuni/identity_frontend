@@ -20,17 +20,15 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   ) async {
     emit(state.copyWith(status: OnboardingStatus.loading));
     try {
-      final now = DateTime.now().toIso8601String();
       await _employeeUseCase.createEmployee({
         'department': event.department,
         'position': event.position,
         'status': 'ACTIVE',
         'workingType': event.workingType,
         'isActive': true,
-        'createdAt': now,
-        'updatedAt': now,
         'createdBy': event.createdBy,
         'note': event.note,
+        if (event.publicKeyJwk != null) 'publicKeyJwk': event.publicKeyJwk,
       });
       emit(state.copyWith(status: OnboardingStatus.success));
     } catch (e) {

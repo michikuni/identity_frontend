@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/request_entity.dart';
 import 'package:identity_frontend/presentation/features/requests/bloc/request_bloc.dart';
 import 'package:identity_frontend/presentation/features/requests/bloc/request_event.dart';
@@ -61,20 +62,21 @@ class _ManagerRequestsScreenState extends State<ManagerRequestsScreen> {
 
   Widget _buildList(BuildContext context, List<RequestEntity> items, {required bool showActions}) {
     if (items.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.task_alt_rounded, size: 56, color: AppColors.inactive),
-          SizedBox(height: 12),
-          Text('Không có đơn nào', style: TextStyle(color: AppColors.textSecondary)),
+          Icon(Icons.task_alt_rounded, size: context.r(56), color: AppColors.inactive),
+          SizedBox(height: context.r(12)),
+          Text('Không có đơn nào',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: context.r(14))),
         ]),
       );
     }
     return RefreshIndicator(
       onRefresh: () async => context.read<RequestBloc>().add(const RequestFetchSubordinate()),
       child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(context.r(16)),
         itemCount: items.length,
-        separatorBuilder: (_, idx) => const SizedBox(height: 12),
+        separatorBuilder: (_, idx) => SizedBox(height: context.r(12)),
         itemBuilder: (_, i) => _ApprovalCard(item: items[i], showActions: showActions),
       ),
     );
@@ -91,52 +93,70 @@ class _ApprovalCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(context.r(14)),
         border: Border.all(color: AppColors.border),
-        boxShadow: [BoxShadow(color: AppColors.shadowLight, blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: AppColors.shadowLight,
+              blurRadius: context.r(8),
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Container(
-            padding: const EdgeInsets.all(14),
-            decoration: const BoxDecoration(
+            padding: EdgeInsets.all(context.r(14)),
+            decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+              borderRadius:
+                  BorderRadius.vertical(top: Radius.circular(context.r(14))),
             ),
             child: Row(children: [
               CircleAvatar(
-                radius: 18,
+                radius: context.r(18),
                 backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                 child: Text(
                   (item.approverName ?? '?')[0].toUpperCase(),
-                  style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 13),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                      fontSize: context.r(13)),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: context.r(10)),
               Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(_typeLabel(item.requestType), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                  Text('${item.startDate} → ${item.endDate}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                ]),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_typeLabel(item.requestType),
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: context.r(13))),
+                      Text('${item.startDate} → ${item.endDate}',
+                          style: TextStyle(
+                              fontSize: context.r(11),
+                              color: AppColors.textSecondary)),
+                    ]),
               ),
               _StatusBadge(status: item.status),
             ]),
           ),
           const Divider(height: 1),
           Padding(
-            padding: const EdgeInsets.all(14),
-            child: Text(item.reason, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            padding: EdgeInsets.all(context.r(14)),
+            child: Text(item.reason,
+                style: TextStyle(
+                    fontSize: context.r(13), color: AppColors.textSecondary)),
           ),
           if (showActions) ...[
             const Divider(height: 1),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(context.r(12)),
               child: Row(children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.close_rounded, size: 16),
+                    icon: Icon(Icons.close_rounded, size: context.r(16)),
                     label: const Text('Từ chối'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.error,
@@ -145,16 +165,17 @@ class _ApprovalCard extends StatelessWidget {
                     onPressed: () => _showRejectDialog(context, item.id!),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: context.r(10)),
                 Expanded(
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.check_rounded, size: 16),
+                    icon: Icon(Icons.check_rounded, size: context.r(16)),
                     label: const Text('Duyệt'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.success,
                       foregroundColor: Colors.white,
                     ),
-                    onPressed: () => context.read<RequestBloc>().add(RequestApprove(item.id!)),
+                    onPressed: () =>
+                        context.read<RequestBloc>().add(RequestApprove(item.id!)),
                   ),
                 ),
               ]),
@@ -217,12 +238,17 @@ class _StatusBadge extends StatelessWidget {
       _ => 'Chờ duyệt',
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(
+          horizontal: context.r(10), vertical: context.r(4)),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(context.r(20)),
       ),
-      child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: context.r(11),
+              fontWeight: FontWeight.w700,
+              color: color)),
     );
   }
 }

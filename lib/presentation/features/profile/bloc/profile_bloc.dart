@@ -13,6 +13,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       : _profileUseCase = profileUseCase,
         super(const ProfileState()) {
     on<ProfileFetch>(_onFetch);
+    on<ProfileCreate>(_onCreate);
     on<ProfileUpdate>(_onUpdate);
   }
 
@@ -20,6 +21,16 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
     try {
       final profile = await _profileUseCase.getProfile();
+      emit(state.copyWith(status: ProfileStatus.success, profile: profile));
+    } catch (e) {
+      emit(state.copyWith(status: ProfileStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onCreate(ProfileCreate event, Emitter<ProfileState> emit) async {
+    emit(state.copyWith(status: ProfileStatus.loading));
+    try {
+      final profile = await _profileUseCase.createProfile(event.data);
       emit(state.copyWith(status: ProfileStatus.success, profile: profile));
     } catch (e) {
       emit(state.copyWith(status: ProfileStatus.failure, errorMessage: e.toString()));

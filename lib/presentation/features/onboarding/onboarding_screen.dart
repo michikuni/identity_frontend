@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/di/injection.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/wallet/wallet_service.dart';
 import 'package:identity_frontend/presentation/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:identity_frontend/presentation/widgets/app_input.dart';
 import 'package:identity_frontend/presentation/widgets/primary_button.dart';
@@ -46,6 +47,8 @@ class _OnboardingViewState extends State<_OnboardingView> {
 
   Future<void> _submit() async {
     if (_formKey.currentState?.validate() != true) return;
+    // Sinh keypair P-256 khi onboarding — idempotent nếu đã có
+    final publicKeyJwk = await WalletService.generateAndSave();
     final email = await SecureStorage.getUserEmail() ?? '';
     if (!mounted) return;
     context.read<OnboardingBloc>().add(OnboardingSubmitted(
@@ -54,6 +57,7 @@ class _OnboardingViewState extends State<_OnboardingView> {
           workingType: _workingType,
           createdBy: email,
           note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
+          publicKeyJwk: publicKeyJwk,
         ));
   }
 
@@ -62,7 +66,7 @@ class _OnboardingViewState extends State<_OnboardingView> {
     return BlocListener<OnboardingBloc, OnboardingState>(
       listener: (context, state) {
         if (state.status == OnboardingStatus.success) {
-          context.go('/app/home');
+          context.go('/auth/onboarding/profile');
         } else if (state.status == OnboardingStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(state.errorMessage ?? 'Có lỗi xảy ra, vui lòng thử lại'),

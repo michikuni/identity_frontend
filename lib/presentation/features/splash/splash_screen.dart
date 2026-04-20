@@ -37,7 +37,15 @@ class _SplashScreenState extends State<SplashScreen>
     final isLoggedIn = await SecureStorage.isLoggedIn();
     if (!mounted) return;
     if (isLoggedIn) {
-      context.go('/app/home');
+      final role = await SecureStorage.getUserRole() ?? 'EMPLOYEE';
+      if (!mounted) return;
+      if (role == 'ADMIN') {
+        context.go('/app/admin');
+      } else if (role == 'CHIEF') {
+        context.go('/app/chief');
+      } else {
+        context.go('/app/home');
+      }
     } else {
       context.go('/auth/sign-in');
     }

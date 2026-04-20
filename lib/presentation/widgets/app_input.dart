@@ -15,6 +15,7 @@ class AppInput extends StatefulWidget {
   final void Function(String)? onChanged;
   final void Function()? onTap;
   final String? initialValue;
+  final String? Function(String?)? validator;
 
   const AppInput({
     super.key,
@@ -31,6 +32,7 @@ class AppInput extends StatefulWidget {
     this.onChanged,
     this.onTap,
     this.initialValue,
+    this.validator,
   });
 
   @override
@@ -65,6 +67,7 @@ class _AppInputState extends State<AppInput> {
           maxLines: widget.isPassword ? 1 : widget.maxLines,
           onChanged: widget.onChanged,
           onTap: widget.onTap,
+          validator: widget.validator,
           style: const TextStyle(
             fontSize: 15,
             color: AppColors.textPrimary,

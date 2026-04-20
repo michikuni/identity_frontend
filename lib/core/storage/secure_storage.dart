@@ -11,6 +11,18 @@ class SecureStorage {
   static const _userIdKey = 'user_id';
   static const _userEmailKey = 'user_email';
   static const _userRoleKey = 'user_role';
+  static const _userPhoneKey = 'user_phone';
+
+  // DID wallet keys
+  static const _privateKeyHexKey = 'did_private_key_hex';
+  static const _publicKeyJwkKey = 'did_public_key_jwk';
+  static const _didKey = 'did_identifier';
+
+  // VC wallet keys
+  static const _employmentVcKey = 'vc_employment';
+  static const _terminationVcKey = 'vc_termination';
+  static const _salaryRangeVcKey = 'vc_salary_range';
+  static const _promotionVcKey   = 'vc_promotion';
 
   static Future<void> saveToken(String token) async {
     await _storage.write(key: _tokenKey, value: token);
@@ -36,6 +48,14 @@ class SecureStorage {
     return _storage.read(key: _userEmailKey);
   }
 
+  static Future<void> saveUserPhone(String phone) async {
+    await _storage.write(key: _userPhoneKey, value: phone);
+  }
+
+  static Future<String?> getUserPhone() async {
+    return _storage.read(key: _userPhoneKey);
+  }
+
   static Future<void> saveUserRole(String role) async {
     await _storage.write(key: _userRoleKey, value: role);
   }
@@ -51,5 +71,65 @@ class SecureStorage {
 
   static Future<void> clearAll() async {
     await _storage.deleteAll();
+  }
+
+  // ── DID Wallet ──────────────────────────────────────────────────────────────
+
+  static Future<void> savePrivateKeyHex(String hex) async {
+    await _storage.write(key: _privateKeyHexKey, value: hex);
+  }
+
+  static Future<String?> getPrivateKeyHex() async {
+    return _storage.read(key: _privateKeyHexKey);
+  }
+
+  static Future<void> savePublicKeyJwk(String jwk) async {
+    await _storage.write(key: _publicKeyJwkKey, value: jwk);
+  }
+
+  static Future<String?> getPublicKeyJwk() async {
+    return _storage.read(key: _publicKeyJwkKey);
+  }
+
+  static Future<void> saveDid(String did) async {
+    await _storage.write(key: _didKey, value: did);
+  }
+
+  static Future<String?> getDid() async {
+    return _storage.read(key: _didKey);
+  }
+
+  // ── Verifiable Credentials ──────────────────────────────────────────────────
+
+  static Future<void> saveEmploymentVC(String vcJson) async {
+    await _storage.write(key: _employmentVcKey, value: vcJson);
+  }
+
+  static Future<String?> getEmploymentVC() async {
+    return _storage.read(key: _employmentVcKey);
+  }
+
+  static Future<void> saveTerminationVC(String vcJson) async {
+    await _storage.write(key: _terminationVcKey, value: vcJson);
+  }
+
+  static Future<String?> getTerminationVC() async {
+    return _storage.read(key: _terminationVcKey);
+  }
+
+  static Future<void> saveSalaryRangeVC(String vcJson) async {
+    await _storage.write(key: _salaryRangeVcKey, value: vcJson);
+  }
+
+  static Future<String?> getSalaryRangeVC() async {
+    return _storage.read(key: _salaryRangeVcKey);
+  }
+
+  static Future<void> savePromotionVC(String vcJson) async {
+    await _storage.write(key: _promotionVcKey, value: vcJson);
+  }
+
+  static Future<String?> getPromotionVC() async {
+    return _storage.read(key: _promotionVcKey);
   }
 }

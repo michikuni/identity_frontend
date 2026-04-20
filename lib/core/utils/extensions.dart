@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:identity_frontend/core/themes/app_dimensions.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
 
 extension BuildContextX on BuildContext {
@@ -10,6 +11,11 @@ extension BuildContextX on BuildContext {
   double get screenWidth => MediaQuery.of(this).size.width;
   double get screenHeight => MediaQuery.of(this).size.height;
   EdgeInsets get padding => MediaQuery.of(this).padding;
+
+  /// Normalize a design value to the current screen density.
+  double r(double value) => AppDimensions.normalize(this, value);
+
+  ScreenType get screenType => AppDimensions.screenType(this);
 }
 
 extension StringX on String {

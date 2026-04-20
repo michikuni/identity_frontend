@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/di/injection.dart';
+import 'package:identity_frontend/core/locale/locale_cubit.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/employee_entity.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/presentation/features/auth/bloc/auth_bloc.dart';
@@ -60,7 +62,7 @@ class _HomeView extends StatelessWidget {
 
   Widget _buildAppBar(BuildContext context, AppLocalizations l10n, HomeState state) {
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: context.r(200),
       pinned: true,
       backgroundColor: AppColors.primary,
       flexibleSpace: FlexibleSpaceBar(
@@ -72,7 +74,8 @@ class _HomeView extends StatelessWidget {
               end: Alignment.bottomRight,
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(24, 60, 24, 20),
+          padding: EdgeInsets.fromLTRB(
+              context.r(24), context.r(60), context.r(24), context.r(20)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.end,
@@ -80,15 +83,16 @@ class _HomeView extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: context.r(48),
+                    height: context.r(48),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.person_outline, color: Colors.white, size: 26),
+                    child: Icon(Icons.person_outline,
+                        color: Colors.white, size: context.r(26)),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: context.r(12)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,14 +101,14 @@ class _HomeView extends StatelessWidget {
                           l10n.homeGreeting,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 13,
+                            fontSize: context.r(13),
                           ),
                         ),
                         Text(
                           state.employee?.email ?? '—',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 17,
+                            fontSize: context.r(17),
                             fontWeight: FontWeight.w700,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -112,8 +116,42 @@ class _HomeView extends StatelessWidget {
                       ],
                     ),
                   ),
+                  BlocBuilder<LocaleCubit, Locale>(
+                    builder: (context, locale) {
+                      final isVi = locale.languageCode == 'vi';
+                      return GestureDetector(
+                        onTap: () => context.read<LocaleCubit>().toggle(),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: context.r(10), vertical: context.r(5)),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(context.r(20)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(isVi ? '🇻🇳' : '🇺🇸',
+                                  style: TextStyle(fontSize: context.r(13))),
+                              SizedBox(width: context.r(4)),
+                              Text(
+                                isVi ? 'VI' : 'EN',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: context.r(11),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(width: context.r(8)),
                   IconButton(
-                    icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 22),
+                    icon: Icon(Icons.logout_rounded,
+                        color: Colors.white, size: context.r(22)),
                     tooltip: l10n.logout,
                     onPressed: () {
                       context.read<AuthBloc>().add(const AuthLoggedOut());
@@ -122,12 +160,12 @@ class _HomeView extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: context.r(12)),
               Text(
                 l10n.homeSubtitle,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.75),
-                  fontSize: 13,
+                  fontSize: context.r(13),
                 ),
               ),
             ],
@@ -139,10 +177,9 @@ class _HomeView extends StatelessWidget {
 
   Widget _buildContent(BuildContext context, AppLocalizations l10n, EmployeeEntity emp) {
     return SliverPadding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(context.r(16)),
       sliver: SliverList(
         delegate: SliverChildListDelegate([
-          // ── Employee Card ──────────────────────────────────────────────
           GradientCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,18 +192,18 @@ class _HomeView extends StatelessWidget {
                         children: [
                           Text(
                             emp.position,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
+                              fontSize: context.r(18),
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: context.r(4)),
                           Text(
                             emp.department,
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.75),
-                              fontSize: 14,
+                              fontSize: context.r(14),
                             ),
                           ),
                         ],
@@ -175,27 +212,26 @@ class _HomeView extends StatelessWidget {
                     StatusBadge.fromStatus(emp.status),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: context.r(20)),
                 Row(
                   children: [
-                    _statItem(Icons.work_outline_rounded, l10n.homeWorkingType, emp.workingType),
-                    const SizedBox(width: 16),
-                    _statItem(Icons.badge_outlined, l10n.homeEmployee, emp.role),
+                    _statItem(context, Icons.work_outline_rounded, l10n.homeWorkingType, emp.workingType),
+                    SizedBox(width: context.r(16)),
+                    _statItem(context, Icons.badge_outlined, l10n.homeEmployee, emp.role),
                   ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          // ── Quick Access ───────────────────────────────────────────────
+          SizedBox(height: context.r(16)),
           Text(l10n.homeQuickAccess, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
+          SizedBox(height: context.r(12)),
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
+            mainAxisSpacing: context.r(12),
+            crossAxisSpacing: context.r(12),
             childAspectRatio: 1.6,
             children: [
               _quickCard(context, Icons.person_outlined, l10n.navProfile, '/app/profile', AppColors.info),
@@ -204,8 +240,7 @@ class _HomeView extends StatelessWidget {
               _quickCard(context, Icons.link_rounded, l10n.navLedger, '/app/ledger', AppColors.primaryLight),
             ],
           ),
-          const SizedBox(height: 16),
-          // ── Details ────────────────────────────────────────────────────
+          SizedBox(height: context.r(16)),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,54 +248,57 @@ class _HomeView extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(7),
+                      padding: EdgeInsets.all(context.r(7)),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(context.r(8)),
                       ),
-                      child: const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                      child: Icon(Icons.info_outline_rounded,
+                          size: context.r(16), color: AppColors.primary),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: context.r(10)),
                     Text(l10n.homeEmployee, style: Theme.of(context).textTheme.titleMedium),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: context.r(12)),
                 const Divider(),
-                _detailRow(l10n.homeDepartment, emp.department),
-                _detailRow(l10n.homePosition, emp.position),
-                _detailRow(l10n.homeWorkingType, emp.workingType),
+                _detailRow(context, l10n.homeDepartment, emp.department),
+                _detailRow(context, l10n.homePosition, emp.position),
+                _detailRow(context, l10n.homeWorkingType, emp.workingType),
                 if (emp.createdAt != null)
-                  _detailRow(l10n.homeJoinedDate, '${emp.createdAt!.day}/${emp.createdAt!.month}/${emp.createdAt!.year}'),
+                  _detailRow(context, l10n.homeJoinedDate,
+                      '${emp.createdAt!.day}/${emp.createdAt!.month}/${emp.createdAt!.year}'),
                 if (emp.note != null && emp.note!.isNotEmpty)
-                  _detailRow(l10n.homeNote, emp.note!, showDivider: false),
+                  _detailRow(context, l10n.homeNote, emp.note!, showDivider: false),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: context.r(24)),
         ]),
       ),
     );
   }
 
-  Widget _statItem(IconData icon, String label, String value) {
+  Widget _statItem(BuildContext context, IconData icon, String label, String value) {
     return Expanded(
       child: Row(
         children: [
-          Icon(icon, color: Colors.white.withValues(alpha: 0.7), size: 16),
-          const SizedBox(width: 6),
+          Icon(icon, color: Colors.white.withValues(alpha: 0.7), size: context.r(16)),
+          SizedBox(width: context.r(6)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11),
-                ),
-                Text(
-                  value,
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(label,
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: context.r(11))),
+                Text(value,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: context.r(13),
+                        fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -272,22 +310,22 @@ class _HomeView extends StatelessWidget {
   Widget _quickCard(BuildContext context, IconData icon, String label, String route, Color color) {
     return AppCard(
       onTap: () => context.go(route),
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(context.r(14)),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(context.r(8)),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(context.r(10)),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: context.r(20)),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: context.r(10)),
           Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: context.r(13),
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
@@ -297,22 +335,25 @@ class _HomeView extends StatelessWidget {
     );
   }
 
-  Widget _detailRow(String label, String value, {bool showDivider = true}) {
+  Widget _detailRow(BuildContext context, String label, String value,
+      {bool showDivider = true}) {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: EdgeInsets.symmetric(vertical: context.r(10)),
           child: Row(
             children: [
               Expanded(
                 flex: 4,
                 child: Text(label,
-                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                    style: TextStyle(
+                        fontSize: context.r(13), color: AppColors.textSecondary)),
               ),
               Expanded(
                 flex: 6,
                 child: Text(value,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: context.r(13), fontWeight: FontWeight.w500),
                     textAlign: TextAlign.right),
               ),
             ],

@@ -35,6 +35,12 @@ dependencies:
   # Preferences
   shared_preferences: ^2.3.4
 
+  # Cryptography — ECDSA P-256 keypair for DID wallet
+  pointycastle: ^4.0.0
+
+  # QR Code generation — export VC as QR
+  qr_flutter: ^4.1.0
+
   # UI
   flutter_svg: ^2.2.4
   mobile_scanner: ^7.2.0
