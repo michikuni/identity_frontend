@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/di/injection.dart';
+import 'package:identity_frontend/core/firebase/analytics_route_observer.dart';
+import 'package:identity_frontend/core/firebase/repositories/i_analytics_service.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/domain/usecases/attendance_usecase.dart';
@@ -35,8 +37,9 @@ import 'package:identity_frontend/presentation/features/splash/splash_screen.dar
 import 'package:identity_frontend/presentation/features/wallet/wallet_screen.dart';
 import 'package:identity_frontend/presentation/features/verifier/verifier_scan_screen.dart';
 
-final appRouter = GoRouter(
+GoRouter createAppRouter(IAnalyticsService analytics) => GoRouter(
   initialLocation: '/',
+  observers: [AnalyticsRouteObserver(analytics)],
   redirect: (context, state) async {
     final isLoggedIn = await SecureStorage.isLoggedIn();
     final loc = state.matchedLocation;

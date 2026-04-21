@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/di/injection.dart';
+import 'package:identity_frontend/core/firebase/repositories/i_analytics_service.dart';
+import 'package:identity_frontend/core/firebase/repositories/i_crashlytics_service.dart';
 import 'package:identity_frontend/core/locale/locale_cubit.dart';
 import 'package:identity_frontend/core/routes/app_router.dart';
 import 'package:identity_frontend/core/themes/app_theme.dart';
@@ -23,12 +25,16 @@ void main() async {
     statusBarIconBrightness: Brightness.dark,
   ));
 
+  // Firebase init + DI nằm trong configureDependencies()
   await configureDependencies();
 
   final localeCubit = LocaleCubit();
   await localeCubit.load();
 
-  runApp(TrustIdApp(localeCubit: localeCubit));
+  // runZonedGuarded bắt async errors trong zone của runApp
+  sl<ICrashlyticsService>().runWithCrashReporting(() {
+    runApp(TrustIdApp(localeCubit: localeCubit));
+  });
 }
 
 class TrustIdApp extends StatelessWidget {
@@ -52,7 +58,7 @@ class TrustIdApp extends StatelessWidget {
           title: 'TrustID',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
-          routerConfig: appRouter,
+          routerConfig: createAppRouter(sl<IAnalyticsService>()),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: locale,

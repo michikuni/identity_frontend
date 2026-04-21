@@ -1,4 +1,9 @@
 import 'package:get_it/get_it.dart';
+import 'package:identity_frontend/core/firebase/firebase_module.dart';
+import 'package:identity_frontend/core/firebase/repositories/i_analytics_service.dart';
+import 'package:identity_frontend/core/firebase/repositories/i_crashlytics_service.dart';
+import 'package:identity_frontend/core/firebase/repositories/i_fcm_service.dart';
+import 'package:identity_frontend/core/firebase/repositories/i_remote_config_service.dart';
 import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/data/datasources/remote/attendance_datasource.dart';
 import 'package:identity_frontend/data/datasources/remote/auth_datasource.dart';
@@ -37,7 +42,16 @@ import 'package:identity_frontend/domain/usecases/request_usecase.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> configureDependencies() async {
-  ApiClient.init();
+  // ─── Firebase (async init, đăng ký qua interface để có thể mock trong test) ─
+  final firebase = await FirebaseModule.init();
+
+  sl.registerSingleton<IRemoteConfigService>(firebase.remoteConfig);
+  sl.registerSingleton<ICrashlyticsService>(firebase.crashlytics);
+  sl.registerSingleton<IFcmService>(firebase.fcm);
+  sl.registerSingleton<IAnalyticsService>(firebase.analytics);
+
+  // ─── Network (baseUrl lấy từ RemoteConfig đã resolved) ────────────────────
+  ApiClient.init(baseUrl: firebase.remoteConfig.activeBaseUrl);
 
   // ─── Data Sources ─────────────────────────────────────────────────────────
   sl.registerLazySingleton<AuthRemoteDataSource>(

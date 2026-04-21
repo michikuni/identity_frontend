@@ -9,14 +9,15 @@ class ApiClient {
   static bool _initialized = false;
 
   static Dio get instance {
-    if (!_initialized) init();
+    assert(_initialized, 'ApiClient.init(baseUrl) must be called before use');
     return _dio;
   }
 
-  static void init() {
+  // baseUrl bắt buộc — injection.dart truyền vào từ RemoteConfigService
+  static void init({required String baseUrl}) {
     _dio = Dio(
       BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
+        baseUrl: baseUrl,
         connectTimeout: ApiConstants.connectTimeout,
         receiveTimeout: ApiConstants.receiveTimeout,
         sendTimeout: ApiConstants.sendTimeout,
@@ -76,16 +77,21 @@ class ApiException implements Exception {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return const ApiException(message: 'Connection timeout. Please try again.', statusCode: 408);
+        return const ApiException(
+            message: 'Connection timeout. Please try again.', statusCode: 408);
       case DioExceptionType.connectionError:
-        return const ApiException(message: 'No internet connection.', statusCode: 503);
+        return const ApiException(
+            message: 'No internet connection.', statusCode: 503);
       case DioExceptionType.badResponse:
         final code = error.response?.statusCode;
         final data = error.response?.data;
-        final msg = data is Map ? (data['message'] ?? 'Server error') : 'Server error';
+        final msg =
+            data is Map ? (data['message'] ?? 'Server error') : 'Server error';
         return ApiException(message: msg.toString(), statusCode: code);
       default:
-        return ApiException(message: error.message ?? 'Unknown error occurred.', statusCode: null);
+        return ApiException(
+            message: error.message ?? 'Unknown error occurred.',
+            statusCode: null);
     }
   }
 
