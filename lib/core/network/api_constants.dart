@@ -19,6 +19,7 @@ class ApiConstants {
   static const String attendanceCheckOut = '/attendance/check-out';
   static const String attendanceToday = '/attendance/today';
   static const String attendance = '/attendance';
+  static const String attendanceTeam = '/attendance/team';
 
   // Requests
   static const String requests = '/requests';
@@ -42,6 +43,9 @@ class ApiConstants {
   static const String adminPendingAccounts = '/admin/pending-accounts';
   static String adminApproveAccount(String id) => '/admin/accounts/$id/approve';
   static String adminRejectAccount(String id) => '/admin/accounts/$id/reject';
+  static String adminEmployeePayroll(String id) => '/admin/employees/$id/payroll';
+  static String adminEmployeeContract(String id) => '/admin/employees/$id/contract';
+  static String adminIssueSalaryVC(String id) => '/admin/employees/$id/issue-salary-vc';
 
   // Ledger (CHIEF + ADMIN only)
   static const String ledger = '/ledger';
@@ -55,6 +59,7 @@ class ApiConstants {
   static String getSalaryRangeVC(String employeeId) => '/identity/vc/salary/$employeeId';
   static String getPromotionVC(String employeeId)   => '/identity/vc/promotion/$employeeId';
   static const String verifyVC = '/identity/vc/verify';
+  static String verifyVCById(String vcId) => '/identity/vc/verify-by-id?vcId=${Uri.encodeComponent(vcId)}';
 
   // OID4VP — Verifiable Presentation flow
   static const String oidcVpRequest = '/oidc/vp/request';

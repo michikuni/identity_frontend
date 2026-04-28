@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorage {
@@ -66,11 +68,36 @@ class SecureStorage {
 
   static Future<bool> isLoggedIn() async {
     final token = await getToken();
-    return token != null && token.isNotEmpty;
+    if (token == null || token.isEmpty) return false;
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return false;
+      // JWT payload là base64url — padding cần được thêm vào thủ công
+      var payload = parts[1];
+      payload += '=' * ((4 - payload.length % 4) % 4);
+      final decoded = utf8.decode(base64Url.decode(payload));
+      final map = jsonDecode(decoded) as Map<String, dynamic>;
+      final exp = map['exp'];
+      if (exp == null) return true;
+      final expiry = DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000);
+      return DateTime.now().isBefore(expiry);
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<void> clearAll() async {
     await _storage.deleteAll();
+  }
+
+  static const _employeeNumericIdKey = 'employee_numeric_id';
+
+  static Future<void> saveEmployeeNumericId(String id) async {
+    await _storage.write(key: _employeeNumericIdKey, value: id);
+  }
+
+  static Future<String?> getEmployeeNumericId() async {
+    return _storage.read(key: _employeeNumericIdKey);
   }
 
   // ── DID Wallet ──────────────────────────────────────────────────────────────

@@ -43,7 +43,7 @@ class _LedgerViewState extends State<_LedgerView> {
     if (role == 'ADMIN' || role == 'CHIEF') {
       context.read<LedgerBloc>().add(const LedgerFetchAll());
     } else {
-      final empId = await SecureStorage.getUserId();
+      final empId = await SecureStorage.getEmployeeNumericId();
       if (!mounted) return;
       if (empId != null && empId.isNotEmpty) {
         context.read<LedgerBloc>().add(LedgerFetchForEmployee(empId));

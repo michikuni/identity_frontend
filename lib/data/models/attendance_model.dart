@@ -23,14 +23,27 @@ class AttendanceModel {
 
   factory AttendanceModel.fromJson(Map<String, dynamic> json) => AttendanceModel(
         id: json['id'],
-        workDate: json['workDate']?.toString() ?? '',
-        checkInTime: json['checkInTime']?.toString(),
-        checkOutTime: json['checkOutTime']?.toString(),
+        workDate: _normalizeDate(json['workDate']?.toString()),
+        checkInTime: _normalizeDateTime(json['checkInTime']?.toString()),
+        checkOutTime: _normalizeDateTime(json['checkOutTime']?.toString()),
         checkInLocation: json['checkInLocation'],
         checkOutLocation: json['checkOutLocation'],
         status: json['status'] ?? 'PRESENT',
         note: json['note'],
       );
+
+  /// Normalize to YYYY-MM-DD (date portion only)
+  static String _normalizeDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '';
+    return raw.length >= 10 ? raw.substring(0, 10) : raw;
+  }
+
+  /// Normalize to full ISO-8601 string; add Z if missing so DateTime.parse works
+  static String? _normalizeDateTime(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    if (raw.length == 19) return '${raw}Z';
+    return raw;
+  }
 
   AttendanceEntity toEntity() => AttendanceEntity(
         id: id,

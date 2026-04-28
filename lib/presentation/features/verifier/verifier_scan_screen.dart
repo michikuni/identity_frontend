@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
+import 'package:identity_frontend/core/qr/vc_qr_payload_codec.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -21,7 +22,7 @@ class VerifierScanScreen extends StatefulWidget {
 class _VerifierScanScreenState extends State<VerifierScanScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  final MobileScannerController _scannerCtrl = MobileScannerController();
+  late final MobileScannerController _scannerCtrl;
 
   // ── Mode A state ─────────────────────────────────────────────────────────
   bool _modeAScanning = true;
@@ -30,7 +31,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
   // ── Mode B state ─────────────────────────────────────────────────────────
   bool _modeBLoading = false;
   String? _modeBState;
-  String? _modeBQrData;      // JSON of the authorizationRequest to show as QR
+  String? _modeBQrData;
   _PollStatus _modeBStatus = _PollStatus.idle;
   String _modeBReason = '';
   List<String> _modeBClaims = ['employmentStatus', 'position'];
@@ -38,12 +39,25 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
   @override
   void initState() {
     super.initState();
+    _scannerCtrl = MobileScannerController();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() => setState(() {}));
+    _tabController.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) return;
+    setState(() {});
+    if (_tabController.index == 0 && _modeAResult == null) {
+      _modeAScanning = true;
+      _scannerCtrl.start().ignore();
+    } else {
+      _scannerCtrl.stop().ignore();
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _scannerCtrl.dispose();
     super.dispose();
@@ -56,30 +70,66 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
     final raw = capture.barcodes.firstOrNull?.rawValue;
     if (raw == null || raw.isEmpty) return;
 
-    setState(() => _modeAScanning = false);
-    await _scannerCtrl.stop();
+    // Short-token path: QR chứa vcid:<id> thay vì toàn bộ VC JSON
+    if (VcQrPayloadCodec.isVcIdToken(raw)) {
+      final vcId = VcQrPayloadCodec.extractVcId(raw)!;
+      _modeAScanning = false;
+      _scannerCtrl.stop().ignore();
+      await _verifyByVcId(vcId);
+      return;
+    }
 
-    // Try verify as VC JSON directly
+    String? decodedPayload = VcQrPayloadCodec.decode(raw);
+    if (decodedPayload == null) return;
+
+    // Bỏ qua nếu là VP Request QR (Mode B) chứ không phải VC
+    try {
+      final parsed = jsonDecode(decodedPayload) as Map<String, dynamic>;
+      if (parsed.containsKey('response_type') ||
+          parsed.containsKey('presentation_definition')) return;
+    } catch (_) {}
+
+    _modeAScanning = false;
+    _scannerCtrl.stop().ignore();
+
+    Map<String, dynamic>? subject;
+    try {
+      final parsed = jsonDecode(decodedPayload) as Map<String, dynamic>;
+      subject = parsed['credentialSubject'] as Map<String, dynamic>?;
+    } catch (_) {}
+
     try {
       final res = await ApiClient.instance.post(
         ApiConstants.verifyVC,
-        data: {'vc': raw},
+        data: {'vc': decodedPayload},
       );
       final data = res.data['data'] as Map<String, dynamic>? ?? {};
-      final valid = data['valid'] as bool? ?? false;
-      final reason = data['reason'] as String? ?? '';
-
-      // Also try to parse VC subject for display
-      Map<String, dynamic>? subject;
-      try {
-        final vc = jsonDecode(raw) as Map<String, dynamic>;
-        subject = vc['credentialSubject'] as Map<String, dynamic>?;
-      } catch (_) {}
-
       setState(() => _modeAResult = _VerifyResult(
-            valid: valid,
-            reason: reason,
+            valid: data['valid'] as bool? ?? false,
+            reason: data['reason'] as String? ?? '',
             subject: subject,
+            vcType: data['type'] as List<dynamic>?,
+          ));
+    } catch (e) {
+      setState(() => _modeAResult = _VerifyResult(
+            valid: false,
+            reason: 'Network error: $e',
+            subject: subject,
+          ));
+    }
+  }
+
+  Future<void> _verifyByVcId(String vcId) async {
+    try {
+      final res = await ApiClient.instance.get(ApiConstants.verifyVCById(vcId));
+      final data = res.data['data'] as Map<String, dynamic>? ?? {};
+      final subject = data['credentialSubject'] as Map<String, dynamic>?;
+      final vcType = data['type'] as List<dynamic>?;
+      setState(() => _modeAResult = _VerifyResult(
+            valid: data['valid'] as bool? ?? false,
+            reason: data['reason'] as String? ?? '',
+            subject: subject,
+            vcType: vcType,
           ));
     } catch (e) {
       setState(() => _modeAResult = _VerifyResult(
@@ -90,11 +140,9 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
   }
 
   void _resetModeA() {
-    setState(() {
-      _modeAScanning = true;
-      _modeAResult = null;
-    });
-    _scannerCtrl.start();
+    _modeAScanning = true;
+    setState(() => _modeAResult = null);
+    _scannerCtrl.start().ignore();
   }
 
   // ── Mode B: generate VP Request QR ──────────────────────────────────────
@@ -160,11 +208,11 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Verifier — Xác minh VC'),
+        title: const Text('Verifier'),
         backgroundColor: AppColors.surface,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(49),
+          preferredSize: const Size.fromHeight(62),
           child: Column(
             children: [
               Container(height: 1, color: AppColors.border),
@@ -174,8 +222,16 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
                 unselectedLabelColor: AppColors.textSecondary,
                 indicatorColor: AppColors.primary,
                 tabs: const [
-                  Tab(text: 'Quét QR của Employee'),
-                  Tab(text: 'Tạo VP Request'),
+                  Tab(
+                    icon: Icon(Icons.qr_code_scanner_rounded, size: 18),
+                    text: 'Xác minh VC',
+                    iconMargin: EdgeInsets.only(bottom: 2),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.rule_rounded, size: 18),
+                    text: 'Yêu cầu VP',
+                    iconMargin: EdgeInsets.only(bottom: 2),
+                  ),
                 ],
               ),
             ],
@@ -228,24 +284,27 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
         ),
         Container(
           color: AppColors.surface,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
           child: const Column(
             children: [
               Icon(Icons.qr_code_scanner_rounded,
-                  color: AppColors.primary, size: 32),
+                  color: AppColors.primary, size: 28),
               SizedBox(height: 8),
               Text(
                 'Hướng camera vào QR Code trên app của Employee',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 13, color: AppColors.textSecondary),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary),
               ),
-              SizedBox(height: 4),
+              SizedBox(height: 6),
               Text(
-                'Hỗ trợ: EmploymentVC, TerminationVC, VP Token',
+                'Chấp nhận 2 loại QR:\n'
+                '• QR từ nút "Xuất QR" — xác minh VC trực tiếp\n'
+                '• QR từ nút "Present VP" — xác minh VP Token đã được Employee ký',
                 textAlign: TextAlign.center,
-                style:
-                    TextStyle(fontSize: 11, color: AppColors.inactive),
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.5),
               ),
             ],
           ),
@@ -262,9 +321,47 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // How-it-works banner
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: const [
+                    Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                    SizedBox(width: 6),
+                    Text(
+                      'Cách hoạt động',
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '1. Chọn thông tin bạn muốn Employee cung cấp\n'
+                  '2. Nhấn "Tạo VP Request QR" → QR được tạo\n'
+                  '3. Cho Employee quét QR này bằng app của họ\n'
+                  '4. Employee xem xét và gửi Verifiable Presentation\n'
+                  '5. Nhấn "Kiểm tra kết quả" để xem thông tin Employee đã chia sẻ',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.6),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
           // Claim selector
           _SectionCard(
-            title: 'Yêu cầu thông tin',
+            title: 'Thông tin muốn yêu cầu Employee cung cấp',
             child: Column(
               children: [
                 for (final claim in [
@@ -305,7 +402,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
                           strokeWidth: 2, color: Colors.white),
                     )
                   : const Icon(Icons.qr_code_2_rounded),
-              label: const Text('Tạo VP Request QR'),
+              label: const Text('Bước 2 — Tạo QR cho Employee quét'),
               onPressed: _modeBLoading ? null : _createVpRequest,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -319,7 +416,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
           // QR display + poll
           if (_modeBQrData != null) ...[
             _SectionCard(
-              title: 'Cho Employee quét QR này',
+              title: 'Bước 3 — Cho Employee quét QR này',
               child: Column(
                 children: [
                   Center(
@@ -359,7 +456,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
             if (_modeBStatus == _PollStatus.pending)
               OutlinedButton.icon(
                 icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('Kiểm tra kết quả'),
+                label: const Text('Bước 5 — Kiểm tra kết quả'),
                 onPressed: _pollResult,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
@@ -381,7 +478,17 @@ class _VerifyResult {
   final bool valid;
   final String reason;
   final Map<String, dynamic>? subject;
-  const _VerifyResult({required this.valid, required this.reason, this.subject});
+  final List<dynamic>? vcType;
+  const _VerifyResult({required this.valid, required this.reason, this.subject, this.vcType});
+
+  String get credentialLabel {
+    if (vcType == null) return 'Verifiable Credential';
+    if (vcType!.contains('PromotionCredential')) return 'Promotion Credential';
+    if (vcType!.contains('TerminationCredential')) return 'Termination Credential';
+    if (vcType!.contains('SalaryRangeCredential')) return 'Salary Range Credential';
+    if (vcType!.contains('EmploymentCredential')) return 'Employment Credential';
+    return 'Verifiable Credential';
+  }
 }
 
 class _VerifyResultCard extends StatelessWidget {
@@ -418,6 +525,12 @@ class _VerifyResultCard extends StatelessWidget {
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: color)),
+                const SizedBox(height: 4),
+                Text(result.credentialLabel,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: color.withValues(alpha: 0.8))),
                 const SizedBox(height: 6),
                 Text(result.reason,
                     textAlign: TextAlign.center,
@@ -493,10 +606,10 @@ class _PollStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (icon, label, color, bg) = switch (status) {
-      _PollStatus.idle     => (Icons.hourglass_empty_rounded, 'Chờ Employee quét QR', AppColors.inactive, AppColors.surfaceVariant),
-      _PollStatus.pending  => (Icons.hourglass_top_rounded, 'Đang chờ Employee gửi VP...', AppColors.warning, AppColors.warningLight),
-      _PollStatus.accepted => (Icons.verified_rounded, 'VP được chấp nhận', AppColors.success, AppColors.successLight),
-      _PollStatus.rejected => (Icons.cancel_rounded, 'VP bị từ chối', AppColors.error, AppColors.errorLight),
+      _PollStatus.idle     => (Icons.hourglass_empty_rounded, 'Chưa có yêu cầu nào', AppColors.inactive, AppColors.surfaceVariant),
+      _PollStatus.pending  => (Icons.hourglass_top_rounded, 'Chờ Employee quét QR và gửi VP...', AppColors.warning, AppColors.warningLight),
+      _PollStatus.accepted => (Icons.verified_rounded, 'Employee đã gửi VP — Đã xác minh hợp lệ', AppColors.success, AppColors.successLight),
+      _PollStatus.rejected => (Icons.cancel_rounded, 'VP không hợp lệ hoặc bị từ chối', AppColors.error, AppColors.errorLight),
     };
 
     return Container(

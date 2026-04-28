@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
+import 'package:identity_frontend/core/routes/app_router.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 
 class ApiClient {
@@ -60,7 +61,9 @@ class _AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (err.response?.statusCode == 401) {
-      SecureStorage.clearAll();
+      SecureStorage.clearAll().then((_) {
+        appRouter?.go('/auth/sign-in');
+      });
     }
     handler.next(err);
   }

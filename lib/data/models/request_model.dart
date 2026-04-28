@@ -35,17 +35,23 @@ class RequestModel {
         id: json['id'],
         requestType: json['requestType'] ?? '',
         status: json['status'] ?? 'PENDING',
-        startDate: json['startDate']?.toString() ?? '',
-        endDate: json['endDate']?.toString() ?? '',
+        startDate: _toDateStr(json['startDate']?.toString()) ?? '',
+        endDate: _toDateStr(json['endDate']?.toString()) ?? '',
         session: json['session'],
         reason: json['reason'] ?? '',
         photoUrl: json['photoUrl'],
         approverId: json['approver']?['id'],
         approverName: json['approver']?['profile']?['name'] ?? json['approver']?['auth']?['email'],
-        approvedAt: json['approvedAt']?.toString(),
+        approvedAt: _toDateStr(json['approvedAt']?.toString()),
         rejectedReason: json['rejectedReason'],
-        createdAt: json['createdAt']?.toString() ?? '',
+        createdAt: _toDateStr(json['createdAt']?.toString()) ?? '',
       );
+
+  /// Extract YYYY-MM-DD from ISO string, or return raw value if shorter
+  static String? _toDateStr(String? raw) {
+    if (raw == null || raw.isEmpty) return raw;
+    return raw.length >= 10 ? raw.substring(0, 10) : raw;
+  }
 
   RequestEntity toEntity() => RequestEntity(
         id: id,

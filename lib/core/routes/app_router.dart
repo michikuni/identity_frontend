@@ -13,6 +13,8 @@ import 'package:identity_frontend/domain/usecases/request_usecase.dart';
 import 'package:identity_frontend/presentation/features/admin/admin_dashboard_screen.dart';
 import 'package:identity_frontend/presentation/features/attendance/attendance_history_screen.dart';
 import 'package:identity_frontend/presentation/features/attendance/attendance_screen.dart';
+import 'package:identity_frontend/presentation/features/attendance/timesheet_screen.dart';
+import 'package:identity_frontend/presentation/features/manager/manager_timesheet_screen.dart';
 import 'package:identity_frontend/presentation/features/attendance/bloc/attendance_bloc.dart';
 import 'package:identity_frontend/presentation/features/attendance/bloc/attendance_event.dart';
 import 'package:identity_frontend/presentation/features/admin/pending_accounts_screen.dart';
@@ -37,7 +39,10 @@ import 'package:identity_frontend/presentation/features/splash/splash_screen.dar
 import 'package:identity_frontend/presentation/features/wallet/wallet_screen.dart';
 import 'package:identity_frontend/presentation/features/verifier/verifier_scan_screen.dart';
 
-GoRouter createAppRouter(IAnalyticsService analytics) => GoRouter(
+GoRouter? appRouter;
+
+GoRouter createAppRouter(IAnalyticsService analytics) {
+  appRouter = GoRouter(
   initialLocation: '/',
   observers: [AnalyticsRouteObserver(analytics)],
   redirect: (context, state) async {
@@ -106,6 +111,19 @@ GoRouter createAppRouter(IAnalyticsService analytics) => GoRouter(
             child: const AttendanceHistoryScreen(),
           ),
         ),
+        GoRoute(
+          path: '/app/attendance/timesheet',
+          builder: (context, _) => BlocProvider(
+            create: (_) => AttendanceBloc(useCase: sl<AttendanceUseCase>()),
+            child: const TimesheetScreen(),
+          ),
+        ),
+
+        // Manager timesheet
+        GoRoute(
+          path: '/app/manager/timesheet',
+          builder: (_, _) => const ManagerTimesheetScreen(),
+        ),
 
         // Requests
         GoRoute(
@@ -164,6 +182,8 @@ GoRouter createAppRouter(IAnalyticsService analytics) => GoRouter(
     ),
   ],
 );
+  return appRouter!;
+}
 
 // ── Role-aware Shell ──────────────────────────────────────────────────────────
 
@@ -204,15 +224,19 @@ class _AppShellState extends State<_AppShell> {
       return [
         ...base,
         _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, 'Duyệt đơn'),
+        _NavItem('/app/manager/timesheet', Icons.table_chart_outlined, Icons.table_chart_rounded, 'Bảng công'),
       ];
     }
 
     if (_role == 'CHIEF') {
       return [
-        ...base,
+        _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, 'Trang chủ'),
         _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, 'Duyệt đơn'),
+        _NavItem('/app/admin/pending-accounts', Icons.how_to_reg_outlined, Icons.how_to_reg_rounded, 'Duyệt TK'),
         _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, 'Nhân sự'),
-        _NavItem('/app/ledger', Icons.account_tree_outlined, Icons.account_tree_rounded, 'Ledger'),
+        _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, 'Wallet'),
+        _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, 'Verifier'),
+        _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, 'Hồ sơ'),
       ];
     }
 

@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
+import 'package:identity_frontend/core/qr/vc_qr_payload_codec.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/wallet/vp_builder.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -36,6 +38,31 @@ class _WalletScreenState extends State<WalletScreen> {
     _load();
   }
 
+  Future<String?> _resolveEmployeeNumericId() async {
+    // Try cached value first
+    final cached = await SecureStorage.getEmployeeNumericId();
+    if (cached != null && cached.isNotEmpty) return cached;
+
+    // Fetch from /employee endpoint — id is wrapped as {"value": "42"}
+    try {
+      final res = await ApiClient.instance.get(ApiConstants.employee);
+      final body = res.data as Map<String, dynamic>? ?? {};
+      final data = body['data'] as Map<String, dynamic>? ?? body;
+      final idField = data['id'];
+      String? numericId;
+      if (idField is Map) {
+        numericId = idField['value']?.toString();
+      } else {
+        numericId = idField?.toString();
+      }
+      if (numericId != null && numericId.isNotEmpty) {
+        await SecureStorage.saveEmployeeNumericId(numericId);
+        return numericId;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
@@ -46,7 +73,7 @@ class _WalletScreenState extends State<WalletScreen> {
       _salaryRangeVc  = await SecureStorage.getSalaryRangeVC();
       _promotionVc    = await SecureStorage.getPromotionVC();
 
-      final employeeId = await SecureStorage.getUserId();
+      final employeeId = await _resolveEmployeeNumericId();
       if (employeeId != null) {
         final did = _did ?? 'did:fabric:trustid:$employeeId';
         await _tryResolveDid(did);
@@ -208,10 +235,18 @@ class _WalletScreenState extends State<WalletScreen> {
                   if (_didDocument != null) ...[
                     _DIDCard(doc: _didDocument!),
                     const SizedBox(height: 16),
+                  ] else if (_publicKeyJwk != null) ...[
+                    _PendingCard(
+                      message: 'DID đang chờ Admin phê duyệt.\n\nAdmin vào màn "Duyệt tài khoản" → nhấn ✓ để duyệt. Sau khi duyệt, DID và Employment VC sẽ tự động được cấp.',
+                      icon: Icons.hourglass_top_rounded,
+                      color: AppColors.warning,
+                    ),
+                    const SizedBox(height: 16),
                   ] else ...[
                     _PendingCard(
-                      message: 'DID chưa được cấp. Chờ Admin phê duyệt tài khoản.',
-                      icon: Icons.fingerprint_rounded,
+                      message: 'Wallet chưa được khởi tạo.\n\nBạn cần hoàn tất bước Onboarding (đăng ký phòng ban, chức vụ) để tạo keypair. Đăng xuất và đăng nhập lại nếu bỏ qua bước này.',
+                      icon: Icons.info_outline_rounded,
+                      color: AppColors.info,
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -222,12 +257,14 @@ class _WalletScreenState extends State<WalletScreen> {
                       vc: _vcParsed!,
                       onShowQr: () => _showQrDialog(context, _employmentVc!),
                       onPresentVp: () => _showPresentVpDialog(context),
+                      onScanVpRequest: () => _showScanVpRequestDialog(context),
                     ),
                     const SizedBox(height: 16),
-                  ] else ...[
+                  ] else if (_publicKeyJwk != null) ...[
                     _PendingCard(
-                      message: 'EmploymentVC chưa được cấp. Tài khoản cần được Admin duyệt.',
+                      message: 'Employment VC chưa được cấp — sẽ tự động xuất hiện sau khi Admin duyệt tài khoản.',
                       icon: Icons.verified_outlined,
+                      color: AppColors.warning,
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -270,126 +307,146 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
+  // ── Present VP: Employee chủ động chọn field → tạo VP QR cho Verifier quét ──
+
   Future<void> _showPresentVpDialog(BuildContext context) async {
     if (_employmentVc == null) return;
 
-    // Available fields in the VC credentialSubject
     final allFields = ['employmentStatus', 'department', 'position', 'startDate'];
-    final selected = <String>{...allFields}; // default: all selected
+    final selected = <String>{...allFields};
 
-    // State + nonce from a new VP session
-    String? sessionState;
-    String? sessionNonce;
-
-    // Step 1: create session on backend
-    try {
-      final res = await ApiClient.instance.post(
-        ApiConstants.oidcVpRequest,
-        data: {'requestedClaims': allFields},
-      );
-      final data = res.data['data'] as Map<String, dynamic>? ?? {};
-      sessionState = data['state'] as String?;
-      sessionNonce = data['nonce'] as String?;
-    } catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Không thể tạo VP session'),
-          behavior: SnackBarBehavior.floating,
-        ));
-      }
-      return;
-    }
-
-    if (!context.mounted) return;
-
-    // Step 2: show field-selector dialog
-    await showDialog(
+    final confirmed = await showDialog<Set<String>>(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setLocalState) => AlertDialog(
-          title: const Text('Present Verifiable Presentation',
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text('Chọn thông tin chia sẻ',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Chọn thông tin muốn tiết lộ cho Verifier:',
-                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.07),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Bạn đang chủ động chia sẻ VP với Verifier.\nChọn các trường muốn tiết lộ — Verifier sẽ quét QR này.',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.5),
+                ),
+              ),
               const SizedBox(height: 12),
-              ...allFields.map((field) => CheckboxListTile(
+              ...allFields.map((f) => CheckboxListTile(
                     dense: true,
                     contentPadding: EdgeInsets.zero,
-                    title: Text(field, style: const TextStyle(fontSize: 13)),
-                    value: selected.contains(field),
-                    onChanged: (val) => setLocalState(() {
-                      val == true ? selected.add(field) : selected.remove(field);
-                    }),
+                    title: Text(f, style: const TextStyle(fontSize: 13)),
+                    value: selected.contains(f),
+                    onChanged: (v) => setLocal(() => v == true ? selected.add(f) : selected.remove(f)),
                   )),
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Huỷ'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Huỷ')),
             FilledButton(
-              onPressed: selected.isEmpty
-                  ? null
-                  : () async {
-                      Navigator.pop(ctx);
-                      await _submitVp(
-                        state: sessionState!,
-                        nonce: sessionNonce!,
-                        disclosedFields: selected.toList(),
-                      );
-                    },
-              child: const Text('Gửi VP'),
+              onPressed: selected.isEmpty ? null : () => Navigator.pop(ctx, Set<String>.from(selected)),
+              child: const Text('Tạo VP QR'),
             ),
           ],
         ),
       ),
     );
+
+    if (confirmed == null || confirmed.isEmpty || !context.mounted) return;
+    await _buildAndShowVpQr(context, disclosedFields: confirmed.toList());
   }
 
-  Future<void> _submitVp({
-    required String state,
-    required String nonce,
+  Future<void> _buildAndShowVpQr(
+    BuildContext context, {
     required List<String> disclosedFields,
+    String? state,
+    String? nonce,
   }) async {
+    // If no session provided, create one (self-initiated Present VP)
+    String? sessionState = state;
+    String? sessionNonce = nonce;
+    if (sessionState == null || sessionNonce == null) {
+      try {
+        final res = await ApiClient.instance.post(
+          ApiConstants.oidcVpRequest,
+          data: {'requestedClaims': disclosedFields},
+        );
+        final d = res.data['data'] as Map<String, dynamic>? ?? {};
+        sessionState = d['state'] as String?;
+        sessionNonce = (d['authorizationRequest'] as Map<String, dynamic>?)?['nonce'] as String?
+            ?? d['nonce'] as String?;
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Không thể tạo VP session: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.error,
+          ));
+        }
+        return;
+      }
+    }
+    if (sessionState == null || sessionNonce == null || !context.mounted) return;
+
+    // Submit VP directly to backend — Verifier polls the result
     try {
       final result = await VpBuilder.submit(
-        state: state,
-        nonce: nonce,
+        state: sessionState,
+        nonce: sessionNonce,
         vcJson: _employmentVc!,
         disclosedFields: disclosedFields,
       );
-      if (!mounted) return;
+      if (!context.mounted) return;
+      final (msg, bg) = result.valid
+          ? ('VP đã gửi thành công — Verifier có thể xem kết quả ✓', AppColors.success)
+          : ('VP bị từ chối: ${result.reason}', AppColors.error);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(result.valid
-            ? 'VP được Verifier chấp nhận'
-            : 'VP bị từ chối: ${result.reason}'),
+        content: Text(msg),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: result.valid ? AppColors.success : AppColors.error,
-        duration: const Duration(seconds: 4),
+        backgroundColor: bg,
+        duration: const Duration(seconds: 5),
       ));
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Gửi VP thất bại'),
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Gửi VP thất bại: $e'),
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.error,
       ));
     }
   }
 
+  // ── Scan VP Request: Employee quét QR từ Verifier → gửi VP đáp lại ──────────
+
+  Future<void> _showScanVpRequestDialog(BuildContext context) async {
+    if (_employmentVc == null) return;
+    await showDialog(
+      context: context,
+      builder: (ctx) => _VpRequestScanDialog(
+        employmentVcJson: _employmentVc!,
+      ),
+    );
+  }
+
   void _showQrDialog(BuildContext context, String vcJson,
       {String title = 'Employment VC'}) {
+    final qrData = VcQrPayloadCodec.encode(vcJson);
+    final isShortToken = VcQrPayloadCodec.isVcIdToken(qrData);
+    final screenW = MediaQuery.of(context).size.width;
+    final qrSize = (screenW - 80).clamp(200.0, 320.0);
+
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -397,17 +454,29 @@ class _WalletScreenState extends State<WalletScreen> {
                 title,
                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: 4),
+              Text(
                 'Cho Verifier quét để xác minh',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
-              const SizedBox(height: 20),
-              QrImageView(
-                data: vcJson,
-                version: QrVersions.auto,
-                size: 240,
-                errorCorrectionLevel: QrErrorCorrectLevel.M,
+              const SizedBox(height: 16),
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.all(8),
+                child: QrImageView(
+                  data: qrData,
+                  version: QrVersions.auto,
+                  size: qrSize,
+                  errorCorrectionLevel: QrErrorCorrectLevel.L,
+                  backgroundColor: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                isShortToken
+                    ? '${qrData.length} ký tự (short token)'
+                    : '${qrData.length} ký tự',
+                style: const TextStyle(fontSize: 10, color: AppColors.inactive),
               ),
               const SizedBox(height: 16),
               TextButton.icon(
@@ -441,6 +510,12 @@ class _WalletHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ready = hasKeypair && hasVC;
+    final (statusText, statusIcon) = ready
+        ? ('Đã xác minh — sẵn sàng dùng', Icons.verified_rounded)
+        : hasKeypair
+            ? ('Keypair đã tạo — chờ Admin duyệt', Icons.hourglass_top_rounded)
+            : ('Chưa đăng ký thông tin công việc', Icons.warning_amber_rounded);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -474,22 +549,14 @@ class _WalletHeader extends StatelessWidget {
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 Text(
-                  ready
-                      ? 'Keypair + VC đã sẵn sàng'
-                      : hasKeypair
-                          ? 'Keypair OK — chờ VC'
-                          : 'Chưa khởi tạo',
+                  statusText,
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
+                      color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
                 ),
               ],
             ),
           ),
-          Icon(
-            ready ? Icons.verified_rounded : Icons.pending_rounded,
-            color: Colors.white,
-            size: 24,
-          ),
+          Icon(statusIcon, color: Colors.white, size: 24),
         ],
       ),
     );
@@ -543,7 +610,13 @@ class _VCCard extends StatelessWidget {
   final Map<String, dynamic> vc;
   final VoidCallback onShowQr;
   final VoidCallback onPresentVp;
-  const _VCCard({required this.vc, required this.onShowQr, required this.onPresentVp});
+  final VoidCallback onScanVpRequest;
+  const _VCCard({
+    required this.vc,
+    required this.onShowQr,
+    required this.onPresentVp,
+    required this.onScanVpRequest,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -582,6 +655,7 @@ class _VCCard extends StatelessWidget {
             value: expirationDate.length >= 10 ? expirationDate.substring(0, 10) : '-',
           ),
           const SizedBox(height: 14),
+          // Row 1: Xuất QR + Quét VP Request
           Row(
             children: [
               Expanded(
@@ -599,18 +673,34 @@ class _VCCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.send_rounded, size: 16),
-                  label: const Text('Present VP'),
-                  onPressed: onPresentVp,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.qr_code_scanner_rounded, size: 16),
+                  label: const Text('Quét VP Request'),
+                  onPressed: onScanVpRequest,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    side: const BorderSide(color: AppColors.accent),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          // Row 2: Present VP (chủ động chọn field chia sẻ)
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              icon: const Icon(Icons.share_rounded, size: 16),
+              label: const Text('Present VP — tự chọn field chia sẻ'),
+              onPressed: onPresentVp,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
           ),
         ],
       ),
@@ -788,25 +878,27 @@ class _TerminationVCCard extends StatelessWidget {
 class _PendingCard extends StatelessWidget {
   final String message;
   final IconData icon;
-  const _PendingCard({required this.message, required this.icon});
+  final Color? color;
+  const _PendingCard({required this.message, required this.icon, this.color});
 
   @override
   Widget build(BuildContext context) {
+    final c = color ?? AppColors.warning;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.warningLight,
+        color: c.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+        border: Border.all(color: c.withValues(alpha: 0.35)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.warning, size: 22),
+          Icon(icon, color: c, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Text(message,
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textSecondary)),
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5)),
           ),
         ],
       ),
@@ -982,6 +1074,178 @@ class _InfoRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── VP Request Scanner dialog ─────────────────────────────────────────────────
+// Employee quét QR từ màn Verifier (Mode B) → parse authorizationRequest
+// → chọn field được yêu cầu → gửi VP Token đáp lại.
+
+class _VpRequestScanDialog extends StatefulWidget {
+  final String employmentVcJson;
+  const _VpRequestScanDialog({required this.employmentVcJson});
+
+  @override
+  State<_VpRequestScanDialog> createState() => _VpRequestScanDialogState();
+}
+
+class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
+  final MobileScannerController _ctrl = MobileScannerController();
+  bool _scanning = true;
+  bool _submitting = false;
+  String? _errorMsg;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onDetect(BarcodeCapture capture) async {
+    if (!_scanning) return;
+    final raw = capture.barcodes.firstOrNull?.rawValue;
+    if (raw == null || raw.isEmpty) return;
+
+    // Parse authorizationRequest JSON
+    Map<String, dynamic> authReq;
+    try {
+      authReq = jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      // Try decode compressed
+      final decoded = VcQrPayloadCodec.decode(raw);
+      if (decoded == null) return;
+      try {
+        authReq = jsonDecode(decoded) as Map<String, dynamic>;
+      } catch (_) {
+        return;
+      }
+    }
+
+    // Must be a VP Request (has response_type or presentation_definition)
+    if (!authReq.containsKey('response_type') &&
+        !authReq.containsKey('presentation_definition')) {
+      return;
+    }
+
+    _scanning = false;
+    _ctrl.stop().ignore();
+
+    final state = authReq['state'] as String?;
+    final nonce = authReq['nonce'] as String?;
+    if (state == null || nonce == null) {
+      setState(() => _errorMsg = 'QR không hợp lệ: thiếu state/nonce');
+      return;
+    }
+
+    // Extract requestedClaims from presentation_definition
+    final List<String> requestedFields = _extractFields(authReq);
+
+    setState(() => _submitting = true);
+
+    try {
+      final result = await VpBuilder.submit(
+        state: state,
+        nonce: nonce,
+        vcJson: widget.employmentVcJson,
+        disclosedFields: requestedFields,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(result.valid
+            ? 'VP được Verifier chấp nhận ✓'
+            : 'VP bị từ chối: ${result.reason}'),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: result.valid ? AppColors.success : AppColors.error,
+        duration: const Duration(seconds: 4),
+      ));
+    } catch (e) {
+      setState(() {
+        _submitting = false;
+        _errorMsg = 'Gửi VP thất bại: $e';
+      });
+    }
+  }
+
+  List<String> _extractFields(Map<String, dynamic> authReq) {
+    try {
+      final pd = authReq['presentation_definition'] as Map<String, dynamic>;
+      final descriptors = pd['input_descriptors'] as List<dynamic>;
+      final first = descriptors.first as Map<String, dynamic>;
+      final constraints = first['constraints'] as Map<String, dynamic>;
+      final fields = constraints['fields'] as List<dynamic>;
+      return fields.map((f) {
+        final path = (f as Map)['path'] as List<dynamic>;
+        final p = path.first.toString(); // e.g. "$.credentialSubject.department"
+        return p.split('.').last;
+      }).toList();
+    } catch (_) {
+      return ['employmentStatus', 'department', 'position', 'startDate'];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Quét VP Request QR',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 4),
+            const Text(
+              'Hướng camera vào QR trên màn Verifier\n(tab "Tạo VP Request")',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            if (_submitting)
+              const Padding(
+                padding: EdgeInsets.all(40),
+                child: CircularProgressIndicator(),
+              )
+            else if (_errorMsg != null)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(_errorMsg!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: AppColors.error, fontSize: 13)),
+              )
+            else
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  height: 260,
+                  child: Stack(
+                    children: [
+                      MobileScanner(controller: _ctrl, onDetect: _onDetect),
+                      Center(
+                        child: Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.accent, width: 2.5),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Đóng'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

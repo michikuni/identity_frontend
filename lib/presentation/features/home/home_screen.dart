@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/di/injection.dart';
 import 'package:identity_frontend/core/locale/locale_cubit.dart';
+import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/employee_entity.dart';
@@ -24,8 +25,23 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _HomeView extends StatelessWidget {
+class _HomeView extends StatefulWidget {
   const _HomeView();
+
+  @override
+  State<_HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<_HomeView> {
+  String _role = 'EMPLOYEE';
+
+  @override
+  void initState() {
+    super.initState();
+    SecureStorage.getUserRole().then((r) {
+      if (mounted) setState(() => _role = r ?? 'EMPLOYEE');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +66,7 @@ class _HomeView extends StatelessWidget {
                   ),
                 )
               else if (state.employee != null)
-                _buildContent(context, l10n, state.employee!)
+                _buildContent(context, l10n, state.employee!, _role)
               else
                 const SliverFillRemaining(child: LoadingWidget()),
             ],
@@ -175,7 +191,7 @@ class _HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, AppLocalizations l10n, EmployeeEntity emp) {
+  Widget _buildContent(BuildContext context, AppLocalizations l10n, EmployeeEntity emp, String role) {
     return SliverPadding(
       padding: EdgeInsets.all(context.r(16)),
       sliver: SliverList(
@@ -237,7 +253,11 @@ class _HomeView extends StatelessWidget {
               _quickCard(context, Icons.person_outlined, l10n.navProfile, '/app/profile', AppColors.info),
               _quickCard(context, Icons.description_outlined, l10n.navContract, '/app/contract', AppColors.success),
               _quickCard(context, Icons.payments_outlined, l10n.navPayroll, '/app/payroll', AppColors.accent),
-              _quickCard(context, Icons.link_rounded, l10n.navLedger, '/app/ledger', AppColors.primaryLight),
+              if (role == 'CHIEF') ...[
+                _quickCard(context, Icons.how_to_reg_outlined, 'Duyệt tài khoản', '/app/admin/pending-accounts', AppColors.warning),
+                _quickCard(context, Icons.manage_accounts_outlined, 'Nhân sự', '/app/chief', AppColors.primary),
+              ] else
+                _quickCard(context, Icons.link_rounded, l10n.navLedger, '/app/ledger', AppColors.primaryLight),
             ],
           ),
           SizedBox(height: context.r(16)),
