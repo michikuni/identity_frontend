@@ -34,6 +34,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
   String? _modeBQrData;
   _PollStatus _modeBStatus = _PollStatus.idle;
   String _modeBReason = '';
+  Map<String, dynamic> _modeBDisclosedFields = {};
   List<String> _modeBClaims = ['employmentStatus', 'position'];
 
   @override
@@ -190,15 +191,135 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
       final data = res.data['data'] as Map<String, dynamic>? ?? {};
       final status = data['status'] as String? ?? 'PENDING';
       final reason = data['reason'] as String? ?? '';
+      final disclosed = data['disclosedFields'] as Map<String, dynamic>? ?? {};
+
+      final newStatus = status == 'ACCEPTED'
+          ? _PollStatus.accepted
+          : status == 'REJECTED'
+              ? _PollStatus.rejected
+              : _PollStatus.pending;
+
       setState(() {
         _modeBReason = reason;
-        _modeBStatus = status == 'ACCEPTED'
-            ? _PollStatus.accepted
-            : status == 'REJECTED'
-                ? _PollStatus.rejected
-                : _PollStatus.pending;
+        _modeBDisclosedFields = disclosed;
+        _modeBStatus = newStatus;
       });
+
+      // Hiển thị popup kết quả khi đã có phản hồi từ Employee
+      if (newStatus == _PollStatus.accepted && mounted) {
+        _showResultPopup(disclosed);
+      } else if (newStatus == _PollStatus.rejected && mounted) {
+        _showResultPopup({}, reason: reason, rejected: true);
+      } else if (newStatus == _PollStatus.pending && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Employee chưa quét QR hoặc chưa xác nhận chia sẻ'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.warning,
+        ));
+      }
     } catch (_) {}
+  }
+
+  void _showResultPopup(
+    Map<String, dynamic> disclosed, {
+    String reason = '',
+    bool rejected = false,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(
+              rejected ? Icons.cancel_rounded : Icons.verified_rounded,
+              color: rejected ? AppColors.error : AppColors.success,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              rejected ? 'VP bị từ chối' : 'Thông tin được chia sẻ',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: rejected ? AppColors.error : AppColors.success,
+              ),
+            ),
+          ],
+        ),
+        content: rejected
+            ? Text(
+                reason.isNotEmpty ? reason : 'VP không hợp lệ hoặc bị từ chối',
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              )
+            : disclosed.isEmpty
+                ? const Text(
+                    'Employee đã xác nhận nhưng không có trường nào được chia sẻ.',
+                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Employee đã xác nhận và chia sẻ các thông tin sau:',
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.successLight,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                        ),
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          children: disclosed.entries
+                              .map((e) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(
+                                          width: 120,
+                                          child: Text(
+                                            e.key,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.textSecondary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            '${e.value}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: FilledButton.styleFrom(
+              backgroundColor: rejected ? AppColors.error : AppColors.success,
+            ),
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
   }
 
   // ── Build ────────────────────────────────────────────────────────────────
@@ -450,7 +571,11 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
             const SizedBox(height: 16),
 
             // Poll status
-            _PollStatusCard(status: _modeBStatus, reason: _modeBReason),
+            _PollStatusCard(
+              status: _modeBStatus,
+              reason: _modeBReason,
+              disclosedFields: _modeBDisclosedFields,
+            ),
             const SizedBox(height: 12),
 
             if (_modeBStatus == _PollStatus.pending)
@@ -601,7 +726,12 @@ enum _PollStatus { idle, pending, accepted, rejected }
 class _PollStatusCard extends StatelessWidget {
   final _PollStatus status;
   final String reason;
-  const _PollStatusCard({required this.status, required this.reason});
+  final Map<String, dynamic> disclosedFields;
+  const _PollStatusCard({
+    required this.status,
+    required this.reason,
+    this.disclosedFields = const {},
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -619,28 +749,72 @@ class _PollStatusCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: color)),
-                if (reason.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(reason,
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textSecondary)),
-                ],
-              ],
-            ),
+          Row(
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: color)),
+                    if (reason.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(reason,
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary)),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
+          if (status == _PollStatus.accepted && disclosedFields.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            const Text(
+              'Thông tin Employee đã chia sẻ',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 8),
+            ...disclosedFields.entries.map((e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 130,
+                        child: Text(
+                          e.key,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          '${e.value}',
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
         ],
       ),
     );

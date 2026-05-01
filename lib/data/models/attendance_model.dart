@@ -38,11 +38,18 @@ class AttendanceModel {
     return raw.length >= 10 ? raw.substring(0, 10) : raw;
   }
 
-  /// Normalize to full ISO-8601 string; add Z if missing so DateTime.parse works
+  /// Normalize to full ISO-8601 string; add Z if missing so DateTime.parse works,
+  /// then convert UTC → UTC+7 and return as local ISO-8601 (no trailing Z).
   static String? _normalizeDateTime(String? raw) {
     if (raw == null || raw.isEmpty) return null;
-    if (raw.length == 19) return '${raw}Z';
-    return raw;
+    final String iso = (raw.length == 19) ? '${raw}Z' : raw;
+    try {
+      final utc = DateTime.parse(iso).toUtc();
+      final local = utc.add(const Duration(hours: 7));
+      return local.toIso8601String().replaceAll('Z', '');
+    } catch (_) {
+      return iso;
+    }
   }
 
   AttendanceEntity toEntity() => AttendanceEntity(

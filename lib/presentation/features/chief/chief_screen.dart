@@ -51,9 +51,14 @@ class _ChiefScreenState extends State<ChiefScreen> {
     return _employees.where((e) {
       final isTerminated = e['isActive'] == false;
       final role = (e['role'] ?? '').toString();
-      if (_filterRole == 'TERMINATED' && !isTerminated) { return false; }
-      if (_filterRole != 'ALL' && _filterRole != 'TERMINATED' &&
-          (isTerminated || role != _filterRole)) { return false; }
+      if (_filterRole == 'TERMINATED') {
+        if (!isTerminated) return false;
+      } else if (_filterRole == 'ALL') {
+        // Tab tất cả không hiển thị nhân sự đã nghỉ
+        if (isTerminated) return false;
+      } else {
+        if (isTerminated || role != _filterRole) return false;
+      }
 
       if (_search.isNotEmpty) {
         final q = _search.toLowerCase();
@@ -265,6 +270,8 @@ class _EmployeeCard extends StatelessWidget {
               const PopupMenuItem(value: 'MANAGER', child: Text('Bổ nhiệm Quản lý')),
               const PopupMenuItem(value: 'EMPLOYEE', child: Text('Hạ nhân viên')),
               const PopupMenuDivider(),
+              const PopupMenuItem(value: 'assign_manager', child: Text('Phân công Manager')),
+              const PopupMenuDivider(),
               const PopupMenuItem(value: 'contract', child: Text('Tạo / Cập nhật HĐ')),
               const PopupMenuItem(value: 'payroll', child: Text('Tạo / Cập nhật Lương')),
               const PopupMenuDivider(),
@@ -287,7 +294,21 @@ class _EmployeeCard extends StatelessWidget {
     final id = emp['id']?.toString();
     if (id == null) return;
     try {
-      if (action == 'terminate') {
+      if (action == 'assign_manager') {
+        await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => _AssignManagerSheet(
+            employeeId: id,
+            currentManagerId: emp['managerId']?.toString(),
+            currentManagerName: emp['managerName']?.toString(),
+            onSaved: onChanged,
+          ),
+        );
+        return;
+
+      } else if (action == 'terminate') {
         final ctrl = TextEditingController();
         final confirm = await showDialog<bool>(
           context: context,
@@ -1296,4 +1317,165 @@ class _DateRow extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── Assign Manager Sheet ──────────────────────────────────────────────────────
+
+class _AssignManagerSheet extends StatefulWidget {
+  final String employeeId;
+  final String? currentManagerId;
+  final String? currentManagerName;
+  final VoidCallback onSaved;
+  const _AssignManagerSheet({
+    required this.employeeId,
+    this.currentManagerId,
+    this.currentManagerName,
+    required this.onSaved,
+  });
+
+  @override
+  State<_AssignManagerSheet> createState() => _AssignManagerSheetState();
+}
+
+class _AssignManagerSheetState extends State<_AssignManagerSheet> {
+  List<Map<String, dynamic>> _managers = [];
+  bool _loading = true;
+  String? _selectedId;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedId = widget.currentManagerId;
+    _loadManagers();
+  }
+
+  Future<void> _loadManagers() async {
+    try {
+      final res = await ApiClient.instance.get(ApiConstants.chiefEmployees);
+      final list = (res.data['data'] as List? ?? []).cast<Map<String, dynamic>>();
+      setState(() {
+        _managers = list.where((e) {
+          final role = e['role'] as String? ?? '';
+          return (role == 'MANAGER' || role == 'CHIEF') && e['isActive'] == true;
+        }).toList();
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _submit() async {
+    try {
+      await ApiClient.instance.put(
+        ApiConstants.chiefAssignManager(widget.employeeId),
+        data: {'managerId': _selectedId == null ? null : int.tryParse(_selectedId!)},
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      widget.onSaved();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Đã phân công manager thành công'),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.toString()),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      maxChildSize: 0.9,
+      minChildSize: 0.4,
+      builder: (_, scrollCtrl) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(context.r(20))),
+        ),
+        child: Column(children: [
+          Container(
+            margin: EdgeInsets.only(top: context.r(12), bottom: context.r(4)),
+            width: context.r(40),
+            height: context.r(4),
+            decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(context.r(2))),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(context.r(24), context.r(8), context.r(24), context.r(4)),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Phân công Manager',
+                  style: TextStyle(fontSize: context.r(17), fontWeight: FontWeight.w700)),
+            ),
+          ),
+          if (widget.currentManagerName != null)
+            Padding(
+              padding: EdgeInsets.fromLTRB(context.r(24), 0, context.r(24), context.r(4)),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Manager hiện tại: ${widget.currentManagerName}',
+                    style: TextStyle(fontSize: context.r(12), color: AppColors.textSecondary)),
+              ),
+            ),
+          const Divider(height: 1),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView(
+                    controller: scrollCtrl,
+                    children: [
+                      RadioListTile<String?>(
+                        value: null,
+                        groupValue: _selectedId,
+                        title: const Text('Không có manager', style: TextStyle(color: AppColors.textSecondary)),
+                        onChanged: (v) => setState(() { _selectedId = null; }),
+                      ),
+                      ..._managers.map((m) {
+                        final mId = m['id']?.toString();
+                        final mName = (m['name'] ?? m['email'] ?? '').toString();
+                        final mRole = m['role'] as String? ?? '';
+                        return RadioListTile<String?>(
+                          value: mId,
+                          groupValue: _selectedId,
+                          title: Text(mName),
+                          subtitle: Text('${_roleLabel(mRole)} • ${m['department'] ?? ''}',
+                              style: TextStyle(fontSize: context.r(11))),
+                          onChanged: (v) => setState(() { _selectedId = v; }),
+                        );
+                      }),
+                    ],
+                  ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(context.r(24), context.r(8), context.r(24), context.r(24)),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                minimumSize: Size(double.infinity, context.r(48)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.r(12))),
+              ),
+              onPressed: _submit,
+              child: const Text('Lưu phân công', style: TextStyle(fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  String _roleLabel(String r) => switch (r) {
+        'CHIEF' => 'Giám đốc',
+        'MANAGER' => 'Quản lý',
+        _ => r,
+      };
 }

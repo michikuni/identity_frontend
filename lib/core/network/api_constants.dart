@@ -35,8 +35,10 @@ class ApiConstants {
 
   // Chief
   static const String chiefEmployees = '/chief/employees';
+  static const String chiefRequests = '/chief/requests';
   static String chiefChangeRole(String id) => '/chief/employees/$id/role';
   static String chiefTerminate(String id) => '/chief/employees/$id/terminate';
+  static String chiefAssignManager(String id) => '/chief/employees/$id/manager';
 
   // Admin
   static const String adminDashboard = '/admin/dashboard';

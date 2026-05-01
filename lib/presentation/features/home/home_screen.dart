@@ -256,8 +256,7 @@ class _HomeViewState extends State<_HomeView> {
               if (role == 'CHIEF') ...[
                 _quickCard(context, Icons.how_to_reg_outlined, 'Duyệt tài khoản', '/app/admin/pending-accounts', AppColors.warning),
                 _quickCard(context, Icons.manage_accounts_outlined, 'Nhân sự', '/app/chief', AppColors.primary),
-              ] else
-                _quickCard(context, Icons.link_rounded, l10n.navLedger, '/app/ledger', AppColors.primaryLight),
+              ],
             ],
           ),
           SizedBox(height: context.r(16)),

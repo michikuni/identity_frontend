@@ -279,7 +279,7 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
   String _workingType = 'FULL_TIME';
 
   final _nameCtrl = TextEditingController();
-  final _dobCtrl = TextEditingController();
+  DateTime? _selectedDob;
   String _gender = 'MALE';
   String _identityType = 'CCCD';
   final _idNumCtrl = TextEditingController();
@@ -317,7 +317,7 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
   @override
   void dispose() {
     for (final c in [
-      _deptCtrl, _posCtrl, _nameCtrl, _dobCtrl, _idNumCtrl, _idYearCtrl,
+      _deptCtrl, _posCtrl, _nameCtrl, _idNumCtrl, _idYearCtrl,
       _idPlaceCtrl, _emergencyNameCtrl, _emergencyPhoneCtrl, _emergencyRelCtrl,
       _permResCtrl, _nowResCtrl, _healthCtrl, _eduCtrl, _majorCtrl, _expCtrl, _skillsCtrl,
     ]) {
@@ -358,7 +358,9 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
     context.read<ProfileBloc>().add(ProfileCreate({
       'name': _nameCtrl.text.trim(),
       'gender': _gender,
-      'dateOfBirth': _dobCtrl.text.trim(),
+      'dateOfBirth': _selectedDob != null
+          ? '${_selectedDob!.year.toString().padLeft(4, '0')}-${_selectedDob!.month.toString().padLeft(2, '0')}-${_selectedDob!.day.toString().padLeft(2, '0')}'
+          : '',
       'identityType': _identityType,
       'identityNumber': _idNumCtrl.text.trim(),
       'identityIssueDate': int.tryParse(_idYearCtrl.text.trim()) ?? 0,
@@ -540,13 +542,11 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
           (v) => switch (v) { 'MALE' => 'Nam', 'FEMALE' => 'Nữ', _ => 'Khác' },
           (v) => setState(() => _gender = v!)),
       SizedBox(height: context.r(12)),
-      AppInput(
+      _DatePickerField(
         label: 'Ngày sinh *',
-        hint: 'VD: 1990-01-01',
-        controller: _dobCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
-        prefixIcon: Icon(Icons.cake_outlined,
-            size: context.r(20), color: AppColors.inactive),
+        selectedDate: _selectedDob,
+        onDateSelected: (date) => setState(() => _selectedDob = date),
+        validator: (_) => _selectedDob == null ? 'Bắt buộc' : null,
       ),
       SizedBox(height: context.r(20)),
       _section(context, 'Giấy tờ tùy thân', Icons.badge_outlined),
@@ -750,4 +750,81 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
           onChanged: onChange,
         ),
       ]);
+}
+
+class _DatePickerField extends StatelessWidget {
+  final String label;
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime> onDateSelected;
+  final FormFieldValidator<String>? validator;
+
+  const _DatePickerField({
+    required this.label,
+    required this.selectedDate,
+    required this.onDateSelected,
+    this.validator,
+  });
+
+  String get _displayText => selectedDate == null
+      ? 'Chọn ngày sinh'
+      : '${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}';
+
+  Future<void> _pickDate(BuildContext context) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime(now.year - 25, 1, 1),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(now.year - 16, now.month, now.day),
+      locale: const Locale('vi', 'VN'),
+    );
+    if (picked != null) onDateSelected(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FormField<String>(
+      validator: validator,
+      builder: (field) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: () => _pickDate(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              decoration: BoxDecoration(
+                border: Border.all(
+                    color: field.hasError ? AppColors.error : AppColors.border),
+                borderRadius: BorderRadius.circular(12),
+                color: AppColors.surface,
+              ),
+              child: Row(children: [
+                const Icon(Icons.cake_outlined, size: 20, color: AppColors.inactive),
+                const SizedBox(width: 10),
+                Text(
+                  _displayText,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: selectedDate == null ? AppColors.inactive : AppColors.textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.inactive),
+              ]),
+            ),
+          ),
+          if (field.hasError)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 4),
+              child: Text(field.errorText!,
+                  style: const TextStyle(fontSize: 12, color: AppColors.error)),
+            ),
+        ],
+      ),
+    );
+  }
 }

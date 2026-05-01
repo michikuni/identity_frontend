@@ -20,6 +20,7 @@ import 'package:identity_frontend/presentation/features/attendance/bloc/attendan
 import 'package:identity_frontend/presentation/features/admin/pending_accounts_screen.dart';
 import 'package:identity_frontend/presentation/features/auth/signin_screen.dart';
 import 'package:identity_frontend/presentation/features/auth/signup_screen.dart';
+import 'package:identity_frontend/presentation/features/cccd/cccd_scan_screen.dart';
 import 'package:identity_frontend/presentation/features/onboarding/onboarding_screen.dart';
 import 'package:identity_frontend/presentation/features/onboarding/profile_onboarding_screen.dart';
 import 'package:identity_frontend/presentation/features/chief/chief_screen.dart';
@@ -76,7 +77,17 @@ GoRouter createAppRouter(IAnalyticsService analytics) {
     GoRoute(path: '/auth/sign-in', builder: (_, _) => const SignInScreen()),
     GoRoute(path: '/auth/sign-up', builder: (_, _) => const SignUpScreen()),
     GoRoute(path: '/auth/onboarding', builder: (_, _) => const OnboardingScreen()),
-    GoRoute(path: '/auth/onboarding/profile', builder: (_, _) => const ProfileOnboardingScreen()),
+    GoRoute(
+      path: '/auth/onboarding/cccd-scan',
+      builder: (context, state) => CccdScanScreen(
+        onScanned: (data) => context.go('/auth/onboarding/profile', extra: data),
+        onSkip: () => context.go('/auth/onboarding/profile'),
+      ),
+    ),
+    GoRoute(
+      path: '/auth/onboarding/profile',
+      builder: (_, state) => ProfileOnboardingScreen(cccdData: state.extra as CccdData?),
+    ),
 
     // Standalone routes (pushed on top of shell)
     GoRoute(
@@ -222,9 +233,14 @@ class _AppShellState extends State<_AppShell> {
 
     if (_role == 'MANAGER') {
       return [
-        ...base,
+        _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, 'Trang chủ'),
+        _NavItem('/app/attendance', Icons.fingerprint_rounded, Icons.fingerprint_rounded, 'Chấm công'),
         _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, 'Duyệt đơn'),
         _NavItem('/app/manager/timesheet', Icons.table_chart_outlined, Icons.table_chart_rounded, 'Bảng công'),
+        _NavItem('/app/directory', Icons.group_outlined, Icons.group_rounded, 'Nhân viên'),
+        _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, 'Wallet'),
+        _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, 'Verifier'),
+        _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, 'Hồ sơ'),
       ];
     }
 

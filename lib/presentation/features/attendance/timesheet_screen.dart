@@ -406,7 +406,7 @@ class _DailyRow extends StatelessWidget {
   String _fmt(String? raw) {
     if (raw == null) return '--:--';
     try {
-      final dt = DateTime.parse(raw);
+      final dt = DateTime.parse(raw).toUtc().add(const Duration(hours: 7));
       return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return raw.length >= 16 ? raw.substring(11, 16) : raw;

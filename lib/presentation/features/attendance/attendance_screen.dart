@@ -335,7 +335,7 @@ class AttendanceScreen extends StatelessWidget {
 
   String _formatTime(String raw) {
     try {
-      final dt = DateTime.parse(raw);
+      final dt = DateTime.parse(raw).toUtc().add(const Duration(hours: 7));
       return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return raw.length > 5 ? raw.substring(11, 16) : raw;

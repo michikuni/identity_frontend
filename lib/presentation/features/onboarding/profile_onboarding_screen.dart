@@ -4,24 +4,27 @@ import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/di/injection.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/presentation/features/cccd/cccd_scan_screen.dart';
 import 'package:identity_frontend/presentation/features/profile/bloc/profile_bloc.dart';
 import 'package:identity_frontend/presentation/widgets/app_input.dart';
 import 'package:identity_frontend/presentation/widgets/primary_button.dart';
 
 class ProfileOnboardingScreen extends StatelessWidget {
-  const ProfileOnboardingScreen({super.key});
+  final CccdData? cccdData;
+  const ProfileOnboardingScreen({super.key, this.cccdData});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ProfileBloc(profileUseCase: sl()),
-      child: const _ProfileOnboardingView(),
+      child: _ProfileOnboardingView(cccdData: cccdData),
     );
   }
 }
 
 class _ProfileOnboardingView extends StatefulWidget {
-  const _ProfileOnboardingView();
+  final CccdData? cccdData;
+  const _ProfileOnboardingView({this.cccdData});
 
   @override
   State<_ProfileOnboardingView> createState() => _ProfileOnboardingViewState();
@@ -32,7 +35,7 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
 
   // Personal
   final _nameCtrl = TextEditingController();
-  final _dobCtrl = TextEditingController();
+  DateTime? _selectedDob;
   String _gender = 'MALE';
 
   // Identity
@@ -63,10 +66,36 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
   String _email = '';
   String _phone = '';
 
+  // Fields locked because they came from CCCD scan
+  bool get _cccdFilled => widget.cccdData != null;
+
   @override
   void initState() {
     super.initState();
     _loadStoredData();
+    _prefillCccd();
+  }
+
+  void _prefillCccd() {
+    final d = widget.cccdData;
+    if (d == null) return;
+    _nameCtrl.text = d.name;
+    _gender = d.gender;
+    _identityType = 'CCCD';
+    _identityNumberCtrl.text = d.cccdNumber;
+    _identityIssueDateCtrl.text = d.issueDate;
+    _permanentResCtrl.text = d.address;
+    _nowResCtrl.text = d.address;
+    // Parse DOB string YYYY-MM-DD → DateTime
+    final parts = d.dateOfBirth.split('-');
+    if (parts.length == 3) {
+      final y = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      final day = int.tryParse(parts[2]);
+      if (y != null && m != null && day != null) {
+        _selectedDob = DateTime(y, m, day);
+      }
+    }
   }
 
   Future<void> _loadStoredData() async {
@@ -78,7 +107,7 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
   @override
   void dispose() {
     for (final c in [
-      _nameCtrl, _dobCtrl, _identityNumberCtrl, _identityIssueDateCtrl,
+      _nameCtrl, _identityNumberCtrl, _identityIssueDateCtrl,
       _identityIssuePlaceCtrl, _emergencyNameCtrl, _emergencyPhoneCtrl,
       _emergencyRelCtrl, _permanentResCtrl, _nowResCtrl, _healthCtrl,
       _educationCtrl, _majorCtrl, _expYearsCtrl, _skillsCtrl, _certCtrl,
@@ -96,7 +125,9 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
     context.read<ProfileBloc>().add(ProfileCreate({
       'name': _nameCtrl.text.trim(),
       'gender': _gender,
-      'dateOfBirth': _dobCtrl.text.trim(),
+      'dateOfBirth': _selectedDob != null
+          ? '${_selectedDob!.year.toString().padLeft(4, '0')}-${_selectedDob!.month.toString().padLeft(2, '0')}-${_selectedDob!.day.toString().padLeft(2, '0')}'
+          : '',
       'identityType': _identityType,
       'identityNumber': _identityNumberCtrl.text.trim(),
       'identityIssueDate': int.tryParse(_identityIssueDateCtrl.text.trim()) ?? 0,
@@ -167,34 +198,38 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                     label: 'Họ và tên *',
                     hint: 'Nguyễn Văn A',
                     controller: _nameCtrl,
+                    readOnly: _cccdFilled,
                     validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập họ tên' : null,
                     prefixIcon: const Icon(Icons.badge_outlined, size: 20, color: AppColors.inactive),
+                    suffixIcon: _cccdFilled ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive) : null,
                   ),
                   const SizedBox(height: 12),
                   _dropdown('Giới tính *', _gender, ['MALE', 'FEMALE', 'OTHER'],
-                      _genderLabel, (v) => setState(() => _gender = v!)),
+                      _genderLabel, _cccdFilled ? null : (v) => setState(() => _gender = v!)),
                   const SizedBox(height: 12),
-                  AppInput(
+                  _DatePickerField(
                     label: 'Ngày sinh *',
-                    hint: 'VD: 1999-12-31',
-                    controller: _dobCtrl,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập ngày sinh' : null,
-                    prefixIcon: const Icon(Icons.cake_outlined, size: 20, color: AppColors.inactive),
+                    selectedDate: _selectedDob,
+                    locked: _cccdFilled,
+                    onDateSelected: (date) => setState(() => _selectedDob = date),
+                    validator: (_) => _selectedDob == null ? 'Vui lòng chọn ngày sinh' : null,
                   ),
                   const SizedBox(height: 24),
 
                   // ── Identity ─────────────────────────────────────────
                   _sectionHeader('Giấy tờ tùy thân', Icons.badge_outlined),
                   _dropdown('Loại giấy tờ *', _identityType, ['CCCD', 'CMND', 'PASSPORT'],
-                      (v) => v, (v) => setState(() => _identityType = v!)),
+                      (v) => v, _cccdFilled ? null : (v) => setState(() => _identityType = v!)),
                   const SizedBox(height: 12),
                   AppInput(
                     label: 'Số giấy tờ *',
                     hint: '0123456789',
                     controller: _identityNumberCtrl,
                     keyboardType: TextInputType.number,
+                    readOnly: _cccdFilled,
                     validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập số giấy tờ' : null,
                     prefixIcon: const Icon(Icons.numbers_rounded, size: 20, color: AppColors.inactive),
+                    suffixIcon: _cccdFilled ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive) : null,
                   ),
                   const SizedBox(height: 12),
                   AppInput(
@@ -202,8 +237,10 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                     hint: 'VD: 2020',
                     controller: _identityIssueDateCtrl,
                     keyboardType: TextInputType.number,
+                    readOnly: _cccdFilled && _identityIssueDateCtrl.text.isNotEmpty,
                     validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập năm cấp' : null,
                     prefixIcon: const Icon(Icons.calendar_today_outlined, size: 20, color: AppColors.inactive),
+                    suffixIcon: (_cccdFilled && _identityIssueDateCtrl.text.isNotEmpty) ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive) : null,
                   ),
                   const SizedBox(height: 12),
                   AppInput(
@@ -351,13 +388,15 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
       );
 
   Widget _dropdown(String label, String value, List<String> items, String Function(String) labelFn,
-          ValueChanged<String?> onChanged) =>
+          ValueChanged<String?>? onChanged) =>
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           initialValue: value,
-          decoration: const InputDecoration(),
+          decoration: InputDecoration(
+            suffixIcon: onChanged == null ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive) : null,
+          ),
           items: items.map((v) => DropdownMenuItem(value: v, child: Text(labelFn(v)))).toList(),
           onChanged: onChanged,
         ),
@@ -375,6 +414,88 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
         'DIVORCED' => 'Đã ly hôn',
         _ => 'Độc thân',
       };
+}
+
+class _DatePickerField extends StatelessWidget {
+  final String label;
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime> onDateSelected;
+  final FormFieldValidator<String>? validator;
+  final bool locked;
+
+  const _DatePickerField({
+    required this.label,
+    required this.selectedDate,
+    required this.onDateSelected,
+    this.validator,
+    this.locked = false,
+  });
+
+  String get _displayText => selectedDate == null
+      ? 'Chọn ngày sinh'
+      : '${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}';
+
+  Future<void> _pickDate(BuildContext context) async {
+    if (locked) return;
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime(now.year - 25, 1, 1),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(now.year - 16, now.month, now.day),
+      locale: const Locale('vi', 'VN'),
+    );
+    if (picked != null) onDateSelected(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FormField<String>(
+      validator: validator,
+      builder: (field) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: () => _pickDate(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              decoration: BoxDecoration(
+                border: Border.all(
+                    color: field.hasError ? AppColors.error : AppColors.border),
+                borderRadius: BorderRadius.circular(12),
+                color: AppColors.surface,
+              ),
+              child: Row(children: [
+                const Icon(Icons.cake_outlined, size: 20, color: AppColors.inactive),
+                const SizedBox(width: 10),
+                Text(
+                  _displayText,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: selectedDate == null ? AppColors.inactive : AppColors.textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                locked
+                    ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive)
+                    : const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.inactive),
+              ]),
+            ),
+          ),
+          if (field.hasError)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 4),
+              child: Text(field.errorText!,
+                  style: const TextStyle(fontSize: 12, color: AppColors.error)),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 class _StepIndicator extends StatelessWidget {

@@ -302,51 +302,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ),
         ]),
-        SizedBox(height: context.r(12)),
-
-        // Ledger banner
-        Container(
-          padding: EdgeInsets.all(context.r(18)),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(context.r(18)),
-          ),
-          child: Row(children: [
-            Icon(Icons.account_tree_rounded, color: const Color(0xFF34D399), size: context.r(36)),
-            SizedBox(width: context.r(14)),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Blockchain Ledger',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: context.r(15))),
-                SizedBox(height: context.r(4)),
-                Text('Xem toàn bộ audit trail',
-                    style: TextStyle(color: Colors.white54, fontSize: context.r(12))),
-              ]),
-            ),
-            SizedBox(
-              width: context.r(72),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF34D399),
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(context.r(10))),
-                  padding: EdgeInsets.symmetric(horizontal: context.r(8), vertical: context.r(8)),
-                ),
-                onPressed: () => context.go('/app/admin/ledger'),
-                child: Text('Xem',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: context.r(13))),
-              ),
-            ),
-          ]),
-        ),
         SizedBox(height: context.r(24)),
       ]),
     );

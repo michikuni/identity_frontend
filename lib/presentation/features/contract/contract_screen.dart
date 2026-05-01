@@ -43,23 +43,11 @@ class _ContractView extends StatelessWidget {
           if (state.status == ContractStatus.loading) {
             return const LoadingWidget(message: 'Loading contract...');
           }
-          if (state.status == ContractStatus.failure) {
-            return ErrorStateWidget(
-              message: state.errorMessage ?? 'Failed to load contract',
+          if (state.status == ContractStatus.failure || state.contract == null) {
+            return _EmptyOrErrorWidget(
+              icon: Icons.description_outlined,
+              message: 'Không có dữ liệu hợp đồng.\nVui lòng thử lại.',
               onRetry: () => context.read<ContractBloc>().add(const ContractFetch()),
-            );
-          }
-          if (state.contract == null) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.description_outlined, size: 56, color: AppColors.inactive),
-                  const SizedBox(height: 12),
-                  Text(l10n.contractNoData,
-                      style: const TextStyle(color: AppColors.textSecondary)),
-                ],
-              ),
             );
           }
           return _buildContent(context, l10n, state.contract!);
@@ -155,5 +143,61 @@ class _ContractView extends StatelessWidget {
   String _fmtDate(DateTime? dt) {
     if (dt == null) return '—';
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+  }
+}
+
+class _EmptyOrErrorWidget extends StatelessWidget {
+  final IconData icon;
+  final String message;
+  final VoidCallback onRetry;
+
+  const _EmptyOrErrorWidget({
+    required this.icon,
+    required this.message,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceVariant,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 40, color: AppColors.inactive),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Thử lại'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

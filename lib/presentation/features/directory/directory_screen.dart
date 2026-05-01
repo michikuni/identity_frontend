@@ -16,7 +16,9 @@ class DirectoryBloc extends Cubit<DirectoryState> {
   Future<void> load() async {
     emit(state.copyWith(loading: true));
     try {
-      _all = await _useCase.getAll();
+      final all = await _useCase.getAll();
+      // Chỉ hiển thị nhân sự đang làm việc (status ACTIVE)
+      _all = all.where((e) => e.status == 'ACTIVE').toList();
       emit(state.copyWith(loading: false, items: _all));
     } catch (e) {
       emit(state.copyWith(loading: false, error: e.toString()));

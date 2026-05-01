@@ -66,7 +66,7 @@ class _OnboardingViewState extends State<_OnboardingView> {
     return BlocListener<OnboardingBloc, OnboardingState>(
       listener: (context, state) {
         if (state.status == OnboardingStatus.success) {
-          context.go('/auth/onboarding/profile');
+          context.go('/auth/onboarding/cccd-scan');
         } else if (state.status == OnboardingStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(state.errorMessage ?? 'Có lỗi xảy ra, vui lòng thử lại'),

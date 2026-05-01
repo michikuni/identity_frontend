@@ -244,7 +244,15 @@ class _WalletScreenState extends State<WalletScreen> {
                     const SizedBox(height: 16),
                   ] else ...[
                     _PendingCard(
-                      message: 'Wallet chưa được khởi tạo.\n\nBạn cần hoàn tất bước Onboarding (đăng ký phòng ban, chức vụ) để tạo keypair. Đăng xuất và đăng nhập lại nếu bỏ qua bước này.',
+                      message: 'DID Wallet chưa được khởi tạo.\n\n'
+                          'Nguyên nhân thường gặp:\n'
+                          '• Bạn chưa hoàn tất bước Onboarding (đăng ký phòng ban + chức vụ)\n'
+                          '• Tài khoản chưa được Admin duyệt\n\n'
+                          'Cách khắc phục:\n'
+                          '1. Đảm bảo bạn đã điền đầy đủ thông tin phòng ban và chức vụ trong bước Onboarding\n'
+                          '2. Liên hệ Admin để được duyệt tài khoản\n'
+                          '3. Sau khi Admin duyệt, Wallet và Employment VC sẽ tự động được tạo\n'
+                          '4. Nhấn nút Tải lại (↺) để kiểm tra lại',
                       icon: Icons.info_outline_rounded,
                       color: AppColors.info,
                     ),
@@ -312,7 +320,10 @@ class _WalletScreenState extends State<WalletScreen> {
   Future<void> _showPresentVpDialog(BuildContext context) async {
     if (_employmentVc == null) return;
 
-    final allFields = ['employmentStatus', 'department', 'position', 'startDate'];
+    // Lấy tất cả fields thực tế từ VC (trừ 'id')
+    final subject = _vcParsed?['credentialSubject'] as Map<String, dynamic>? ?? {};
+    final allFields = subject.keys.where((k) => k != 'id').toList();
+    if (allFields.isEmpty) return;
     final selected = <String>{...allFields};
 
     final confirmed = await showDialog<Set<String>>(
@@ -514,7 +525,7 @@ class _WalletHeader extends StatelessWidget {
         ? ('Đã xác minh — sẵn sàng dùng', Icons.verified_rounded)
         : hasKeypair
             ? ('Keypair đã tạo — chờ Admin duyệt', Icons.hourglass_top_rounded)
-            : ('Chưa đăng ký thông tin công việc', Icons.warning_amber_rounded);
+            : ('Chưa khởi tạo Wallet', Icons.warning_amber_rounded);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1112,7 +1123,6 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
     try {
       authReq = jsonDecode(raw) as Map<String, dynamic>;
     } catch (_) {
-      // Try decode compressed
       final decoded = VcQrPayloadCodec.decode(raw);
       if (decoded == null) return;
       try {
@@ -1138,8 +1148,21 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
       return;
     }
 
-    // Extract requestedClaims from presentation_definition
     final List<String> requestedFields = _extractFields(authReq);
+
+    // Hiển thị popup xác nhận TRƯỚC khi gửi VP
+    if (!mounted) return;
+    final confirmed = await _showConfirmDialog(requestedFields);
+    if (!mounted) return;
+    if (confirmed != true) {
+      // Employee từ chối — cho phép quét lại
+      setState(() {
+        _scanning = true;
+        _errorMsg = null;
+      });
+      _ctrl.start().ignore();
+      return;
+    }
 
     setState(() => _submitting = true);
 
@@ -1166,6 +1189,87 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
         _errorMsg = 'Gửi VP thất bại: $e';
       });
     }
+  }
+
+  Future<bool?> _showConfirmDialog(List<String> requestedFields) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.shield_outlined, color: AppColors.primary, size: 22),
+            SizedBox(width: 8),
+            Text(
+              'Yêu cầu chia sẻ thông tin',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 16),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Verifier đang yêu cầu bạn chia sẻ thông tin sau. Chỉ xác nhận nếu bạn tin tưởng bên yêu cầu.',
+                      style: TextStyle(fontSize: 11, color: AppColors.warning, height: 1.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Thông tin được yêu cầu:',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 8),
+            ...requestedFields.map((f) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.circle, size: 6, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        f,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Từ chối', style: TextStyle(color: AppColors.error)),
+          ),
+          FilledButton.icon(
+            icon: const Icon(Icons.check_rounded, size: 16),
+            label: const Text('Xác nhận chia sẻ'),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+            onPressed: () => Navigator.pop(ctx, true),
+          ),
+        ],
+      ),
+    );
   }
 
   List<String> _extractFields(Map<String, dynamic> authReq) {
