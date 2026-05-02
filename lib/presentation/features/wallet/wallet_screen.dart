@@ -7,7 +7,9 @@ import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/qr/vc_qr_payload_codec.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/wallet/vc_schemas.dart';
 import 'package:identity_frontend/core/wallet/vp_builder.dart';
+import 'package:identity_frontend/core/wallet/wallet_service.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -68,10 +70,18 @@ class _WalletScreenState extends State<WalletScreen> {
     try {
       _did = await SecureStorage.getDid();
       _publicKeyJwk = await SecureStorage.getPublicKeyJwk();
-      _employmentVc   = await SecureStorage.getEmploymentVC();
-      _terminationVc  = await SecureStorage.getTerminationVC();
-      _salaryRangeVc  = await SecureStorage.getSalaryRangeVC();
-      _promotionVc    = await SecureStorage.getPromotionVC();
+      _employmentVc = await SecureStorage.getEmploymentVC();
+      _terminationVc = await SecureStorage.getTerminationVC();
+      _salaryRangeVc = await SecureStorage.getSalaryRangeVC();
+      _promotionVc = await SecureStorage.getPromotionVC();
+
+      // Nếu chưa có keypair local, thử regenerate — trường hợp reinstall app
+      if (_publicKeyJwk == null || _publicKeyJwk!.isEmpty) {
+        try {
+          final newJwk = await WalletService.generateAndSave();
+          setState(() => _publicKeyJwk = newJwk);
+        } catch (_) {}
+      }
 
       final employeeId = await _resolveEmployeeNumericId();
       if (employeeId != null) {
@@ -124,8 +134,9 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Future<void> _tryFetchVC(String employeeId) async {
     try {
-      final res = await ApiClient.instance
-          .get(ApiConstants.getEmploymentVC(employeeId));
+      final res = await ApiClient.instance.get(
+        ApiConstants.getEmploymentVC(employeeId),
+      );
       final vcJson = res.data['data']?['vc'] as String?;
       if (vcJson != null && vcJson.isNotEmpty) {
         await SecureStorage.saveEmploymentVC(vcJson);
@@ -144,8 +155,9 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Future<void> _tryFetchTerminationVC(String employeeId) async {
     try {
-      final res = await ApiClient.instance
-          .get(ApiConstants.getTerminationVC(employeeId));
+      final res = await ApiClient.instance.get(
+        ApiConstants.getTerminationVC(employeeId),
+      );
       final vcJson = res.data['data']?['vc'] as String?;
       if (vcJson != null && vcJson.isNotEmpty) {
         await SecureStorage.saveTerminationVC(vcJson);
@@ -164,7 +176,9 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Future<void> _tryFetchSalaryRangeVC(String employeeId) async {
     try {
-      final res = await ApiClient.instance.get(ApiConstants.getSalaryRangeVC(employeeId));
+      final res = await ApiClient.instance.get(
+        ApiConstants.getSalaryRangeVC(employeeId),
+      );
       final vcJson = res.data['data']?['vc'] as String?;
       if (vcJson != null && vcJson.isNotEmpty) {
         await SecureStorage.saveSalaryRangeVC(vcJson);
@@ -176,13 +190,17 @@ class _WalletScreenState extends State<WalletScreen> {
 
   void _parseSalaryRangeVc(String vcJson) {
     try {
-      setState(() => _salaryRangeVcParsed = jsonDecode(vcJson) as Map<String, dynamic>);
+      setState(
+        () => _salaryRangeVcParsed = jsonDecode(vcJson) as Map<String, dynamic>,
+      );
     } catch (_) {}
   }
 
   Future<void> _tryFetchPromotionVC(String employeeId) async {
     try {
-      final res = await ApiClient.instance.get(ApiConstants.getPromotionVC(employeeId));
+      final res = await ApiClient.instance.get(
+        ApiConstants.getPromotionVC(employeeId),
+      );
       final vcJson = res.data['data']?['vc'] as String?;
       if (vcJson != null && vcJson.isNotEmpty) {
         await SecureStorage.savePromotionVC(vcJson);
@@ -194,8 +212,84 @@ class _WalletScreenState extends State<WalletScreen> {
 
   void _parsePromotionVc(String vcJson) {
     try {
-      setState(() => _promotionVcParsed = jsonDecode(vcJson) as Map<String, dynamic>);
+      setState(
+        () => _promotionVcParsed = jsonDecode(vcJson) as Map<String, dynamic>,
+      );
     } catch (_) {}
+  }
+
+  List<Widget> _employmentRows(Map<String, dynamic> vc) => _credentialRows(
+    vc,
+    kVcSchemas['EmploymentCredential']?.fields ?? const [],
+  );
+
+  List<Widget> _salaryRows(Map<String, dynamic> vc) => _credentialRows(
+    vc,
+    kVcSchemas['SalaryRangeCredential']?.fields ?? const [],
+  );
+
+  List<Widget> _promotionRows(Map<String, dynamic> vc) => _credentialRows(
+    vc,
+    kVcSchemas['PromotionCredential']?.fields ?? const [],
+  );
+
+  List<Widget> _terminationRows(Map<String, dynamic> vc) => _credentialRows(
+    vc,
+    kVcSchemas['TerminationCredential']?.fields ?? const [],
+  );
+
+  List<Widget> _credentialRows(
+    Map<String, dynamic> vc,
+    List<String> preferredFields,
+  ) {
+    final subject = vc['credentialSubject'] as Map<String, dynamic>? ?? {};
+    final entries = <MapEntry<String, String>>[];
+
+    void add(String label, Object? value) {
+      final text = _formatVcValue(value);
+      if (text.isNotEmpty) entries.add(MapEntry(label, text));
+    }
+
+    for (final field in preferredFields) {
+      add(field, subject[field]);
+    }
+    for (final entry in subject.entries) {
+      if (entry.key == 'id' || preferredFields.contains(entry.key)) continue;
+      add(entry.key, entry.value);
+    }
+    add('Issued', vc['issuanceDate']);
+    add('Expires', vc['expirationDate']);
+    add('VC ID', vc['id']);
+
+    if (entries.isEmpty) {
+      return const [
+        Text(
+          'No credential fields available',
+          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
+      ];
+    }
+
+    final rows = <Widget>[];
+    for (var i = 0; i < entries.length; i++) {
+      final entry = entries[i];
+      rows.add(
+        _InfoRow(
+          label: entry.key,
+          value: entry.value,
+          copyable: entry.key == 'VC ID',
+        ),
+      );
+      if (i < entries.length - 1) rows.add(const SizedBox(height: 6));
+    }
+    return rows;
+  }
+
+  String _formatVcValue(Object? value) {
+    if (value == null) return '';
+    if (value is String) return value.trim();
+    if (value is num || value is bool) return value.toString();
+    return jsonEncode(value);
   }
 
   @override
@@ -235,16 +329,20 @@ class _WalletScreenState extends State<WalletScreen> {
                   if (_didDocument != null) ...[
                     _DIDCard(doc: _didDocument!),
                     const SizedBox(height: 16),
+                  ] else if (_vcParsed != null) ...[
+                    // Đã có VC (đã được duyệt) nhưng DID resolve fail — không show pending
                   ] else if (_publicKeyJwk != null) ...[
                     _PendingCard(
-                      message: 'DID đang chờ Admin phê duyệt.\n\nAdmin vào màn "Duyệt tài khoản" → nhấn ✓ để duyệt. Sau khi duyệt, DID và Employment VC sẽ tự động được cấp.',
+                      message:
+                          'DID đang chờ Admin phê duyệt.\n\nAdmin vào màn "Duyệt tài khoản" → nhấn ✓ để duyệt. Sau khi duyệt, DID và Employment VC sẽ tự động được cấp.',
                       icon: Icons.hourglass_top_rounded,
                       color: AppColors.warning,
                     ),
                     const SizedBox(height: 16),
                   ] else ...[
                     _PendingCard(
-                      message: 'DID Wallet chưa được khởi tạo.\n\n'
+                      message:
+                          'DID Wallet chưa được khởi tạo.\n\n'
                           'Nguyên nhân thường gặp:\n'
                           '• Bạn chưa hoàn tất bước Onboarding (đăng ký phòng ban + chức vụ)\n'
                           '• Tài khoản chưa được Admin duyệt\n\n'
@@ -263,14 +361,28 @@ class _WalletScreenState extends State<WalletScreen> {
                   if (_vcParsed != null) ...[
                     _VCCard(
                       vc: _vcParsed!,
-                      onShowQr: () => _showQrDialog(context, _employmentVc!),
-                      onPresentVp: () => _showPresentVpDialog(context),
-                      onScanVpRequest: () => _showScanVpRequestDialog(context),
+                      vcJson: _employmentVc!,
+                      vcType: 'EmploymentCredential',
+                      title: 'Employment Credential',
+                      icon: Icons.verified_rounded,
+                      color: AppColors.primary,
+                      detailRows: _employmentRows(_vcParsed!),
+                      onCreateVcQr: () => _showCreateVcQrDialog(
+                        context,
+                        _employmentVc!,
+                        'EmploymentCredential',
+                      ),
+                      onScanVpRequest: () => _showScanVpRequestDialog(
+                        context,
+                        _employmentVc!,
+                        'EmploymentCredential',
+                      ),
                     ),
                     const SizedBox(height: 16),
                   ] else if (_publicKeyJwk != null) ...[
                     _PendingCard(
-                      message: 'Employment VC chưa được cấp — sẽ tự động xuất hiện sau khi Admin duyệt tài khoản.',
+                      message:
+                          'Employment VC chưa được cấp — sẽ tự động xuất hiện sau khi Admin duyệt tài khoản.',
                       icon: Icons.verified_outlined,
                       color: AppColors.warning,
                     ),
@@ -279,36 +391,79 @@ class _WalletScreenState extends State<WalletScreen> {
 
                   // ── SalaryRangeVC Card ───────────────────────────────────
                   if (_salaryRangeVcParsed != null) ...[
-                    _SalaryRangeVCCard(
+                    _VCCard(
                       vc: _salaryRangeVcParsed!,
-                      onShowQr: () => _showQrDialog(
-                        context, _salaryRangeVc!, title: 'Salary Range VC'),
+                      vcJson: _salaryRangeVc!,
+                      vcType: 'SalaryRangeCredential',
+                      title: 'Salary Range Credential',
+                      icon: Icons.attach_money_rounded,
+                      color: AppColors.accent,
+                      detailRows: _salaryRows(_salaryRangeVcParsed!),
+                      onCreateVcQr: () => _showCreateVcQrDialog(
+                        context,
+                        _salaryRangeVc!,
+                        'SalaryRangeCredential',
+                      ),
+                      onScanVpRequest: () => _showScanVpRequestDialog(
+                        context,
+                        _salaryRangeVc!,
+                        'SalaryRangeCredential',
+                      ),
                     ),
                     const SizedBox(height: 16),
                   ],
 
                   // ── PromotionVC Card ─────────────────────────────────────
                   if (_promotionVcParsed != null) ...[
-                    _PromotionVCCard(
+                    _VCCard(
                       vc: _promotionVcParsed!,
-                      onShowQr: () => _showQrDialog(
-                        context, _promotionVc!, title: 'Promotion VC'),
+                      vcJson: _promotionVc!,
+                      vcType: 'PromotionCredential',
+                      title: 'Promotion Credential',
+                      icon: Icons.trending_up_rounded,
+                      color: AppColors.info,
+                      detailRows: _promotionRows(_promotionVcParsed!),
+                      onCreateVcQr: () => _showCreateVcQrDialog(
+                        context,
+                        _promotionVc!,
+                        'PromotionCredential',
+                      ),
+                      onScanVpRequest: () => _showScanVpRequestDialog(
+                        context,
+                        _promotionVc!,
+                        'PromotionCredential',
+                      ),
                     ),
                     const SizedBox(height: 16),
                   ],
 
                   // ── TerminationVC Card ───────────────────────────────────
                   if (_terminationVcParsed != null) ...[
-                    _TerminationVCCard(
+                    _VCCard(
                       vc: _terminationVcParsed!,
-                      onShowQr: () => _showQrDialog(
-                        context, _terminationVc!, title: 'Termination VC'),
+                      vcJson: _terminationVc!,
+                      vcType: 'TerminationCredential',
+                      title: 'Termination Credential',
+                      icon: Icons.cancel_rounded,
+                      color: AppColors.error,
+                      detailRows: _terminationRows(_terminationVcParsed!),
+                      onCreateVcQr: () => _showCreateVcQrDialog(
+                        context,
+                        _terminationVc!,
+                        'TerminationCredential',
+                      ),
+                      onScanVpRequest: () => _showScanVpRequestDialog(
+                        context,
+                        _terminationVc!,
+                        'TerminationCredential',
+                      ),
                     ),
                     const SizedBox(height: 16),
                   ],
 
                   // ── Public Key Card ──────────────────────────────────────
-                  if (_publicKeyJwk != null) _PublicKeyCard(jwk: _publicKeyJwk!),
+                  if (_publicKeyJwk != null)
+                    _PublicKeyCard(jwk: _publicKeyJwk!),
                 ],
               ),
             ),
@@ -317,11 +472,13 @@ class _WalletScreenState extends State<WalletScreen> {
 
   // ── Present VP: Employee chủ động chọn field → tạo VP QR cho Verifier quét ──
 
+  // ignore: unused_element
   Future<void> _showPresentVpDialog(BuildContext context) async {
     if (_employmentVc == null) return;
 
     // Lấy tất cả fields thực tế từ VC (trừ 'id')
-    final subject = _vcParsed?['credentialSubject'] as Map<String, dynamic>? ?? {};
+    final subject =
+        _vcParsed?['credentialSubject'] as Map<String, dynamic>? ?? {};
     final allFields = subject.keys.where((k) => k != 'id').toList();
     if (allFields.isEmpty) return;
     final selected = <String>{...allFields};
@@ -330,8 +487,10 @@ class _WalletScreenState extends State<WalletScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          title: const Text('Chọn thông tin chia sẻ',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          title: const Text(
+            'Chọn thông tin chia sẻ',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,23 +503,36 @@ class _WalletScreenState extends State<WalletScreen> {
                 ),
                 child: const Text(
                   'Bạn đang chủ động chia sẻ VP với Verifier.\nChọn các trường muốn tiết lộ — Verifier sẽ quét QR này.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.5),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
-              ...allFields.map((f) => CheckboxListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(f, style: const TextStyle(fontSize: 13)),
-                    value: selected.contains(f),
-                    onChanged: (v) => setLocal(() => v == true ? selected.add(f) : selected.remove(f)),
-                  )),
+              ...allFields.map(
+                (f) => CheckboxListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(f, style: const TextStyle(fontSize: 13)),
+                  value: selected.contains(f),
+                  onChanged: (v) => setLocal(
+                    () => v == true ? selected.add(f) : selected.remove(f),
+                  ),
+                ),
+              ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Huỷ')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Huỷ'),
+            ),
             FilledButton(
-              onPressed: selected.isEmpty ? null : () => Navigator.pop(ctx, Set<String>.from(selected)),
+              onPressed: selected.isEmpty
+                  ? null
+                  : () => Navigator.pop(ctx, Set<String>.from(selected)),
               child: const Text('Tạo VP QR'),
             ),
           ],
@@ -389,20 +561,26 @@ class _WalletScreenState extends State<WalletScreen> {
         );
         final d = res.data['data'] as Map<String, dynamic>? ?? {};
         sessionState = d['state'] as String?;
-        sessionNonce = (d['authorizationRequest'] as Map<String, dynamic>?)?['nonce'] as String?
-            ?? d['nonce'] as String?;
+        sessionNonce =
+            (d['authorizationRequest'] as Map<String, dynamic>?)?['nonce']
+                as String? ??
+            d['nonce'] as String?;
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Không thể tạo VP session: $e'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.error,
-          ));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Không thể tạo VP session: $e'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: AppColors.error,
+            ),
+          );
         }
         return;
       }
     }
-    if (sessionState == null || sessionNonce == null || !context.mounted) return;
+    if (sessionState == null || sessionNonce == null || !context.mounted) {
+      return;
+    }
 
     // Submit VP directly to backend — Verifier polls the result
     try {
@@ -414,40 +592,147 @@ class _WalletScreenState extends State<WalletScreen> {
       );
       if (!context.mounted) return;
       final (msg, bg) = result.valid
-          ? ('VP đã gửi thành công — Verifier có thể xem kết quả ✓', AppColors.success)
+          ? (
+              'VP đã gửi thành công — Verifier có thể xem kết quả ✓',
+              AppColors.success,
+            )
           : ('VP bị từ chối: ${result.reason}', AppColors.error);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(msg),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: bg,
-        duration: const Duration(seconds: 5),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: bg,
+          duration: const Duration(seconds: 5),
+        ),
+      );
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Gửi VP thất bại: $e'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.error,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gửi VP thất bại: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 
   // ── Scan VP Request: Employee quét QR từ Verifier → gửi VP đáp lại ──────────
 
-  Future<void> _showScanVpRequestDialog(BuildContext context) async {
-    if (_employmentVc == null) return;
+  Future<void> _showScanVpRequestDialog(
+    BuildContext context,
+    String vcJson,
+    String vcType,
+  ) async {
     await showDialog(
       context: context,
-      builder: (ctx) => _VpRequestScanDialog(
-        employmentVcJson: _employmentVc!,
-      ),
+      builder: (ctx) => _VpRequestScanDialog(vcJson: vcJson, vcType: vcType),
     );
   }
 
-  void _showQrDialog(BuildContext context, String vcJson,
-      {String title = 'Employment VC'}) {
-    final qrData = VcQrPayloadCodec.encode(vcJson);
-    final isShortToken = VcQrPayloadCodec.isVcIdToken(qrData);
+  Future<void> _showCreateVcQrDialog(
+    BuildContext context,
+    String vcJson,
+    String vcType,
+  ) async {
+    Map<String, dynamic> vc;
+    try {
+      vc = jsonDecode(vcJson) as Map<String, dynamic>;
+    } catch (_) {
+      _showQrDialog(context, vcJson, title: vcType);
+      return;
+    }
+
+    final schema = kVcSchemas[vcType];
+    final title = schema?.label ?? vcType;
+    final vcId = vc['id']?.toString();
+    final subject = vc['credentialSubject'] as Map<String, dynamic>? ?? {};
+    final schemaFields = schema?.fields ?? subject.keys.where((k) => k != 'id');
+    final fields = schemaFields
+        .where((field) => subject.containsKey(field))
+        .toList(growable: false);
+
+    if (vcId == null || vcId.isEmpty || fields.isEmpty) {
+      _showQrDialog(context, vcJson, title: title);
+      return;
+    }
+
+    final selected = <String>{...fields};
+    final disclosedFields = await showDialog<List<String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Select fields to include in the QR.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...fields.map(
+                (field) => CheckboxListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(field, style: const TextStyle(fontSize: 13)),
+                  value: selected.contains(field),
+                  onChanged: (value) => setLocal(() {
+                    if (value == true) {
+                      selected.add(field);
+                    } else {
+                      selected.remove(field);
+                    }
+                  }),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: selected.isEmpty
+                  ? null
+                  : () => Navigator.pop(ctx, selected.toList()),
+              child: const Text('Create QR'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (disclosedFields == null ||
+        disclosedFields.isEmpty ||
+        !context.mounted) {
+      return;
+    }
+
+    final qrData = VcQrPayloadCodec.buildVcIdToken(
+      vcId,
+      fields: disclosedFields,
+    );
+    _showQrDialog(context, vcJson, title: title, qrData: qrData);
+  }
+
+  void _showQrDialog(
+    BuildContext context,
+    String vcJson, {
+    String title = 'Employment VC',
+    String? qrData,
+  }) {
+    final effectiveQrData = qrData ?? VcQrPayloadCodec.encode(vcJson);
+    final isShortToken = VcQrPayloadCodec.isVcIdToken(effectiveQrData);
     final screenW = MediaQuery.of(context).size.width;
     final qrSize = (screenW - 80).clamp(200.0, 320.0);
 
@@ -463,7 +748,10 @@ class _WalletScreenState extends State<WalletScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -475,7 +763,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 color: Colors.white,
                 padding: const EdgeInsets.all(8),
                 child: QrImageView(
-                  data: qrData,
+                  data: effectiveQrData,
                   version: QrVersions.auto,
                   size: qrSize,
                   errorCorrectionLevel: QrErrorCorrectLevel.L,
@@ -485,8 +773,8 @@ class _WalletScreenState extends State<WalletScreen> {
               const SizedBox(height: 6),
               Text(
                 isShortToken
-                    ? '${qrData.length} ký tự (short token)'
-                    : '${qrData.length} ký tự',
+                    ? '${effectiveQrData.length} ký tự (short token)'
+                    : '${effectiveQrData.length} ký tự',
                 style: const TextStyle(fontSize: 10, color: AppColors.inactive),
               ),
               const SizedBox(height: 16),
@@ -496,11 +784,13 @@ class _WalletScreenState extends State<WalletScreen> {
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: vcJson));
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Đã sao chép VC JSON'),
-                    behavior: SnackBarBehavior.floating,
-                    duration: Duration(seconds: 2),
-                  ));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Đã sao chép VC JSON'),
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
                 },
               ),
             ],
@@ -524,14 +814,17 @@ class _WalletHeader extends StatelessWidget {
     final (statusText, statusIcon) = ready
         ? ('Đã xác minh — sẵn sàng dùng', Icons.verified_rounded)
         : hasKeypair
-            ? ('Keypair đã tạo — chờ Admin duyệt', Icons.hourglass_top_rounded)
-            : ('Chưa khởi tạo Wallet', Icons.warning_amber_rounded);
+        ? ('Keypair đã tạo — chờ Admin duyệt', Icons.hourglass_top_rounded)
+        : ('Chưa khởi tạo Wallet', Icons.warning_amber_rounded);
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.75)],
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withValues(alpha: 0.75),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -545,24 +838,32 @@ class _WalletHeader extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.account_balance_wallet_rounded,
-                color: Colors.white, size: 28),
+            child: const Icon(
+              Icons.account_balance_wallet_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('DID Wallet',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700)),
+                const Text(
+                  'DID Wallet',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   statusText,
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -617,268 +918,86 @@ class _DIDCard extends StatelessWidget {
   }
 }
 
+/// Card chung cho tất cả 4 loại VC. Mỗi card có 2 nút:
+///   - "Tạo VC QR" — popup chọn field → QR `vcid:<id>?fields=...`
+///   - "Quét QR VP Request" — mở camera, chỉ chấp nhận VP Request đúng vcType
 class _VCCard extends StatelessWidget {
   final Map<String, dynamic> vc;
-  final VoidCallback onShowQr;
-  final VoidCallback onPresentVp;
+  final String vcJson;
+  final String vcType;
+  final String title;
+  final IconData icon;
+  final Color color;
+  final List<Widget> detailRows;
+  final VoidCallback onCreateVcQr;
   final VoidCallback onScanVpRequest;
   const _VCCard({
     required this.vc,
-    required this.onShowQr,
-    required this.onPresentVp,
+    required this.vcJson,
+    required this.vcType,
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.detailRows,
+    required this.onCreateVcQr,
     required this.onScanVpRequest,
   });
 
   @override
   Widget build(BuildContext context) {
-    final subject = vc['credentialSubject'] as Map<String, dynamic>? ?? {};
-    final issuanceDate = vc['issuanceDate'] as String? ?? '';
     final expirationDate = vc['expirationDate'] as String? ?? '';
-    final isExpired = expirationDate.isNotEmpty &&
+    final isExpired =
+        expirationDate.isNotEmpty &&
         DateTime.tryParse(expirationDate)?.isBefore(DateTime.now()) == true;
 
     return _Card(
       borderColor: isExpired
           ? AppColors.error.withValues(alpha: 0.4)
-          : AppColors.primary.withValues(alpha: 0.3),
+          : color.withValues(alpha: 0.35),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _CardHeader(
-            icon: Icons.verified_rounded,
-            iconColor: isExpired ? AppColors.error : AppColors.primary,
-            title: 'Employment Credential',
+            icon: icon,
+            iconColor: isExpired ? AppColors.error : color,
+            title: title,
             badge: isExpired ? 'EXPIRED' : 'VALID',
             badgeColor: isExpired ? AppColors.error : AppColors.success,
           ),
           const SizedBox(height: 12),
-          _InfoRow(label: 'Phòng ban', value: subject['department']?.toString() ?? '-'),
-          const SizedBox(height: 6),
-          _InfoRow(label: 'Chức vụ', value: subject['position']?.toString() ?? '-'),
-          const SizedBox(height: 6),
-          _InfoRow(
-            label: 'Cấp lúc',
-            value: issuanceDate.length >= 10 ? issuanceDate.substring(0, 10) : '-',
-          ),
-          const SizedBox(height: 6),
-          _InfoRow(
-            label: 'Hết hạn',
-            value: expirationDate.length >= 10 ? expirationDate.substring(0, 10) : '-',
-          ),
+          ...detailRows,
           const SizedBox(height: 14),
-          // Row 1: Xuất QR + Quét VP Request
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.qr_code_rounded, size: 16),
-                  label: const Text('Xuất QR'),
-                  onPressed: onShowQr,
+                  label: const Text('Tạo VC QR'),
+                  onPressed: onCreateVcQr,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: AppColors.primary),
+                    foregroundColor: color,
+                    side: BorderSide(color: color),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: OutlinedButton.icon(
+                child: FilledButton.icon(
                   icon: const Icon(Icons.qr_code_scanner_rounded, size: 16),
-                  label: const Text('Quét VP Request'),
+                  label: const Text('Quét QR VP Request'),
                   onPressed: onScanVpRequest,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.accent,
-                    side: const BorderSide(color: AppColors.accent),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: color,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          // Row 2: Present VP (chủ động chọn field chia sẻ)
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              icon: const Icon(Icons.share_rounded, size: 16),
-              label: const Text('Present VP — tự chọn field chia sẻ'),
-              onPressed: onPresentVp,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SalaryRangeVCCard extends StatelessWidget {
-  final Map<String, dynamic> vc;
-  final VoidCallback onShowQr;
-  const _SalaryRangeVCCard({required this.vc, required this.onShowQr});
-
-  @override
-  Widget build(BuildContext context) {
-    final subject = vc['credentialSubject'] as Map<String, dynamic>? ?? {};
-    final issuanceDate = vc['issuanceDate'] as String? ?? '';
-    final expirationDate = vc['expirationDate'] as String? ?? '';
-    final isExpired = expirationDate.isNotEmpty &&
-        DateTime.tryParse(expirationDate)?.isBefore(DateTime.now()) == true;
-
-    return _Card(
-      borderColor: AppColors.accent.withValues(alpha: 0.4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _CardHeader(
-            icon: Icons.attach_money_rounded,
-            iconColor: AppColors.accent,
-            title: 'Salary Range Credential',
-            badge: isExpired ? 'EXPIRED' : 'VALID',
-            badgeColor: isExpired ? AppColors.error : AppColors.success,
-          ),
-          const SizedBox(height: 12),
-          _InfoRow(label: 'Salary Band', value: subject['salaryBand']?.toString() ?? '-'),
-          const SizedBox(height: 6),
-          _InfoRow(label: 'Currency', value: subject['currency']?.toString() ?? '-'),
-          const SizedBox(height: 6),
-          _InfoRow(label: 'Chức vụ', value: subject['position']?.toString() ?? '-'),
-          const SizedBox(height: 6),
-          _InfoRow(
-            label: 'Cấp lúc',
-            value: issuanceDate.length >= 10 ? issuanceDate.substring(0, 10) : '-',
-          ),
-          const SizedBox(height: 6),
-          _InfoRow(
-            label: 'Hết hạn',
-            value: expirationDate.length >= 10 ? expirationDate.substring(0, 10) : '-',
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.qr_code_rounded, size: 18),
-              label: const Text('Xuất QR để Verifier quét'),
-              onPressed: onShowQr,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.accent,
-                side: const BorderSide(color: AppColors.accent),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PromotionVCCard extends StatelessWidget {
-  final Map<String, dynamic> vc;
-  final VoidCallback onShowQr;
-  const _PromotionVCCard({required this.vc, required this.onShowQr});
-
-  @override
-  Widget build(BuildContext context) {
-    final subject = vc['credentialSubject'] as Map<String, dynamic>? ?? {};
-    final issuanceDate = vc['issuanceDate'] as String? ?? '';
-
-    return _Card(
-      borderColor: AppColors.info.withValues(alpha: 0.4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _CardHeader(
-            icon: Icons.trending_up_rounded,
-            iconColor: AppColors.info,
-            title: 'Promotion Credential',
-            badge: 'PROMOTED',
-            badgeColor: AppColors.info,
-          ),
-          const SizedBox(height: 12),
-          _InfoRow(label: 'Phòng ban', value: subject['department']?.toString() ?? '-'),
-          const SizedBox(height: 6),
-          _InfoRow(label: 'Vị trí cũ', value: subject['oldPosition']?.toString() ?? '-'),
-          const SizedBox(height: 6),
-          _InfoRow(label: 'Vị trí mới', value: subject['newPosition']?.toString() ?? '-'),
-          const SizedBox(height: 6),
-          _InfoRow(
-            label: 'Ngày thăng',
-            value: issuanceDate.length >= 10 ? issuanceDate.substring(0, 10) : '-',
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.qr_code_rounded, size: 18),
-              label: const Text('Xuất QR để Verifier quét'),
-              onPressed: onShowQr,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.info,
-                side: const BorderSide(color: AppColors.info),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TerminationVCCard extends StatelessWidget {
-  final Map<String, dynamic> vc;
-  final VoidCallback onShowQr;
-  const _TerminationVCCard({required this.vc, required this.onShowQr});
-
-  @override
-  Widget build(BuildContext context) {
-    final subject = vc['credentialSubject'] as Map<String, dynamic>? ?? {};
-    final issuanceDate = vc['issuanceDate'] as String? ?? '';
-
-    return _Card(
-      borderColor: AppColors.error.withValues(alpha: 0.4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _CardHeader(
-            icon: Icons.cancel_rounded,
-            iconColor: AppColors.error,
-            title: 'Termination Credential',
-            badge: 'TERMINATED',
-            badgeColor: AppColors.error,
-          ),
-          const SizedBox(height: 12),
-          _InfoRow(label: 'Phòng ban', value: subject['department']?.toString() ?? '-'),
-          const SizedBox(height: 6),
-          _InfoRow(label: 'Chức vụ', value: subject['position']?.toString() ?? '-'),
-          const SizedBox(height: 6),
-          _InfoRow(
-            label: 'Ngày chấm dứt',
-            value: issuanceDate.length >= 10 ? issuanceDate.substring(0, 10) : '-',
-          ),
-          const SizedBox(height: 6),
-          _InfoRow(label: 'Lý do', value: subject['terminationReason']?.toString() ?? '-'),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.qr_code_rounded, size: 18),
-              label: const Text('Xuất QR để Verifier quét'),
-              onPressed: onShowQr,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: const BorderSide(color: AppColors.error),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
           ),
         ],
       ),
@@ -908,8 +1027,14 @@ class _PendingCard extends StatelessWidget {
           Icon(icon, color: c, size: 22),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(message,
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5)),
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+            ),
           ),
         ],
       ),
@@ -937,16 +1062,21 @@ class _PublicKeyCard extends StatelessWidget {
             iconColor: AppColors.primary,
             title: 'Public Key (JWK)',
             trailing: IconButton(
-              icon: const Icon(Icons.copy_rounded, size: 18,
-                  color: AppColors.textSecondary),
+              icon: const Icon(
+                Icons.copy_rounded,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
               tooltip: 'Sao chép',
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: jwk));
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Đã sao chép public key'),
-                  behavior: SnackBarBehavior.floating,
-                  duration: Duration(seconds: 2),
-                ));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Đã sao chép public key'),
+                    behavior: SnackBarBehavior.floating,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
               },
             ),
           ),
@@ -963,8 +1093,9 @@ class _PublicKeyCard extends StatelessWidget {
     );
   }
 
-  String _trunc(String s) =>
-      s.length > 20 ? '${s.substring(0, 12)}...${s.substring(s.length - 8)}' : s;
+  String _trunc(String s) => s.length > 20
+      ? '${s.substring(0, 12)}...${s.substring(s.length - 8)}'
+      : s;
 }
 
 // ── Shared primitives ──────────────────────────────────────────────────────────
@@ -983,7 +1114,11 @@ class _Card extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: borderColor ?? AppColors.border),
         boxShadow: const [
-          BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: child,
@@ -1015,8 +1150,10 @@ class _CardHeader extends StatelessWidget {
         Icon(icon, color: iconColor, size: 20),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(title,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+          child: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+          ),
         ),
         if (badge != null)
           Container(
@@ -1025,13 +1162,16 @@ class _CardHeader extends StatelessWidget {
               color: (badgeColor ?? AppColors.primary).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(badge!,
-                style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: badgeColor ?? AppColors.primary)),
+            child: Text(
+              badge!,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: badgeColor ?? AppColors.primary,
+              ),
+            ),
           ),
-        if (trailing != null) trailing!,
+        ?trailing,
       ],
     );
   }
@@ -1055,22 +1195,27 @@ class _InfoRow extends StatelessWidget {
       children: [
         SizedBox(
           width: 80,
-          child: Text(label,
-              style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500)),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
         Expanded(
           child: GestureDetector(
             onTap: copyable
                 ? () {
                     Clipboard.setData(ClipboardData(text: value));
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Đã sao chép'),
-                      behavior: SnackBarBehavior.floating,
-                      duration: Duration(seconds: 2),
-                    ));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đã sao chép'),
+                        behavior: SnackBarBehavior.floating,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
                   }
                 : null,
             child: Text(
@@ -1094,8 +1239,9 @@ class _InfoRow extends StatelessWidget {
 // → chọn field được yêu cầu → gửi VP Token đáp lại.
 
 class _VpRequestScanDialog extends StatefulWidget {
-  final String employmentVcJson;
-  const _VpRequestScanDialog({required this.employmentVcJson});
+  final String vcJson;
+  final String vcType;
+  const _VpRequestScanDialog({required this.vcJson, required this.vcType});
 
   @override
   State<_VpRequestScanDialog> createState() => _VpRequestScanDialogState();
@@ -1138,6 +1284,17 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
       return;
     }
 
+    final requestedVcType = _extractVcType(authReq);
+    if (requestedVcType != null && requestedVcType != widget.vcType) {
+      _scanning = false;
+      _ctrl.stop().ignore();
+      setState(
+        () => _errorMsg =
+            'Wrong credential type. Request needs $requestedVcType, this card is ${widget.vcType}.',
+      );
+      return;
+    }
+
     _scanning = false;
     _ctrl.stop().ignore();
 
@@ -1170,19 +1327,24 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
       final result = await VpBuilder.submit(
         state: state,
         nonce: nonce,
-        vcJson: widget.employmentVcJson,
+        vcJson: widget.vcJson,
         disclosedFields: requestedFields,
       );
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(result.valid
-            ? 'VP được Verifier chấp nhận ✓'
-            : 'VP bị từ chối: ${result.reason}'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: result.valid ? AppColors.success : AppColors.error,
-        duration: const Duration(seconds: 4),
-      ));
+      final errorMsg = result.valid
+          ? 'VP được Verifier chấp nhận ✓'
+          : result.reason.contains('thiếu các trường') || result.reason.contains('Missing required')
+              ? 'Credential không hợp lệ: không đủ thông tin yêu cầu'
+              : 'VP bị từ chối: ${result.reason}';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: result.valid ? AppColors.success : AppColors.error,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     } catch (e) {
       setState(() {
         _submitting = false;
@@ -1216,16 +1378,26 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
               decoration: BoxDecoration(
                 color: AppColors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.3),
+                ),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 16),
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: AppColors.warning,
+                    size: 16,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Verifier đang yêu cầu bạn chia sẻ thông tin sau. Chỉ xác nhận nếu bạn tin tưởng bên yêu cầu.',
-                      style: TextStyle(fontSize: 11, color: AppColors.warning, height: 1.4),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.warning,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ],
@@ -1234,32 +1406,41 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
             const SizedBox(height: 12),
             const Text(
               'Thông tin được yêu cầu:',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 8),
-            ...requestedFields.map((f) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.circle, size: 6, color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      Text(
-                        f,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
-                        ),
+            ...requestedFields.map(
+              (f) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    const Icon(Icons.circle, size: 6, color: AppColors.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      f,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
                       ),
-                    ],
-                  ),
-                )),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Từ chối', style: TextStyle(color: AppColors.error)),
+            child: const Text(
+              'Từ chối',
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
           FilledButton.icon(
             icon: const Icon(Icons.check_rounded, size: 16),
@@ -1281,11 +1462,25 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
       final fields = constraints['fields'] as List<dynamic>;
       return fields.map((f) {
         final path = (f as Map)['path'] as List<dynamic>;
-        final p = path.first.toString(); // e.g. "$.credentialSubject.department"
+        final p = path.first
+            .toString(); // e.g. "$.credentialSubject.department"
         return p.split('.').last;
       }).toList();
     } catch (_) {
-      return ['employmentStatus', 'department', 'position', 'startDate'];
+      return kVcSchemas[widget.vcType]?.fields ??
+          ['employmentStatus', 'department', 'position', 'startDate'];
+    }
+  }
+
+  String? _extractVcType(Map<String, dynamic> authReq) {
+    try {
+      final pd = authReq['presentation_definition'] as Map<String, dynamic>;
+      final descriptors = pd['input_descriptors'] as List<dynamic>;
+      final first = descriptors.first as Map<String, dynamic>;
+      final schema = first['schema'] as Map<String, dynamic>;
+      return schema['vcType'] as String?;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -1299,8 +1494,10 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Quét VP Request QR',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const Text(
+              'Quét VP Request QR',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+            ),
             const SizedBox(height: 4),
             const Text(
               'Hướng camera vào QR trên màn Verifier\n(tab "Tạo VP Request")',
@@ -1316,9 +1513,11 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
             else if (_errorMsg != null)
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text(_errorMsg!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.error, fontSize: 13)),
+                child: Text(
+                  _errorMsg!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: AppColors.error, fontSize: 13),
+                ),
               )
             else
               ClipRRect(
@@ -1333,7 +1532,10 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
                           width: 200,
                           height: 200,
                           decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.accent, width: 2.5),
+                            border: Border.all(
+                              color: AppColors.accent,
+                              width: 2.5,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),

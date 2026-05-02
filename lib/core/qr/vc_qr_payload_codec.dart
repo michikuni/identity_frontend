@@ -48,11 +48,44 @@ class VcQrPayloadCodec {
   }
 
   /// Extract the VC id from a vcid: token, or null if not that format.
+  /// Strips any `?fields=...` query suffix.
   static String? extractVcId(String payload) {
-    if (payload.startsWith(_vcIdPrefix)) {
-      return payload.substring(_vcIdPrefix.length);
+    if (!payload.startsWith(_vcIdPrefix)) return null;
+    final body = payload.substring(_vcIdPrefix.length);
+    final qIdx = body.indexOf('?');
+    return qIdx == -1 ? body : body.substring(0, qIdx);
+  }
+
+  /// Parse `?fields=a,b,c` from a vcid token. Returns null if no fields query
+  /// (i.e. full disclosure).
+  static List<String>? extractDisclosedFields(String payload) {
+    if (!payload.startsWith(_vcIdPrefix)) return null;
+    final body = payload.substring(_vcIdPrefix.length);
+    final qIdx = body.indexOf('?');
+    if (qIdx == -1) return null;
+    final query = body.substring(qIdx + 1);
+    for (final part in query.split('&')) {
+      final eq = part.indexOf('=');
+      if (eq == -1) continue;
+      final k = part.substring(0, eq);
+      final v = part.substring(eq + 1);
+      if (k == 'fields' && v.isNotEmpty) {
+        return v
+            .split(',')
+            .map((s) => Uri.decodeComponent(s.trim()))
+            .where((s) => s.isNotEmpty)
+            .toList();
+      }
     }
     return null;
+  }
+
+  /// Build a `vcid:<id>?fields=a,b,c` token. If [fields] is null/empty,
+  /// returns the plain `vcid:<id>` token.
+  static String buildVcIdToken(String vcId, {List<String>? fields}) {
+    if (fields == null || fields.isEmpty) return '$_vcIdPrefix$vcId';
+    final encoded = fields.map(Uri.encodeComponent).join(',');
+    return '$_vcIdPrefix$vcId?fields=$encoded';
   }
 
   static bool isVcIdToken(String payload) => payload.startsWith(_vcIdPrefix);

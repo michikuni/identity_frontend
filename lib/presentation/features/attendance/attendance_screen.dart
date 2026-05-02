@@ -88,7 +88,6 @@ class AttendanceScreen extends StatelessWidget {
     final today = state.today;
     final isLoading = state.status == AttendanceStatus.loading;
     final hasCheckedIn = today?.hasCheckedIn ?? false;
-    final hasCheckedOut = today?.hasCheckedOut ?? false;
 
     return Container(
       decoration: BoxDecoration(
@@ -135,7 +134,7 @@ class AttendanceScreen extends StatelessWidget {
               isLoading: isLoading,
               onTap: () => context.read<AttendanceBloc>().add(const AttendanceCheckIn()),
             )
-          else if (!hasCheckedOut)
+          else
             _actionButton(
               context,
               label: 'Check Out',
@@ -144,29 +143,6 @@ class AttendanceScreen extends StatelessWidget {
               textColor: Colors.white,
               isLoading: isLoading,
               onTap: () => context.read<AttendanceBloc>().add(const AttendanceCheckOut()),
-            )
-          else
-            Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: context.r(20), vertical: context.r(12)),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(context.r(12)),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.check_circle_outline_rounded,
-                      color: Colors.white, size: context.r(18)),
-                  SizedBox(width: context.r(8)),
-                  Text('Đã hoàn thành hôm nay',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: context.r(14))),
-                ],
-              ),
             ),
         ],
       ),

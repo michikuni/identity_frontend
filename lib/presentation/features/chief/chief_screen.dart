@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
@@ -14,6 +15,7 @@ class ChiefScreen extends StatefulWidget {
 
 class _ChiefScreenState extends State<ChiefScreen> {
   List<Map<String, dynamic>> _employees = [];
+  int _pendingAccounts = 0;
   bool _loading = true;
   String _search = '';
   String _filterRole = 'ALL';
@@ -45,6 +47,15 @@ class _ChiefScreenState extends State<ChiefScreen> {
     } catch (_) {
       setState(() => _loading = false);
     }
+    _loadPendingCount();
+  }
+
+  Future<void> _loadPendingCount() async {
+    try {
+      final res = await ApiClient.instance.get(ApiConstants.adminPendingAccounts);
+      final list = res.data['data'] as List? ?? [];
+      if (mounted) setState(() => _pendingAccounts = list.length);
+    } catch (_) {}
   }
 
   List<Map<String, dynamic>> get _filtered {
@@ -80,6 +91,11 @@ class _ChiefScreenState extends State<ChiefScreen> {
         title: const Text('Quản lý nhân sự'),
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.how_to_reg_rounded),
+            tooltip: 'Duyệt tài khoản',
+            onPressed: () => context.push('/app/admin/pending-accounts').then((_) => _load()),
+          ),
           IconButton(icon: const Icon(Icons.refresh_rounded), onPressed: _load),
         ],
       ),
@@ -93,6 +109,7 @@ class _ChiefScreenState extends State<ChiefScreen> {
       body: Column(
         children: [
           _buildSearchAndFilter(context),
+          if (_pendingAccounts > 0) _buildPendingBanner(context),
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
@@ -175,6 +192,36 @@ class _ChiefScreenState extends State<ChiefScreen> {
             ),
           ),
         ]),
+      );
+
+  Widget _buildPendingBanner(BuildContext context) => GestureDetector(
+        onTap: () => context.push('/app/admin/pending-accounts').then((_) => _load()),
+        child: Container(
+          width: double.infinity,
+          margin: EdgeInsets.fromLTRB(context.r(16), context.r(12), context.r(16), 0),
+          padding: EdgeInsets.all(context.r(12)),
+          decoration: BoxDecoration(
+            color: AppColors.warningLight,
+            borderRadius: BorderRadius.circular(context.r(12)),
+            border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+          ),
+          child: Row(children: [
+            Icon(Icons.pending_actions_rounded,
+                color: AppColors.warning, size: context.r(20)),
+            SizedBox(width: context.r(10)),
+            Expanded(
+              child: Text(
+                '$_pendingAccounts tài khoản đang chờ duyệt — nhấn để duyệt',
+                style: TextStyle(
+                    fontSize: context.r(13),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.warning),
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios_rounded,
+                color: AppColors.warning, size: context.r(14)),
+          ]),
+        ),
       );
 
   Widget _buildEmpty(BuildContext context) => Center(
@@ -1439,19 +1486,38 @@ class _AssignManagerSheetState extends State<_AssignManagerSheet> {
                         title: const Text('Không có manager', style: TextStyle(color: AppColors.textSecondary)),
                         onChanged: (v) => setState(() { _selectedId = null; }),
                       ),
-                      ..._managers.map((m) {
-                        final mId = m['id']?.toString();
-                        final mName = (m['name'] ?? m['email'] ?? '').toString();
-                        final mRole = m['role'] as String? ?? '';
-                        return RadioListTile<String?>(
-                          value: mId,
-                          groupValue: _selectedId,
-                          title: Text(mName),
-                          subtitle: Text('${_roleLabel(mRole)} • ${m['department'] ?? ''}',
-                              style: TextStyle(fontSize: context.r(11))),
-                          onChanged: (v) => setState(() { _selectedId = v; }),
-                        );
-                      }),
+                      if (_managers.isEmpty)
+                        Padding(
+                          padding: EdgeInsets.all(context.r(24)),
+                          child: Column(
+                            children: [
+                              Icon(Icons.info_outline_rounded,
+                                  size: context.r(40), color: AppColors.warning),
+                              SizedBox(height: context.r(8)),
+                              Text(
+                                'Chưa có Manager hoặc Giám đốc nào trong hệ thống.\nVui lòng bổ nhiệm người dùng làm Manager trước.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: context.r(12),
+                                    color: AppColors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        ..._managers.map((m) {
+                          final mId = m['id']?.toString();
+                          final mName = (m['name'] ?? m['email'] ?? '').toString();
+                          final mRole = m['role'] as String? ?? '';
+                          return RadioListTile<String?>(
+                            value: mId,
+                            groupValue: _selectedId,
+                            title: Text(mName),
+                            subtitle: Text('${_roleLabel(mRole)} • ${m['department'] ?? ''}',
+                                style: TextStyle(fontSize: context.r(11))),
+                            onChanged: (v) => setState(() { _selectedId = v; }),
+                          );
+                        }),
                     ],
                   ),
           ),

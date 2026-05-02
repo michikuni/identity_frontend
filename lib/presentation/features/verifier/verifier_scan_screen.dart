@@ -5,6 +5,7 @@ import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/qr/vc_qr_payload_codec.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/wallet/vc_schemas.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 /// VerifierScanScreen — Verifier-side QR scanner for OID4VP flow.
@@ -35,7 +36,11 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
   _PollStatus _modeBStatus = _PollStatus.idle;
   String _modeBReason = '';
   Map<String, dynamic> _modeBDisclosedFields = {};
-  List<String> _modeBClaims = ['employmentStatus', 'position'];
+  // vcType -> set field đã chọn. Mỗi lần tạo VP Request chỉ chọn được field
+  // trong CÙNG 1 VC — các nhóm còn lại bị disable.
+  final Map<String, Set<String>> _modeBSelected = {
+    for (final t in kVcSchemas.keys) t: <String>{},
+  };
 
   @override
   void initState() {
@@ -71,12 +76,13 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
     final raw = capture.barcodes.firstOrNull?.rawValue;
     if (raw == null || raw.isEmpty) return;
 
-    // Short-token path: QR chứa vcid:<id> thay vì toàn bộ VC JSON
+    // Short-token path: QR chứa vcid:<id> (có thể kèm ?fields=a,b,c để selective disclosure)
     if (VcQrPayloadCodec.isVcIdToken(raw)) {
       final vcId = VcQrPayloadCodec.extractVcId(raw)!;
+      final disclosed = VcQrPayloadCodec.extractDisclosedFields(raw);
       _modeAScanning = false;
       _scannerCtrl.stop().ignore();
-      await _verifyByVcId(vcId);
+      await _verifyByVcId(vcId, disclosedFields: disclosed);
       return;
     }
 
@@ -120,12 +126,22 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
     }
   }
 
-  Future<void> _verifyByVcId(String vcId) async {
+  Future<void> _verifyByVcId(String vcId, {List<String>? disclosedFields}) async {
     try {
       final res = await ApiClient.instance.get(ApiConstants.verifyVCById(vcId));
       final data = res.data['data'] as Map<String, dynamic>? ?? {};
-      final subject = data['credentialSubject'] as Map<String, dynamic>?;
+      var subject = data['credentialSubject'] as Map<String, dynamic>?;
       final vcType = data['type'] as List<dynamic>?;
+
+      // Selective disclosure (Hướng A) — backend trả full VC, ta filter UI
+      // theo danh sách field trong QR. Luôn giữ lại 'id' để hiển thị DID nếu có.
+      if (subject != null && disclosedFields != null) {
+        final allowed = {...disclosedFields, 'id'};
+        subject = Map<String, dynamic>.fromEntries(
+          subject.entries.where((e) => allowed.contains(e.key)),
+        );
+      }
+
       setState(() => _modeAResult = _VerifyResult(
             valid: data['valid'] as bool? ?? false,
             reason: data['reason'] as String? ?? '',
@@ -148,7 +164,28 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
 
   // ── Mode B: generate VP Request QR ──────────────────────────────────────
 
+  /// Trả về vcType đang được chọn (có ít nhất 1 field tick) hoặc null nếu chưa chọn gì.
+  String? get _activeVcType {
+    for (final entry in _modeBSelected.entries) {
+      if (entry.value.isNotEmpty) return entry.key;
+    }
+    return null;
+  }
+
   Future<void> _createVpRequest() async {
+    final activeType = _activeVcType;
+    final claims = activeType != null
+        ? _modeBSelected[activeType]!.toList()
+        : <String>[];
+    if (activeType == null || claims.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Hãy chọn ít nhất 1 trường ở 1 VC'),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.warning,
+      ));
+      return;
+    }
+
     setState(() {
       _modeBLoading = true;
       _modeBState = null;
@@ -159,7 +196,10 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
     try {
       final res = await ApiClient.instance.post(
         ApiConstants.oidcVpRequest,
-        data: {'requestedClaims': _modeBClaims},
+        data: {
+          'vcType': activeType,
+          'requestedClaims': claims,
+        },
       );
       final data = res.data['data'] as Map<String, dynamic>? ?? {};
       final state = data['state'] as String?;
@@ -436,6 +476,50 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
 
   // ── Mode B UI ────────────────────────────────────────────────────────────
 
+  /// Render 4 nhóm field (1 nhóm / VC). Khi user tick field đầu tiên ở 1 nhóm,
+  /// các nhóm khác bị disable (xám) để đảm bảo mỗi VP Request chỉ request 1 VC.
+  List<Widget> _buildModeBVcGroups() {
+    final activeType = _activeVcType;
+    final pollLocked = _modeBStatus == _PollStatus.pending;
+    final widgets = <Widget>[];
+    final entries = kVcSchemas.entries.toList();
+    for (var i = 0; i < entries.length; i++) {
+      final type = entries[i].key;
+      final schema = entries[i].value;
+      final selected = _modeBSelected[type]!;
+      final groupDisabled = pollLocked || (activeType != null && activeType != type);
+
+      widgets.add(_SectionCard(
+        title: schema.label,
+        child: Opacity(
+          opacity: groupDisabled ? 0.45 : 1.0,
+          child: Column(
+            children: [
+              for (final field in schema.fields)
+                CheckboxListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(field, style: const TextStyle(fontSize: 13)),
+                  value: selected.contains(field),
+                  onChanged: groupDisabled
+                      ? null
+                      : (val) => setState(() {
+                            if (val == true) {
+                              selected.add(field);
+                            } else {
+                              selected.remove(field);
+                            }
+                          }),
+                ),
+            ],
+          ),
+        ),
+      ));
+      if (i < entries.length - 1) widgets.add(const SizedBox(height: 12));
+    }
+    return widgets;
+  }
+
   Widget _buildModeB() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -480,34 +564,8 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
           ),
           const SizedBox(height: 16),
 
-          // Claim selector
-          _SectionCard(
-            title: 'Thông tin muốn yêu cầu Employee cung cấp',
-            child: Column(
-              children: [
-                for (final claim in [
-                  'employmentStatus',
-                  'department',
-                  'position',
-                  'startDate',
-                ])
-                  CheckboxListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(claim,
-                        style: const TextStyle(fontSize: 13)),
-                    value: _modeBClaims.contains(claim),
-                    onChanged: _modeBStatus == _PollStatus.pending
-                        ? null
-                        : (val) => setState(() {
-                              val == true
-                                  ? _modeBClaims.add(claim)
-                                  : _modeBClaims.remove(claim);
-                            }),
-                  ),
-              ],
-            ),
-          ),
+          // Claim selector — gom theo VC, mỗi lần chỉ chọn được 1 VC
+          ..._buildModeBVcGroups(),
           const SizedBox(height: 16),
 
           // Create request button

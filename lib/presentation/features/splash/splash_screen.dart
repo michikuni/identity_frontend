@@ -76,31 +76,68 @@ class _SplashScreenState extends State<SplashScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        width: 1.5,
+                  // Logo
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
+                        ),
                       ),
-                    ),
-                    child: const Icon(
-                      Icons.verified_user_rounded,
-                      color: Colors.white,
-                      size: 48,
-                    ),
+                      Container(
+                        width: 78,
+                        height: 78,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.shield_rounded,
+                        color: Colors.white,
+                        size: 52,
+                      ),
+                      Positioned(
+                        bottom: 14,
+                        right: 14,
+                        child: Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.verified_rounded,
+                            color: Color(0xFF4A6CF7),
+                            size: 17,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   const Text(
                     'TrustID',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 34,
+                      fontSize: 36,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: 1.5,
+                      letterSpacing: 2,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -108,8 +145,9 @@ class _SplashScreenState extends State<SplashScreen>
                     'Identity Fabric Platform',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.75),
-                      fontSize: 14,
-                      letterSpacing: 0.5,
+                      fontSize: 13,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                   const SizedBox(height: 56),
