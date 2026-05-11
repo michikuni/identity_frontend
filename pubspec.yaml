@@ -28,6 +28,7 @@ dependencies:
 
   # Form Validation
   formz: ^0.8.0
+  fpdart: ^1.2.0
 
   # Secure Storage
   flutter_secure_storage: ^10.0.0

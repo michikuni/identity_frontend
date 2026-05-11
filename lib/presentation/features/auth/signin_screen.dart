@@ -16,10 +16,7 @@ class SignInScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => AuthBloc(
-        signInUseCase: sl(),
-        signUpUseCase: sl(),
-      ),
+      create: (_) => AuthBloc(signInUseCase: sl(), signUpUseCase: sl()),
       child: const _SignInView(),
     );
   }
@@ -46,10 +43,12 @@ class _SignInViewState extends State<_SignInView> {
 
   void _submit() {
     if (_formKey.currentState?.validate() != true) return;
-    context.read<AuthBloc>().add(SignInSubmitted(
-          username: _userCtrl.text.trim(),
-          password: _passCtrl.text,
-        ));
+    context.read<AuthBloc>().add(
+      SignInSubmitted(
+        username: _userCtrl.text.trim(),
+        password: _passCtrl.text,
+      ),
+    );
   }
 
   @override
@@ -78,13 +77,14 @@ class _SignInViewState extends State<_SignInView> {
                 isPending
                     ? 'Tài khoản đang chờ Admin duyệt. Vui lòng thử lại sau.'
                     : isRejected
-                        ? 'Tài khoản đã bị từ chối. Vui lòng liên hệ Admin.'
-                        : 'Đăng nhập thất bại. Kiểm tra lại thông tin.',
+                    ? 'Tài khoản đã bị từ chối. Vui lòng liên hệ Admin.'
+                    : 'Đăng nhập thất bại. Kiểm tra lại thông tin.',
               ),
               backgroundColor: isPending ? AppColors.warning : AppColors.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(context.r(10))),
+                borderRadius: BorderRadius.circular(context.r(10)),
+              ),
               duration: Duration(seconds: isPending ? 4 : 3),
             ),
           );
@@ -109,7 +109,11 @@ class _SignInViewState extends State<_SignInView> {
                     ),
                   ),
                   padding: EdgeInsets.fromLTRB(
-                      context.r(28), context.r(48), context.r(28), context.r(40)),
+                    context.r(28),
+                    context.r(48),
+                    context.r(28),
+                    context.r(40),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -119,7 +123,9 @@ class _SignInViewState extends State<_SignInView> {
                             padding: EdgeInsets.all(context.r(10)),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(context.r(14)),
+                              borderRadius: BorderRadius.circular(
+                                context.r(14),
+                              ),
                             ),
                             child: Icon(
                               Icons.verified_user_rounded,
@@ -154,7 +160,11 @@ class _SignInViewState extends State<_SignInView> {
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(
-                      context.r(24), context.r(32), context.r(24), context.r(24)),
+                    context.r(24),
+                    context.r(32),
+                    context.r(24),
+                    context.r(24),
+                  ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -165,8 +175,11 @@ class _SignInViewState extends State<_SignInView> {
                           label: l10n.email,
                           controller: _userCtrl,
                           keyboardType: TextInputType.emailAddress,
-                          prefixIcon: Icon(Icons.mail_outline_rounded,
-                              size: context.r(20), color: AppColors.inactive),
+                          prefixIcon: Icon(
+                            Icons.mail_outline_rounded,
+                            size: context.r(20),
+                            color: AppColors.inactive,
+                          ),
                         ),
                         SizedBox(height: context.r(16)),
                         AppInput(
@@ -174,8 +187,11 @@ class _SignInViewState extends State<_SignInView> {
                           label: l10n.password,
                           controller: _passCtrl,
                           isPassword: true,
-                          prefixIcon: Icon(Icons.lock_outline_rounded,
-                              size: context.r(20), color: AppColors.inactive),
+                          prefixIcon: Icon(
+                            Icons.lock_outline_rounded,
+                            size: context.r(20),
+                            color: AppColors.inactive,
+                          ),
                         ),
                         SizedBox(height: context.r(8)),
                         Align(
@@ -197,10 +213,14 @@ class _SignInViewState extends State<_SignInView> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(l10n.noAccount,
-                                style: const TextStyle(color: AppColors.textSecondary)),
+                            Text(
+                              l10n.noAccount,
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                             TextButton(
-                              onPressed: () => context.go('/auth/sign-up'),
+                              onPressed: () => context.push('/auth/sign-up'),
                               child: Text(l10n.signUp),
                             ),
                           ],
@@ -210,7 +230,9 @@ class _SignInViewState extends State<_SignInView> {
                           child: Text(
                             l10n.appVersion,
                             style: TextStyle(
-                                fontSize: context.r(12), color: AppColors.textHint),
+                              fontSize: context.r(12),
+                              color: AppColors.textHint,
+                            ),
                           ),
                         ),
                       ],
@@ -236,7 +258,9 @@ class _LangToggleButton extends StatelessWidget {
           onTap: () => context.read<LocaleCubit>().toggle(),
           child: Container(
             padding: EdgeInsets.symmetric(
-                horizontal: context.r(10), vertical: context.r(6)),
+              horizontal: context.r(10),
+              vertical: context.r(6),
+            ),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(context.r(20)),
@@ -244,8 +268,10 @@ class _LangToggleButton extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(isVi ? '🇻🇳' : '🇺🇸',
-                    style: TextStyle(fontSize: context.r(14))),
+                Text(
+                  isVi ? '🇻🇳' : '🇺🇸',
+                  style: TextStyle(fontSize: context.r(14)),
+                ),
                 SizedBox(width: context.r(4)),
                 Text(
                   isVi ? 'VI' : 'EN',
