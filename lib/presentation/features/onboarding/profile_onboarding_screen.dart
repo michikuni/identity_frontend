@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/di/injection.dart';
@@ -8,6 +10,255 @@ import 'package:identity_frontend/presentation/features/cccd/cccd_scan_screen.da
 import 'package:identity_frontend/presentation/features/profile/bloc/profile_bloc.dart';
 import 'package:identity_frontend/presentation/widgets/app_input.dart';
 import 'package:identity_frontend/presentation/widgets/primary_button.dart';
+
+// ── Province API models ────────────────────────────────────────────────────────
+
+class _Province {
+  final String code;
+  final String name;
+  _Province({required this.code, required this.name});
+  factory _Province.fromJson(Map<String, dynamic> j) =>
+      _Province(code: j['code'].toString(), name: j['name'] as String);
+}
+
+class _District {
+  final String code;
+  final String name;
+  _District({required this.code, required this.name});
+  factory _District.fromJson(Map<String, dynamic> j) =>
+      _District(code: j['code'].toString(), name: j['name'] as String);
+}
+
+class _Ward {
+  final String code;
+  final String name;
+  _Ward({required this.code, required this.name});
+  factory _Ward.fromJson(Map<String, dynamic> j) =>
+      _Ward(code: j['code'].toString(), name: j['name'] as String);
+}
+
+// ── Address picker widget ──────────────────────────────────────────────────────
+
+class _AddressPicker extends StatefulWidget {
+  final String label;
+  final FormFieldValidator<String>? validator;
+  final ValueChanged<String> onChanged;
+
+  const _AddressPicker({
+    required this.label,
+    required this.onChanged,
+    this.validator,
+  });
+
+  @override
+  State<_AddressPicker> createState() => _AddressPickerState();
+}
+
+class _AddressPickerState extends State<_AddressPicker> {
+  List<_Province> _provinces = [];
+  List<_District> _districts = [];
+  List<_Ward> _wards = [];
+
+  _Province? _selectedProvince;
+  _District? _selectedDistrict;
+  _Ward? _selectedWard;
+
+  bool _loadingProvinces = false;
+  bool _loadingDistricts = false;
+  bool _loadingWards = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProvinces();
+  }
+
+  String get _fullAddress {
+    final parts = [
+      if (_selectedWard != null) _selectedWard!.name,
+      if (_selectedDistrict != null) _selectedDistrict!.name,
+      if (_selectedProvince != null) _selectedProvince!.name,
+    ];
+    return parts.join(', ');
+  }
+
+  final _dio = Dio();
+
+  Future<void> _fetchProvinces() async {
+    setState(() => _loadingProvinces = true);
+    try {
+      final res = await _dio.get<List<dynamic>>('https://provinces.open-api.vn/api/p/');
+      if (res.statusCode == 200 && res.data != null) {
+        final list = res.data!
+            .map((e) => _Province.fromJson(e as Map<String, dynamic>))
+            .toList();
+        if (mounted) setState(() => _provinces = list);
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _loadingProvinces = false);
+  }
+
+  Future<void> _fetchDistricts(String provinceCode) async {
+    setState(() {
+      _loadingDistricts = true;
+      _districts = [];
+      _wards = [];
+      _selectedDistrict = null;
+      _selectedWard = null;
+    });
+    try {
+      final res = await _dio.get<Map<String, dynamic>>(
+          'https://provinces.open-api.vn/api/p/$provinceCode?depth=2');
+      if (res.statusCode == 200 && res.data != null) {
+        final list = (res.data!['districts'] as List)
+            .map((e) => _District.fromJson(e as Map<String, dynamic>))
+            .toList();
+        if (mounted) setState(() => _districts = list);
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _loadingDistricts = false);
+  }
+
+  Future<void> _fetchWards(String districtCode) async {
+    setState(() {
+      _loadingWards = true;
+      _wards = [];
+      _selectedWard = null;
+    });
+    try {
+      final res = await _dio.get<Map<String, dynamic>>(
+          'https://provinces.open-api.vn/api/d/$districtCode?depth=2');
+      if (res.statusCode == 200 && res.data != null) {
+        final list = (res.data!['wards'] as List)
+            .map((e) => _Ward.fromJson(e as Map<String, dynamic>))
+            .toList();
+        if (mounted) setState(() => _wards = list);
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _loadingWards = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FormField<String>(
+      validator: widget.validator != null
+          ? (_) => widget.validator!(_fullAddress.isEmpty ? null : _fullAddress)
+          : null,
+      builder: (field) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(widget.label,
+              style: const TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+          const SizedBox(height: 6),
+          // Province
+          _buildDropdown<_Province>(
+            hint: 'Tỉnh / Thành phố',
+            value: _selectedProvince,
+            items: _provinces,
+            loading: _loadingProvinces,
+            labelFn: (p) => p.name,
+            hasError: field.hasError,
+            onChanged: (p) {
+              setState(() => _selectedProvince = p);
+              if (p != null) {
+                _fetchDistricts(p.code);
+                widget.onChanged(_fullAddress);
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          // District
+          _buildDropdown<_District>(
+            hint: 'Quận / Huyện',
+            value: _selectedDistrict,
+            items: _districts,
+            loading: _loadingDistricts,
+            labelFn: (d) => d.name,
+            hasError: field.hasError,
+            enabled: _selectedProvince != null,
+            onChanged: (d) {
+              setState(() => _selectedDistrict = d);
+              if (d != null) {
+                _fetchWards(d.code);
+                widget.onChanged(_fullAddress);
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          // Ward
+          _buildDropdown<_Ward>(
+            hint: 'Phường / Xã',
+            value: _selectedWard,
+            items: _wards,
+            loading: _loadingWards,
+            labelFn: (w) => w.name,
+            hasError: field.hasError,
+            enabled: _selectedDistrict != null,
+            onChanged: (w) {
+              setState(() => _selectedWard = w);
+              widget.onChanged(_fullAddress);
+              field.didChange(_fullAddress);
+            },
+          ),
+          if (field.hasError)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 4),
+              child: Text(field.errorText!,
+                  style: const TextStyle(fontSize: 12, color: AppColors.error)),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdown<T>({
+    required String hint,
+    required T? value,
+    required List<T> items,
+    required bool loading,
+    required String Function(T) labelFn,
+    required ValueChanged<T?> onChanged,
+    bool enabled = true,
+    bool hasError = false,
+  }) {
+    return IgnorePointer(
+      ignoring: !enabled || loading,
+      child: Opacity(
+        opacity: enabled ? 1.0 : 0.5,
+        child: DropdownButtonFormField<T>(
+          initialValue: value,
+          hint: Text(hint, style: const TextStyle(color: AppColors.inactive)),
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: hasError ? AppColors.error : AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: hasError ? AppColors.error : AppColors.border),
+            ),
+            filled: true,
+            fillColor: AppColors.surface,
+            suffixIcon: loading
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                        width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)))
+                : null,
+          ),
+          items: items
+              .map((item) => DropdownMenuItem<T>(value: item, child: Text(labelFn(item))))
+              .toList(),
+          onChanged: enabled ? onChanged : null,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Main screen ───────────────────────────────────────────────────────────────
 
 class ProfileOnboardingScreen extends StatelessWidget {
   final CccdData? cccdData;
@@ -41,22 +292,24 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
   // Identity
   String _identityType = 'CCCD';
   final _identityNumberCtrl = TextEditingController();
-  final _identityIssueDateCtrl = TextEditingController();
-  final _identityIssuePlaceCtrl = TextEditingController();
+  int? _identityIssueYear;
+  String _identityIssuePlace = '';
 
   // Emergency
   final _emergencyNameCtrl = TextEditingController();
   final _emergencyPhoneCtrl = TextEditingController();
-  final _emergencyRelCtrl = TextEditingController();
+  String _emergencyRelationship = 'Bố';
 
-  // Residence & Health
-  final _permanentResCtrl = TextEditingController();
-  final _nowResCtrl = TextEditingController();
-  final _healthCtrl = TextEditingController();
+  // Residence
+  String _permanentAddress = '';
+  String _nowAddress = '';
+
+  // Health & Married
+  String _health = 'Tốt';
   String _married = 'SINGLE';
 
   // Education
-  final _educationCtrl = TextEditingController();
+  String _educationLevel = 'Đại học';
   final _majorCtrl = TextEditingController();
   final _expYearsCtrl = TextEditingController();
   final _skillsCtrl = TextEditingController();
@@ -66,8 +319,30 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
   String _email = '';
   String _phone = '';
 
-  // Fields locked because they came from CCCD scan
   bool get _cccdFilled => widget.cccdData != null;
+
+  static const List<String> _issuePlaceOptions = [
+    'Bộ công an',
+    'Công an tỉnh',
+    'Cục cảnh sát quản lý hành chính về trật tự xã hội',
+  ];
+
+  static const List<String> _relationshipOptions = [
+    'Bố', 'Mẹ', 'Anh', 'Chị', 'Em', 'Con', 'Cháu',
+    'Ông', 'Bà', 'Chú', 'Bác', 'Thím', 'Cô', 'Cậu', 'Mợ', 'Dì',
+    'Vợ', 'Chồng', 'Con dâu', 'Con rể',
+  ];
+
+  static const List<String> _healthOptions = ['Tốt', 'Bình thường', 'Yếu'];
+
+  static const List<String> _marriedOptions = [
+    'SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'REMARRIED',
+  ];
+
+  static const List<String> _educationOptions = [
+    'Mầm non', 'Tiểu học', 'Trung học cơ sở', 'Trung học phổ thông',
+    'Cao đẳng', 'Đại học', 'Thạc sĩ', 'Tiến sĩ', 'Phó giáo sư', 'Giáo sư',
+  ];
 
   @override
   void initState() {
@@ -83,10 +358,13 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
     _gender = d.gender;
     _identityType = 'CCCD';
     _identityNumberCtrl.text = d.cccdNumber;
-    _identityIssueDateCtrl.text = d.issueDate;
-    _permanentResCtrl.text = d.address;
-    _nowResCtrl.text = d.address;
-    // Parse DOB string YYYY-MM-DD → DateTime
+
+    // Parse issue year from issueDate string
+    final issueParts = d.issueDate.split('-');
+    if (issueParts.isNotEmpty) {
+      _identityIssueYear = int.tryParse(issueParts[0]);
+    }
+
     final parts = d.dateOfBirth.split('-');
     if (parts.length == 3) {
       final y = int.tryParse(parts[0]);
@@ -107,12 +385,25 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
   @override
   void dispose() {
     for (final c in [
-      _nameCtrl, _identityNumberCtrl, _identityIssueDateCtrl,
-      _identityIssuePlaceCtrl, _emergencyNameCtrl, _emergencyPhoneCtrl,
-      _emergencyRelCtrl, _permanentResCtrl, _nowResCtrl, _healthCtrl,
-      _educationCtrl, _majorCtrl, _expYearsCtrl, _skillsCtrl, _certCtrl,
+      _nameCtrl, _identityNumberCtrl, _emergencyNameCtrl, _emergencyPhoneCtrl,
+      _majorCtrl, _expYearsCtrl, _skillsCtrl, _certCtrl,
     ]) { c.dispose(); }
     super.dispose();
+  }
+
+  Future<void> _pickIssueYear() async {
+    final now = DateTime.now();
+    int tempYear = _identityIssueYear ?? now.year;
+
+    final picked = await showDialog<int>(
+      context: context,
+      builder: (ctx) => _YearPickerDialog(
+        initialYear: tempYear,
+        firstYear: 1990,
+        lastYear: now.year,
+      ),
+    );
+    if (picked != null) setState(() => _identityIssueYear = picked);
   }
 
   void _submit() {
@@ -130,18 +421,18 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
           : '',
       'identityType': _identityType,
       'identityNumber': _identityNumberCtrl.text.trim(),
-      'identityIssueDate': int.tryParse(_identityIssueDateCtrl.text.trim()) ?? 0,
-      'identityIssuePlace': _identityIssuePlaceCtrl.text.trim(),
+      'identityIssueDate': _identityIssueYear ?? 0,
+      'identityIssuePlace': _identityIssuePlace,
       'email': _email,
       'phone': _phone,
       'emergencyName': _emergencyNameCtrl.text.trim(),
       'emergencyPhone': _emergencyPhoneCtrl.text.trim(),
-      'emergencyRelationship': _emergencyRelCtrl.text.trim(),
-      'permanentResidence': _permanentResCtrl.text.trim(),
-      'nowResidence': _nowResCtrl.text.trim(),
-      'health': _healthCtrl.text.trim(),
+      'emergencyRelationship': _emergencyRelationship,
+      'permanentResidence': _permanentAddress,
+      'nowResidence': _nowAddress,
+      'health': _health,
       'married': _married,
-      'educationLevel': _educationCtrl.text.trim(),
+      'educationLevel': _educationLevel,
       'major': _majorCtrl.text.trim(),
       'expYears': int.tryParse(_expYearsCtrl.text.trim()) ?? 0,
       'skillSet': skills,
@@ -232,23 +523,22 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                     suffixIcon: _cccdFilled ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive) : null,
                   ),
                   const SizedBox(height: 12),
-                  AppInput(
+                  // Năm cấp – chọn qua dialog
+                  _YearPickerFormField(
                     label: 'Năm cấp *',
-                    hint: 'VD: 2020',
-                    controller: _identityIssueDateCtrl,
-                    keyboardType: TextInputType.number,
-                    readOnly: _cccdFilled && _identityIssueDateCtrl.text.isNotEmpty,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập năm cấp' : null,
-                    prefixIcon: const Icon(Icons.calendar_today_outlined, size: 20, color: AppColors.inactive),
-                    suffixIcon: (_cccdFilled && _identityIssueDateCtrl.text.isNotEmpty) ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive) : null,
+                    selectedYear: _identityIssueYear,
+                    locked: _cccdFilled && _identityIssueYear != null,
+                    onTap: _pickIssueYear,
+                    validator: (_) => _identityIssueYear == null ? 'Vui lòng chọn năm cấp' : null,
                   ),
                   const SizedBox(height: 12),
-                  AppInput(
-                    label: 'Nơi cấp *',
-                    hint: 'VD: Cục CSQLHC về TTXH',
-                    controller: _identityIssuePlaceCtrl,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập nơi cấp' : null,
-                    prefixIcon: const Icon(Icons.location_city_outlined, size: 20, color: AppColors.inactive),
+                  // Nơi cấp – dropdown 3 lựa chọn
+                  _dropdown(
+                    'Nơi cấp *',
+                    _identityIssuePlace.isEmpty ? _issuePlaceOptions.first : _identityIssuePlace,
+                    _issuePlaceOptions,
+                    (v) => v,
+                    (v) => setState(() => _identityIssuePlace = v!),
                   ),
                   const SizedBox(height: 24),
 
@@ -267,59 +557,69 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                     hint: '0987654321',
                     controller: _emergencyPhoneCtrl,
                     keyboardType: TextInputType.phone,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập số điện thoại' : null,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Vui lòng nhập số điện thoại';
+                      final phone = v.trim();
+                      if (!RegExp(r'^(0|\+84)[0-9]{9}$').hasMatch(phone)) {
+                        return 'Số điện thoại không hợp lệ';
+                      }
+                      return null;
+                    },
                     prefixIcon: const Icon(Icons.phone_outlined, size: 20, color: AppColors.inactive),
                   ),
                   const SizedBox(height: 12),
-                  AppInput(
-                    label: 'Mối quan hệ *',
-                    hint: 'VD: Cha/Mẹ, Vợ/Chồng',
-                    controller: _emergencyRelCtrl,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập mối quan hệ' : null,
-                    prefixIcon: const Icon(Icons.group_outlined, size: 20, color: AppColors.inactive),
+                  // Mối quan hệ – dropdown
+                  _dropdown(
+                    'Mối quan hệ *',
+                    _emergencyRelationship,
+                    _relationshipOptions,
+                    (v) => v,
+                    (v) => setState(() => _emergencyRelationship = v!),
                   ),
                   const SizedBox(height: 24),
 
-                  // ── Residence & Health ────────────────────────────────
+                  // ── Residence ────────────────────────────────────────
                   _sectionHeader('Cư trú & Sức khỏe', Icons.home_outlined),
-                  AppInput(
+                  _AddressPicker(
                     label: 'Địa chỉ thường trú *',
-                    hint: 'Số nhà, đường, phường/xã, quận/huyện, tỉnh/TP',
-                    controller: _permanentResCtrl,
-                    maxLines: 2,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập địa chỉ thường trú' : null,
-                    prefixIcon: const Icon(Icons.home_outlined, size: 20, color: AppColors.inactive),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng chọn địa chỉ thường trú' : null,
+                    onChanged: (addr) => _permanentAddress = addr,
                   ),
-                  const SizedBox(height: 12),
-                  AppInput(
+                  const SizedBox(height: 16),
+                  _AddressPicker(
                     label: 'Địa chỉ hiện tại *',
-                    hint: 'Số nhà, đường, phường/xã, quận/huyện, tỉnh/TP',
-                    controller: _nowResCtrl,
-                    maxLines: 2,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập địa chỉ hiện tại' : null,
-                    prefixIcon: const Icon(Icons.location_on_outlined, size: 20, color: AppColors.inactive),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng chọn địa chỉ hiện tại' : null,
+                    onChanged: (addr) => _nowAddress = addr,
                   ),
                   const SizedBox(height: 12),
-                  AppInput(
-                    label: 'Tình trạng sức khỏe *',
-                    hint: 'VD: Tốt, Bình thường',
-                    controller: _healthCtrl,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tình trạng sức khỏe' : null,
-                    prefixIcon: const Icon(Icons.favorite_outline_rounded, size: 20, color: AppColors.inactive),
+                  // Tình trạng sức khỏe – dropdown
+                  _dropdown(
+                    'Tình trạng sức khỏe *',
+                    _health,
+                    _healthOptions,
+                    (v) => v,
+                    (v) => setState(() => _health = v!),
                   ),
                   const SizedBox(height: 12),
-                  _dropdown('Tình trạng hôn nhân *', _married, ['SINGLE', 'MARRIED', 'DIVORCED'],
-                      _marriedLabel, (v) => setState(() => _married = v!)),
+                  // Tình trạng hôn nhân – dropdown
+                  _dropdown(
+                    'Tình trạng hôn nhân *',
+                    _married,
+                    _marriedOptions,
+                    _marriedLabel,
+                    (v) => setState(() => _married = v!),
+                  ),
                   const SizedBox(height: 24),
 
                   // ── Education ────────────────────────────────────────
                   _sectionHeader('Học vấn & Kỹ năng', Icons.school_outlined),
-                  AppInput(
-                    label: 'Trình độ học vấn *',
-                    hint: 'VD: Đại học, Cao đẳng',
-                    controller: _educationCtrl,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập trình độ học vấn' : null,
-                    prefixIcon: const Icon(Icons.school_outlined, size: 20, color: AppColors.inactive),
+                  // Trình độ học vấn – dropdown
+                  _dropdown(
+                    'Trình độ học vấn *',
+                    _educationLevel,
+                    _educationOptions,
+                    (v) => v,
+                    (v) => setState(() => _educationLevel = v!),
                   ),
                   const SizedBox(height: 12),
                   AppInput(
@@ -393,14 +693,13 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
         Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          initialValue: value,
+          initialValue: items.contains(value) ? value : items.first,
           decoration: InputDecoration(
             suffixIcon: onChanged == null ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive) : null,
           ),
           items: items.map((v) => DropdownMenuItem(value: v, child: Text(labelFn(v)))).toList(),
           onChanged: onChanged,
         ),
-        const SizedBox(height: 0),
       ]);
 
   String _genderLabel(String v) => switch (v) {
@@ -412,9 +711,168 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
   String _marriedLabel(String v) => switch (v) {
         'MARRIED' => 'Đã kết hôn',
         'DIVORCED' => 'Đã ly hôn',
+        'WIDOWED' => 'Góa',
+        'SEPARATED' => 'Ly thân',
+        'ENGAGED' => 'Đính hôn',
+        'REMARRIED' => 'Tái hôn',
         _ => 'Độc thân',
       };
 }
+
+// ── Year picker form field ────────────────────────────────────────────────────
+
+class _YearPickerFormField extends StatelessWidget {
+  final String label;
+  final int? selectedYear;
+  final bool locked;
+  final VoidCallback onTap;
+  final FormFieldValidator<String>? validator;
+
+  const _YearPickerFormField({
+    required this.label,
+    required this.selectedYear,
+    required this.onTap,
+    this.validator,
+    this.locked = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FormField<String>(
+      validator: validator,
+      builder: (field) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: locked ? null : onTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              decoration: BoxDecoration(
+                border: Border.all(
+                    color: field.hasError ? AppColors.error : AppColors.border),
+                borderRadius: BorderRadius.circular(12),
+                color: AppColors.surface,
+              ),
+              child: Row(children: [
+                const Icon(Icons.calendar_today_outlined, size: 20, color: AppColors.inactive),
+                const SizedBox(width: 10),
+                Text(
+                  selectedYear != null ? '$selectedYear' : 'Chọn năm cấp',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: selectedYear == null ? AppColors.inactive : AppColors.textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                locked
+                    ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive)
+                    : const Icon(Icons.arrow_drop_down, size: 20, color: AppColors.inactive),
+              ]),
+            ),
+          ),
+          if (field.hasError)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 4),
+              child: Text(field.errorText!,
+                  style: const TextStyle(fontSize: 12, color: AppColors.error)),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Year picker dialog ────────────────────────────────────────────────────────
+
+class _YearPickerDialog extends StatefulWidget {
+  final int initialYear;
+  final int firstYear;
+  final int lastYear;
+
+  const _YearPickerDialog({
+    required this.initialYear,
+    required this.firstYear,
+    required this.lastYear,
+  });
+
+  @override
+  State<_YearPickerDialog> createState() => _YearPickerDialogState();
+}
+
+class _YearPickerDialogState extends State<_YearPickerDialog> {
+  late int _selectedYear;
+  late final ScrollController _scrollCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedYear = widget.initialYear;
+    final years = List.generate(widget.lastYear - widget.firstYear + 1, (i) => widget.firstYear + i);
+    final idx = years.indexOf(_selectedYear);
+    _scrollCtrl = ScrollController(
+      initialScrollOffset: idx >= 0 ? (idx * 48.0 - 96) : 0,
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final years = List.generate(
+        widget.lastYear - widget.firstYear + 1, (i) => widget.lastYear - i);
+
+    return AlertDialog(
+      title: const Text('Chọn năm cấp'),
+      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+      content: SizedBox(
+        width: 200,
+        height: 300,
+        child: ListView.builder(
+          controller: _scrollCtrl,
+          itemCount: years.length,
+          itemExtent: 48,
+          itemBuilder: (ctx, i) {
+            final year = years[i];
+            final isSelected = year == _selectedYear;
+            return InkWell(
+              onTap: () => setState(() => _selectedYear = year),
+              child: Container(
+                color: isSelected ? AppColors.primary.withValues(alpha: 0.12) : null,
+                alignment: Alignment.center,
+                child: Text(
+                  '$year',
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+                    color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                    fontSize: isSelected ? 17 : 15,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy')),
+        TextButton(
+            onPressed: () => Navigator.pop(context, _selectedYear),
+            child: const Text('Xác nhận')),
+      ],
+    );
+  }
+}
+
+// ── Date picker field ─────────────────────────────────────────────────────────
 
 class _DatePickerField extends StatelessWidget {
   final String label;
@@ -497,6 +955,8 @@ class _DatePickerField extends StatelessWidget {
     );
   }
 }
+
+// ── Step indicator ────────────────────────────────────────────────────────────
 
 class _StepIndicator extends StatelessWidget {
   final int current;
