@@ -4,6 +4,7 @@ import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/company_entity.dart';
 import 'package:identity_frontend/domain/usecases/company_usecase.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 
 // ── BLoC (inline) ─────────────────────────────────────────────────────────────
 
@@ -66,27 +67,28 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        title: const Text('Thông tin công ty'),
+        title: Text(l10n.companyTitle),
         elevation: 0,
       ),
       body: BlocBuilder<CompanyBloc, CompanyState>(
         builder: (context, state) {
           if (state.loading) return const Center(child: CircularProgressIndicator());
           if (state.company == null) {
-            return _buildEmpty(context);
+            return _buildEmpty(context, l10n);
           }
-          return _buildInfo(state.company!);
+          return _buildInfo(state.company!, l10n);
         },
       ),
     );
   }
 
-  Widget _buildInfo(CompanyEntity c) {
+  Widget _buildInfo(CompanyEntity c, AppLocalizations l10n) {
     final context = this.context;
     return ListView(
       padding: EdgeInsets.all(context.r(20)),
@@ -122,7 +124,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
                       fontWeight: FontWeight.w800),
                   textAlign: TextAlign.center),
               SizedBox(height: context.r(4)),
-              Text('MST: ${c.taxCode}',
+              Text(l10n.companyTaxCode(c.taxCode),
                   style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.75),
                       fontSize: context.r(13))),
@@ -130,17 +132,17 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
           ),
         ),
         SizedBox(height: context.r(20)),
-        _infoCard(context, 'Thông tin pháp nhân', Icons.gavel_rounded, [
-          _row(context, 'Người đại diện', c.legalRepName),
-          _row(context, 'Chức danh', c.legalRepTitle),
-          _row(context, 'CCCD/CMND', c.legalRepIdNumber),
-          _row(context, 'Ngày đăng ký', c.registeredAt),
+        _infoCard(context, l10n.companyLegalInfo, Icons.gavel_rounded, [
+          _row(context, l10n.companyLegalRep, c.legalRepName),
+          _row(context, l10n.companyLegalRepTitle, c.legalRepTitle),
+          _row(context, l10n.companyLegalRepId, c.legalRepIdNumber),
+          _row(context, l10n.companyRegisteredAt, c.registeredAt),
         ]),
         SizedBox(height: context.r(14)),
-        _infoCard(context, 'Liên hệ', Icons.contact_phone_rounded, [
-          _row(context, 'Điện thoại', c.phone),
-          _row(context, 'Email', c.email),
-          _row(context, 'Địa chỉ', c.address, multiline: true),
+        _infoCard(context, l10n.companyContact, Icons.contact_phone_rounded, [
+          _row(context, l10n.companyPhone, c.phone),
+          _row(context, l10n.companyEmail, c.email),
+          _row(context, l10n.companyAddress, c.address, multiline: true),
         ]),
       ],
     );
@@ -196,16 +198,16 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
         ),
       );
 
-  Widget _buildEmpty(BuildContext context) => Center(
+  Widget _buildEmpty(BuildContext context, AppLocalizations l10n) => Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.business_outlined,
               size: context.r(64), color: AppColors.inactive),
           SizedBox(height: context.r(16)),
-          Text('Chưa có thông tin công ty',
+          Text(l10n.companyEmpty,
               style:
                   TextStyle(color: AppColors.textSecondary, fontSize: context.r(14))),
           SizedBox(height: context.r(8)),
-          Text('Giám đốc có thể đăng ký pháp nhân',
+          Text(l10n.companyEmptyHint,
               style: TextStyle(
                   fontSize: context.r(12), color: AppColors.textHint)),
         ]),

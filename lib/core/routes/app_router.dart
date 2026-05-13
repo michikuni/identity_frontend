@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/core/di/injection.dart';
 import 'package:identity_frontend/core/firebase/analytics_route_observer.dart';
 import 'package:identity_frontend/core/firebase/repositories/i_analytics_service.dart';
@@ -220,56 +221,55 @@ class _AppShellState extends State<_AppShell> {
     if (mounted) setState(() => _role = role);
   }
 
-  List<_NavItem> get _navItems {
+  List<_NavItem> _navItems(AppLocalizations l10n) {
     final base = [
-      _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, 'Trang chủ'),
-      _NavItem('/app/attendance', Icons.fingerprint_rounded, Icons.fingerprint_rounded, 'Chấm công'),
-      _NavItem('/app/requests', Icons.description_outlined, Icons.description_rounded, 'Đơn từ'),
-      _NavItem('/app/directory', Icons.group_outlined, Icons.group_rounded, 'Nhân viên'),
-      _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, 'Wallet'),
-      _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, 'Verifier'),
-      _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, 'Hồ sơ'),
+      _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, l10n.navHome),
+      _NavItem('/app/attendance', Icons.fingerprint_rounded, Icons.fingerprint_rounded, l10n.navAttendance),
+      _NavItem('/app/requests', Icons.description_outlined, Icons.description_rounded, l10n.navRequests),
+      _NavItem('/app/directory', Icons.group_outlined, Icons.group_rounded, l10n.navDirectory),
+      _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, l10n.navWallet),
+      _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, l10n.navVerifier),
+      _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, l10n.navProfile),
     ];
 
     if (_role == 'MANAGER') {
       return [
-        _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, 'Trang chủ'),
-        _NavItem('/app/attendance', Icons.fingerprint_rounded, Icons.fingerprint_rounded, 'Chấm công'),
-        _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, 'Duyệt đơn'),
-        _NavItem('/app/manager/timesheet', Icons.table_chart_outlined, Icons.table_chart_rounded, 'Bảng công'),
-        _NavItem('/app/directory', Icons.group_outlined, Icons.group_rounded, 'Nhân viên'),
-        _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, 'Wallet'),
-        _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, 'Verifier'),
-        _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, 'Hồ sơ'),
+        _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, l10n.navHome),
+        _NavItem('/app/attendance', Icons.fingerprint_rounded, Icons.fingerprint_rounded, l10n.navAttendance),
+        _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, l10n.navApproveRequests),
+        _NavItem('/app/manager/timesheet', Icons.table_chart_outlined, Icons.table_chart_rounded, l10n.navTimesheet),
+        _NavItem('/app/directory', Icons.group_outlined, Icons.group_rounded, l10n.navDirectory),
+        _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, l10n.navWallet),
+        _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, l10n.navVerifier),
+        _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, l10n.navProfile),
       ];
     }
 
     if (_role == 'CHIEF') {
       return [
-        _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, 'Trang chủ'),
-        _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, 'Duyệt đơn'),
-        _NavItem('/app/admin/pending-accounts', Icons.how_to_reg_outlined, Icons.how_to_reg_rounded, 'Duyệt TK'),
-        _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, 'Nhân sự'),
-        _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, 'Wallet'),
-        _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, 'Verifier'),
-        _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, 'Hồ sơ'),
+        _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, l10n.navHome),
+        _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, l10n.navApproveRequests),
+        _NavItem('/app/admin/pending-accounts', Icons.how_to_reg_outlined, Icons.how_to_reg_rounded, l10n.navApproveAccounts),
+        _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, l10n.navStaff),
+        _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, l10n.navWallet),
+        _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, l10n.navVerifier),
+        _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, l10n.navProfile),
       ];
     }
 
     if (_role == 'ADMIN') {
       return [
-        _NavItem('/app/admin', Icons.admin_panel_settings_outlined, Icons.admin_panel_settings_rounded, 'Dashboard'),
-        _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, 'Nhân sự'),
-        _NavItem('/app/ledger', Icons.account_tree_outlined, Icons.account_tree_rounded, 'Ledger'),
-        _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, 'Hồ sơ'),
+        _NavItem('/app/admin', Icons.admin_panel_settings_outlined, Icons.admin_panel_settings_rounded, l10n.navDashboard),
+        _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, l10n.navStaff),
+        _NavItem('/app/ledger', Icons.account_tree_outlined, Icons.account_tree_rounded, l10n.navLedger),
+        _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, l10n.navProfile),
       ];
     }
 
     return base;
   }
 
-  int _currentIndex(String loc) {
-    final items = _navItems;
+  int _currentIndex(List<_NavItem> items, String loc) {
     for (int i = 0; i < items.length; i++) {
       if (loc.startsWith(items[i].path)) return i;
     }
@@ -278,9 +278,10 @@ class _AppShellState extends State<_AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final loc = GoRouterState.of(context).matchedLocation;
-    final items = _navItems;
-    final currentIndex = _currentIndex(loc);
+    final items = _navItems(l10n);
+    final currentIndex = _currentIndex(items, loc);
 
     return Scaffold(
       body: widget.child,

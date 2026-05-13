@@ -5,6 +5,7 @@ import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/presentation/widgets/app_input.dart';
 
 class ChiefScreen extends StatefulWidget {
@@ -20,13 +21,13 @@ class _ChiefScreenState extends State<ChiefScreen> {
   String _search = '';
   String _filterRole = 'ALL';
 
-  static const _filters = [
-    ('ALL', 'Tất cả'),
-    ('EMPLOYEE', 'Nhân viên'),
-    ('MANAGER', 'Quản lý'),
-    ('CHIEF', 'Giám đốc'),
-    ('ADMIN', 'Admin'),
-    ('TERMINATED', 'Đã nghỉ'),
+  List<(String, String)> _filters(AppLocalizations l10n) => [
+    ('ALL', l10n.chiefFilterAll),
+    ('EMPLOYEE', l10n.chiefFilterEmployee),
+    ('MANAGER', l10n.chiefFilterManager),
+    ('CHIEF', l10n.chiefFilterChief),
+    ('ADMIN', l10n.chiefFilterAdmin),
+    ('TERMINATED', l10n.chiefFilterTerminated),
   ];
 
   @override
@@ -83,17 +84,18 @@ class _ChiefScreenState extends State<ChiefScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        title: const Text('Quản lý nhân sự'),
+        title: Text(l10n.chiefTitle),
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.how_to_reg_rounded),
-            tooltip: 'Duyệt tài khoản',
+            tooltip: l10n.chiefApproveAccounts,
             onPressed: () => context.push('/app/admin/pending-accounts').then((_) => _load()),
           ),
           IconButton(icon: const Icon(Icons.refresh_rounded), onPressed: _load),
@@ -103,7 +105,7 @@ class _ChiefScreenState extends State<ChiefScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.person_add_rounded),
-        label: const Text('Thêm nhân sự'),
+        label: Text(l10n.chiefAddStaff),
         onPressed: () => _showCreateSheet(context),
       ),
       body: Column(
@@ -134,7 +136,9 @@ class _ChiefScreenState extends State<ChiefScreen> {
     );
   }
 
-  Widget _buildSearchAndFilter(BuildContext context) => Container(
+  Widget _buildSearchAndFilter(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
         color: AppColors.primary,
         child: Column(children: [
           Padding(
@@ -143,7 +147,7 @@ class _ChiefScreenState extends State<ChiefScreen> {
               onChanged: (v) => setState(() => _search = v),
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Tìm nhân viên...',
+                hintText: l10n.chiefSearchHint,
                 hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
                 prefixIcon: Icon(Icons.search_rounded,
                     color: Colors.white.withValues(alpha: 0.7), size: context.r(20)),
@@ -161,7 +165,7 @@ class _ChiefScreenState extends State<ChiefScreen> {
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.fromLTRB(context.r(16), 0, context.r(16), context.r(8)),
-              children: _filters.map((f) {
+              children: _filters(l10n).map((f) {
                 final (value, label) = f;
                 final selected = _filterRole == value;
                 return Padding(
@@ -193,6 +197,7 @@ class _ChiefScreenState extends State<ChiefScreen> {
           ),
         ]),
       );
+  }
 
   Widget _buildPendingBanner(BuildContext context) => GestureDetector(
         onTap: () => context.push('/app/admin/pending-accounts').then((_) => _load()),
@@ -211,7 +216,7 @@ class _ChiefScreenState extends State<ChiefScreen> {
             SizedBox(width: context.r(10)),
             Expanded(
               child: Text(
-                '$_pendingAccounts tài khoản đang chờ duyệt — nhấn để duyệt',
+                AppLocalizations.of(context)!.chiefPendingBanner(_pendingAccounts),
                 style: TextStyle(
                     fontSize: context.r(13),
                     fontWeight: FontWeight.w600,
@@ -224,22 +229,24 @@ class _ChiefScreenState extends State<ChiefScreen> {
         ),
       );
 
-  Widget _buildEmpty(BuildContext context) => Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.group_off_rounded, size: context.r(56), color: AppColors.inactive),
-          SizedBox(height: context.r(12)),
-          const Text('Không có nhân viên nào',
-              style: TextStyle(color: AppColors.textSecondary)),
-          SizedBox(height: context.r(16)),
-          ElevatedButton.icon(
-            icon: Icon(Icons.person_add_rounded, size: context.r(18)),
-            label: const Text('Thêm nhân sự'),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            onPressed: () => _showCreateSheet(context),
-          ),
-        ]),
-      );
+  Widget _buildEmpty(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.group_off_rounded, size: context.r(56), color: AppColors.inactive),
+        SizedBox(height: context.r(12)),
+        Text(l10n.chiefNoEmployees, style: const TextStyle(color: AppColors.textSecondary)),
+        SizedBox(height: context.r(16)),
+        ElevatedButton.icon(
+          icon: Icon(Icons.person_add_rounded, size: context.r(18)),
+          label: Text(l10n.chiefAddStaff),
+          style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+          onPressed: () => _showCreateSheet(context),
+        ),
+      ]),
+    );
+  }
 
   Future<void> _showCreateSheet(BuildContext context) async {
     await showModalBottomSheet(
@@ -299,10 +306,10 @@ class _EmployeeCard extends StatelessWidget {
                 style: TextStyle(fontSize: context.r(11), color: AppColors.textSecondary)),
             SizedBox(height: context.r(4)),
             Row(children: [
-              _badge(context, _roleLabel(role), roleColor),
+              _badge(context, _roleLabel(context, role), roleColor),
               if (!isActive) ...[
                 SizedBox(width: context.r(6)),
-                _badge(context, 'Đã nghỉ', AppColors.error),
+                _badge(context, AppLocalizations.of(context)!.chiefTerminated, AppColors.error),
               ],
             ]),
           ]),
@@ -311,25 +318,27 @@ class _EmployeeCard extends StatelessWidget {
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert_rounded, color: AppColors.inactive, size: context.r(22)),
             onSelected: (v) => _onAction(context, v),
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: 'ADMIN', child: Text('Bổ nhiệm Admin')),
-              const PopupMenuItem(value: 'CHIEF', child: Text('Bổ nhiệm Giám đốc')),
-              const PopupMenuItem(value: 'MANAGER', child: Text('Bổ nhiệm Quản lý')),
-              const PopupMenuItem(value: 'EMPLOYEE', child: Text('Hạ nhân viên')),
-              const PopupMenuDivider(),
-              const PopupMenuItem(value: 'assign_manager', child: Text('Phân công Manager')),
-              const PopupMenuDivider(),
-              const PopupMenuItem(value: 'contract', child: Text('Tạo / Cập nhật HĐ')),
-              const PopupMenuItem(value: 'payroll', child: Text('Tạo / Cập nhật Lương')),
-              const PopupMenuDivider(),
-              const PopupMenuItem(value: 'salary_vc', child: Text('Issue Salary VC')),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'terminate',
-                child: Text('Chấm dứt HĐ',
-                    style: TextStyle(color: AppColors.error)),
-              ),
-            ],
+            itemBuilder: (_) {
+              final l10n = AppLocalizations.of(context)!;
+              return [
+                PopupMenuItem(value: 'ADMIN', child: Text(l10n.chiefPromoteAdmin)),
+                PopupMenuItem(value: 'CHIEF', child: Text(l10n.chiefPromoteChief)),
+                PopupMenuItem(value: 'MANAGER', child: Text(l10n.chiefPromoteManager)),
+                PopupMenuItem(value: 'EMPLOYEE', child: Text(l10n.chiefDemoteEmployee)),
+                const PopupMenuDivider(),
+                PopupMenuItem(value: 'assign_manager', child: Text(l10n.chiefAssignManager)),
+                const PopupMenuDivider(),
+                PopupMenuItem(value: 'contract', child: Text(l10n.chiefCreateContract)),
+                PopupMenuItem(value: 'payroll', child: Text(l10n.chiefCreatePayroll)),
+                const PopupMenuDivider(),
+                PopupMenuItem(value: 'salary_vc', child: Text(l10n.chiefIssueSalaryVc)),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'terminate',
+                  child: Text(l10n.chiefTerminateContract, style: const TextStyle(color: AppColors.error)),
+                ),
+              ];
+            },
           )
         else
           SizedBox(width: context.r(48)),
@@ -357,21 +366,22 @@ class _EmployeeCard extends StatelessWidget {
 
       } else if (action == 'terminate') {
         final ctrl = TextEditingController();
+        final l10n = AppLocalizations.of(context)!;
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Chấm dứt hợp đồng'),
+            title: Text(l10n.chiefTerminateTitle),
             content: TextField(
                 controller: ctrl,
-                decoration: const InputDecoration(hintText: 'Lý do...')),
+                decoration: InputDecoration(hintText: l10n.chiefTerminateReasonHint)),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Huỷ')),
+                  child: Text(l10n.cancel)),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Xác nhận', style: TextStyle(color: Colors.white)),
+                child: Text(l10n.confirm, style: const TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -400,19 +410,19 @@ class _EmployeeCard extends StatelessWidget {
 
       } else if (action == 'salary_vc') {
         // Issue SalaryRangeVC — requires payroll to be assigned first
+        final l10nSvc = AppLocalizations.of(context)!;
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Issue Salary Range VC'),
-            content: Text(
-                'Phát hành SalaryRangeVC cho ${emp['name'] ?? emp['email']}?\n\nYêu cầu nhân viên đã có payroll được gán.'),
+            title: Text(l10nSvc.chiefIssueSalaryVcTitle),
+            content: Text(l10nSvc.chiefIssueSalaryVcContent(emp['name'] ?? emp['email'] ?? '')),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Huỷ')),
+                  child: Text(l10nSvc.cancel)),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Issue VC'),
+                child: Text(l10nSvc.adminIssueVc),
               ),
             ],
           ),
@@ -425,38 +435,39 @@ class _EmployeeCard extends StatelessWidget {
         // Role change — ask for new position to trigger PromotionVC correctly
         final posCtrl = TextEditingController(
             text: emp['position']?.toString() ?? '');
+        final l10nRole = AppLocalizations.of(context)!;
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Đổi chức danh'),
+            title: Text(l10nRole.chiefChangeRoleTitle),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Chức danh mới: ${_roleLabel(action)}'),
+                Text(l10nRole.chiefNewRoleLabel(_roleLabel(context, action))),
                 const SizedBox(height: 12),
                 TextField(
                   controller: posCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Chức vụ mới (tuỳ chọn)',
-                    hintText: 'VD: Senior Engineer',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10nRole.chiefNewPositionLabel,
+                    hintText: l10nRole.chiefNewPositionHint,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Nếu nhập chức vụ mới, hệ thống sẽ tự phát hành PromotionVC.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                Text(
+                  l10nRole.chiefPromotionVcNote,
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Huỷ')),
+                  child: Text(l10nRole.cancel)),
               FilledButton(
                   onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text('Xác nhận')),
+                  child: Text(l10nRole.confirm)),
             ],
           ),
         );
@@ -472,8 +483,8 @@ class _EmployeeCard extends StatelessWidget {
 
       onChanged();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Cập nhật thành công'),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.chiefUpdateSuccess),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
         ));
@@ -496,12 +507,15 @@ class _EmployeeCard extends StatelessWidget {
     }
   }
 
-  String _roleLabel(String r) => switch (r) {
-        'ADMIN' => 'Admin',
-        'CHIEF' => 'Giám đốc',
-        'MANAGER' => 'Quản lý',
-        _ => 'Nhân viên',
-      };
+  String _roleLabel(BuildContext context, String r) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (r) {
+      'ADMIN' => l10n.roleAdmin,
+      'CHIEF' => l10n.roleChief,
+      'MANAGER' => l10n.roleManager,
+      _ => l10n.roleEmployee,
+    };
+  }
 
   Widget _badge(BuildContext context, String label, Color color) => Container(
         padding: EdgeInsets.symmetric(
@@ -577,8 +591,8 @@ class _CreateEmployeeSheetState extends State<_CreateEmployeeSheet> {
       if (!mounted) return;
       Navigator.pop(context);
       widget.onCreated();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Đã tạo nhân sự thành công'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.chiefCreateSuccess),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
       ));
@@ -618,7 +632,7 @@ class _CreateEmployeeSheetState extends State<_CreateEmployeeSheet> {
             padding: EdgeInsets.fromLTRB(context.r(24), context.r(8), context.r(24), context.r(4)),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Thêm nhân sự mới',
+              child: Text(AppLocalizations.of(context)!.chiefCreateStaffTitle,
                   style: TextStyle(fontSize: context.r(17), fontWeight: FontWeight.w700)),
             ),
           ),
@@ -629,84 +643,86 @@ class _CreateEmployeeSheetState extends State<_CreateEmployeeSheet> {
                   context.r(24), context.r(12), context.r(24), context.r(32)),
               child: Form(
                 key: _formKey,
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  _sectionLabel(context, 'Tài khoản'),
+                child: Builder(builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  _sectionLabel(context, l10n.chiefSectionAccount),
                   AppInput(
-                    label: 'Email *',
-                    hint: 'nhanvien@company.com',
+                    label: l10n.chiefEmailLabel,
+                    hint: l10n.chiefEmailHint,
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? l10n.profileRequired : null,
                     prefixIcon: Icon(Icons.mail_outline_rounded,
                         size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(12)),
                   AppInput(
-                    label: 'Số điện thoại *',
+                    label: l10n.chiefPhoneLabel,
                     hint: '0912345678',
                     controller: _phoneCtrl,
                     keyboardType: TextInputType.phone,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? l10n.profileRequired : null,
                     prefixIcon: Icon(Icons.phone_outlined,
                         size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(12)),
                   AppInput(
-                    label: 'Mật khẩu *',
-                    hint: 'Tối thiểu 6 ký tự',
+                    label: l10n.chiefPasswordLabel,
+                    hint: l10n.chiefPasswordHint,
                     controller: _passwordCtrl,
                     isPassword: true,
                     validator: (v) =>
-                        (v == null || v.length < 6) ? 'Tối thiểu 6 ký tự' : null,
+                        (v == null || v.length < 6) ? l10n.chiefPasswordHint : null,
                     prefixIcon: Icon(Icons.lock_outline_rounded,
                         size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(20)),
-                  _sectionLabel(context, 'Công việc'),
+                  _sectionLabel(context, l10n.chiefSectionWork),
                   AppInput(
-                    label: 'Phòng ban *',
-                    hint: 'VD: Phòng Kỹ thuật',
+                    label: l10n.chiefDepartmentLabel,
+                    hint: l10n.chiefDepartmentHint,
                     controller: _deptCtrl,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? l10n.profileRequired : null,
                     prefixIcon: Icon(Icons.business_outlined,
                         size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(12)),
                   AppInput(
-                    label: 'Chức vụ *',
-                    hint: 'VD: Kỹ sư phần mềm',
+                    label: l10n.chiefPositionLabel,
+                    hint: l10n.chiefPositionHint,
                     controller: _posCtrl,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? l10n.profileRequired : null,
                     prefixIcon: Icon(Icons.badge_outlined,
                         size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(12)),
                   _dropdownField(
                     context,
-                    'Chức danh',
+                    l10n.chiefRoleLabel,
                     _role,
                     ['EMPLOYEE', 'MANAGER', 'CHIEF', 'ADMIN'],
                     (v) => switch (v) {
-                      'ADMIN' => 'Admin',
-                      'CHIEF' => 'Giám đốc',
-                      'MANAGER' => 'Quản lý',
-                      _ => 'Nhân viên',
+                      'ADMIN' => l10n.roleAdmin,
+                      'CHIEF' => l10n.roleChief,
+                      'MANAGER' => l10n.roleManager,
+                      _ => l10n.roleEmployee,
                     },
                     (v) => setState(() => _role = v!),
                   ),
                   SizedBox(height: context.r(12)),
                   _dropdownField(
                     context,
-                    'Loại hình',
+                    l10n.chiefWorkingTypeLabel,
                     _workingType,
                     ['FULL_TIME', 'PART_TIME'],
-                    (v) => v == 'FULL_TIME' ? 'Toàn thời gian' : 'Bán thời gian',
+                    (v) => v == 'FULL_TIME' ? l10n.chiefFullTime : l10n.chiefPartTime,
                     (v) => setState(() => _workingType = v!),
                   ),
                   SizedBox(height: context.r(12)),
                   AppInput(
-                    label: 'Ghi chú (tuỳ chọn)',
-                    hint: 'Thông tin bổ sung...',
+                    label: l10n.chiefNoteLabel,
+                    hint: l10n.chiefNoteHint,
                     controller: _noteCtrl,
                     maxLines: 2,
                     prefixIcon: Icon(Icons.notes_outlined,
@@ -728,11 +744,12 @@ class _CreateEmployeeSheetState extends State<_CreateEmployeeSheet> {
                             height: context.r(20),
                             child: const CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white))
-                        : Text('Tạo nhân sự',
+                        : Text(l10n.chiefCreateBtn,
                             style: TextStyle(
                                 fontSize: context.r(15), fontWeight: FontWeight.w600)),
                   ),
-                ]),
+                ]);
+                }),
               ),
             ),
           ),
@@ -851,16 +868,16 @@ class _ContractSheetState extends State<_ContractSheet> {
     if (picked != null) onPicked(picked);
   }
 
-  String _fmtDate(DateTime? dt) {
-    if (dt == null) return 'Chọn ngày';
+  String _fmtDate(DateTime? dt, AppLocalizations l10n) {
+    if (dt == null) return l10n.chiefPickDate;
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
   }
 
   Future<void> _submit() async {
     if (_formKey.currentState?.validate() != true) return;
     if (_startDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Vui lòng chọn ngày bắt đầu'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.chiefContractStartRequired),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
       ));
@@ -885,8 +902,8 @@ class _ContractSheetState extends State<_ContractSheet> {
       if (!mounted) return;
       Navigator.pop(context);
       widget.onSaved();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Đã lưu hợp đồng'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.chiefContractSaved),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
       ));
@@ -926,7 +943,7 @@ class _ContractSheetState extends State<_ContractSheet> {
             padding: EdgeInsets.fromLTRB(context.r(24), context.r(8), context.r(24), context.r(4)),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Tạo / Cập nhật Hợp đồng',
+              child: Text(AppLocalizations.of(context)!.chiefContractTitle,
                   style: TextStyle(fontSize: context.r(17), fontWeight: FontWeight.w700)),
             ),
           ),
@@ -937,49 +954,51 @@ class _ContractSheetState extends State<_ContractSheet> {
                   context.r(24), context.r(12), context.r(24), context.r(32)),
               child: Form(
                 key: _formKey,
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Text('Loại hợp đồng',
+                child: Builder(builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Text(l10n.chiefContractType,
                       style: TextStyle(fontSize: context.r(13), fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary)),
                   SizedBox(height: context.r(6)),
                   DropdownButtonFormField<String>(
                     initialValue: _typeContract,
                     decoration: const InputDecoration(),
-                    items: const [
-                      DropdownMenuItem(value: 'FULL_TIME', child: Text('Toàn thời gian')),
-                      DropdownMenuItem(value: 'PART_TIME', child: Text('Bán thời gian')),
-                      DropdownMenuItem(value: 'PROBATION', child: Text('Thử việc')),
-                      DropdownMenuItem(value: 'INTERNSHIP', child: Text('Thực tập')),
+                    items: [
+                      DropdownMenuItem(value: 'FULL_TIME', child: Text(l10n.chiefContractFullTime)),
+                      DropdownMenuItem(value: 'PART_TIME', child: Text(l10n.chiefContractPartTime)),
+                      DropdownMenuItem(value: 'PROBATION', child: Text(l10n.chiefContractProbation)),
+                      DropdownMenuItem(value: 'INTERNSHIP', child: Text(l10n.chiefContractInternship)),
                     ],
                     onChanged: (v) => setState(() => _typeContract = v!),
                   ),
                   SizedBox(height: context.r(16)),
                   _DateRow(
-                    label: 'Ngày bắt đầu *',
-                    value: _fmtDate(_startDate),
+                    label: l10n.chiefContractStartDate,
+                    value: _fmtDate(_startDate, l10n),
                     onTap: () => _pickDate(context, _startDate, (d) => setState(() => _startDate = d)),
                   ),
                   SizedBox(height: context.r(10)),
                   _DateRow(
-                    label: 'Ngày kết thúc',
-                    value: _fmtDate(_endDate),
+                    label: l10n.chiefContractEndDate,
+                    value: _fmtDate(_endDate, l10n),
                     onTap: () => _pickDate(context, _endDate, (d) => setState(() => _endDate = d)),
                   ),
                   SizedBox(height: context.r(10)),
                   _DateRow(
-                    label: 'Bắt đầu thử việc',
-                    value: _fmtDate(_probationStart),
+                    label: l10n.chiefContractProbationStart,
+                    value: _fmtDate(_probationStart, l10n),
                     onTap: () => _pickDate(context, _probationStart, (d) => setState(() => _probationStart = d)),
                   ),
                   SizedBox(height: context.r(10)),
                   _DateRow(
-                    label: 'Kết thúc thử việc',
-                    value: _fmtDate(_probationEnd),
+                    label: l10n.chiefContractProbationEnd,
+                    value: _fmtDate(_probationEnd, l10n),
                     onTap: () => _pickDate(context, _probationEnd, (d) => setState(() => _probationEnd = d)),
                   ),
                   SizedBox(height: context.r(16)),
                   AppInput(
-                    label: 'Mã số thuế',
+                    label: l10n.chiefContractTaxCode,
                     hint: 'VD: 0123456789',
                     controller: _taxCtrl,
                     keyboardType: TextInputType.number,
@@ -987,15 +1006,15 @@ class _ContractSheetState extends State<_ContractSheet> {
                   ),
                   SizedBox(height: context.r(10)),
                   AppInput(
-                    label: 'Số BHXH',
-                    hint: 'Số bảo hiểm xã hội',
+                    label: l10n.chiefContractSocialInsurance,
+                    hint: l10n.chiefContractSocialInsurance,
                     controller: _socialCtrl,
                     prefixIcon: Icon(Icons.security_outlined, size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(10)),
                   AppInput(
-                    label: 'Số BHYT',
-                    hint: 'Số bảo hiểm y tế',
+                    label: l10n.chiefContractHealthInsurance,
+                    hint: l10n.chiefContractHealthInsurance,
                     controller: _healthCtrl,
                     prefixIcon: Icon(Icons.health_and_safety_outlined, size: context.r(20), color: AppColors.inactive),
                   ),
@@ -1013,10 +1032,11 @@ class _ContractSheetState extends State<_ContractSheet> {
                         ? SizedBox(
                             width: context.r(20), height: context.r(20),
                             child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text('Lưu hợp đồng',
+                        : Text(l10n.chiefContractSaveBtn,
                             style: TextStyle(fontSize: context.r(15), fontWeight: FontWeight.w600)),
                   ),
-                ]),
+                ]);
+                }),
               ),
             ),
           ),
@@ -1096,8 +1116,8 @@ class _PayrollSheetState extends State<_PayrollSheet> {
     super.dispose();
   }
 
-  String _fmtDate(DateTime? dt) {
-    if (dt == null) return 'Chọn ngày';
+  String _fmtDate(DateTime? dt, AppLocalizations l10n) {
+    if (dt == null) return l10n.chiefPickDate;
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
   }
 
@@ -1133,8 +1153,8 @@ class _PayrollSheetState extends State<_PayrollSheet> {
       if (!mounted) return;
       Navigator.pop(context);
       widget.onSaved();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Đã lưu thông tin lương'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.chiefPayrollSaved),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
       ));
@@ -1174,7 +1194,7 @@ class _PayrollSheetState extends State<_PayrollSheet> {
             padding: EdgeInsets.fromLTRB(context.r(24), context.r(8), context.r(24), context.r(4)),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Tạo / Cập nhật Lương',
+              child: Text(AppLocalizations.of(context)!.chiefPayrollTitle,
                   style: TextStyle(fontSize: context.r(17), fontWeight: FontWeight.w700)),
             ),
           ),
@@ -1185,23 +1205,25 @@ class _PayrollSheetState extends State<_PayrollSheet> {
                   context.r(24), context.r(12), context.r(24), context.r(32)),
               child: Form(
                 key: _formKey,
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Text('Loại lương',
+                child: Builder(builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Text(l10n.chiefPayrollSalaryType,
                       style: TextStyle(fontSize: context.r(13), fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary)),
                   SizedBox(height: context.r(6)),
                   DropdownButtonFormField<String>(
                     initialValue: _salaryType,
                     decoration: const InputDecoration(),
-                    items: const [
-                      DropdownMenuItem(value: 'MONTHLY', child: Text('Tháng')),
-                      DropdownMenuItem(value: 'HOURLY', child: Text('Theo giờ')),
-                      DropdownMenuItem(value: 'CONTRACT', child: Text('Theo hợp đồng')),
+                    items: [
+                      DropdownMenuItem(value: 'MONTHLY', child: Text(l10n.chiefPayrollMonthly)),
+                      DropdownMenuItem(value: 'HOURLY', child: Text(l10n.chiefPayrollHourly)),
+                      DropdownMenuItem(value: 'CONTRACT', child: Text(l10n.chiefPayrollByContract)),
                     ],
                     onChanged: (v) => setState(() => _salaryType = v!),
                   ),
                   SizedBox(height: context.r(12)),
-                  Text('Đơn vị tiền tệ',
+                  Text(l10n.chiefPayrollCurrency,
                       style: TextStyle(fontSize: context.r(13), fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary)),
                   SizedBox(height: context.r(6)),
@@ -1216,28 +1238,28 @@ class _PayrollSheetState extends State<_PayrollSheet> {
                   ),
                   SizedBox(height: context.r(12)),
                   AppInput(
-                    label: 'Lương cơ bản *',
+                    label: l10n.chiefPayrollBaseSalary,
                     hint: 'VD: 15000000',
                     controller: _baseCtrl,
                     keyboardType: TextInputType.number,
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Bắt buộc';
-                      if (double.tryParse(v.trim()) == null) return 'Không hợp lệ';
+                      if (v == null || v.trim().isEmpty) return l10n.profileRequired;
+                      if (double.tryParse(v.trim()) == null) return l10n.profileRequired;
                       return null;
                     },
                     prefixIcon: Icon(Icons.payments_outlined, size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(10)),
                   AppInput(
-                    label: 'Tổng thu nhập',
-                    hint: 'Để trống = lấy lương cơ bản',
+                    label: l10n.chiefPayrollTotalIncome,
+                    hint: l10n.chiefPayrollTotalHint,
                     controller: _totalCtrl,
                     keyboardType: TextInputType.number,
                     prefixIcon: Icon(Icons.account_balance_wallet_outlined, size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(10)),
                   AppInput(
-                    label: 'Thưởng',
+                    label: l10n.chiefPayrollBonus,
                     hint: 'VD: 2000000',
                     controller: _bonusCtrl,
                     keyboardType: TextInputType.number,
@@ -1245,7 +1267,7 @@ class _PayrollSheetState extends State<_PayrollSheet> {
                   ),
                   SizedBox(height: context.r(10)),
                   AppInput(
-                    label: 'Lương OT (mỗi giờ)',
+                    label: l10n.chiefPayrollOtRate,
                     hint: 'VD: 100000',
                     controller: _otCtrl,
                     keyboardType: TextInputType.number,
@@ -1253,8 +1275,8 @@ class _PayrollSheetState extends State<_PayrollSheet> {
                   ),
                   SizedBox(height: context.r(10)),
                   _DateRow(
-                    label: 'Ngày thanh toán lương',
-                    value: _fmtDate(_payDay),
+                    label: l10n.chiefPayrollPayDay,
+                    value: _fmtDate(_payDay, l10n),
                     onTap: () async {
                       final picked = await showDatePicker(
                         context: context,
@@ -1266,19 +1288,19 @@ class _PayrollSheetState extends State<_PayrollSheet> {
                     },
                   ),
                   SizedBox(height: context.r(16)),
-                  Text('Thông tin ngân hàng',
+                  Text(l10n.chiefPayrollBankSection,
                       style: TextStyle(fontSize: context.r(13), fontWeight: FontWeight.w700,
                           color: AppColors.primary)),
                   SizedBox(height: context.r(10)),
                   AppInput(
-                    label: 'Tên ngân hàng',
+                    label: l10n.chiefPayrollBankName,
                     hint: 'VD: Vietcombank',
                     controller: _bankNameCtrl,
                     prefixIcon: Icon(Icons.account_balance_outlined, size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(10)),
                   AppInput(
-                    label: 'Số tài khoản',
+                    label: l10n.chiefPayrollBankAccNum,
                     hint: 'VD: 0123456789',
                     controller: _bankAccNumCtrl,
                     keyboardType: TextInputType.number,
@@ -1286,14 +1308,14 @@ class _PayrollSheetState extends State<_PayrollSheet> {
                   ),
                   SizedBox(height: context.r(10)),
                   AppInput(
-                    label: 'Tên chủ tài khoản',
+                    label: l10n.chiefPayrollBankAccName,
                     hint: 'VD: NGUYEN VAN A',
                     controller: _bankAccNameCtrl,
                     prefixIcon: Icon(Icons.person_outline_rounded, size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(10)),
                   AppInput(
-                    label: 'Chi nhánh',
+                    label: l10n.chiefPayrollBankBranch,
                     hint: 'VD: Hà Nội',
                     controller: _bankBranchCtrl,
                     prefixIcon: Icon(Icons.location_on_outlined, size: context.r(20), color: AppColors.inactive),
@@ -1312,10 +1334,11 @@ class _PayrollSheetState extends State<_PayrollSheet> {
                         ? SizedBox(
                             width: context.r(20), height: context.r(20),
                             child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text('Lưu thông tin lương',
+                        : Text(l10n.chiefPayrollSaveBtn,
                             style: TextStyle(fontSize: context.r(15), fontWeight: FontWeight.w600)),
                   ),
-                ]),
+                ]);
+                }),
               ),
             ),
           ),
@@ -1421,8 +1444,8 @@ class _AssignManagerSheetState extends State<_AssignManagerSheet> {
       if (!mounted) return;
       Navigator.pop(context);
       widget.onSaved();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Đã phân công manager thành công'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.chiefAssignSuccess),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
       ));
@@ -1460,7 +1483,7 @@ class _AssignManagerSheetState extends State<_AssignManagerSheet> {
             padding: EdgeInsets.fromLTRB(context.r(24), context.r(8), context.r(24), context.r(4)),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Phân công Manager',
+              child: Text(AppLocalizations.of(context)!.chiefAssignManagerTitle,
                   style: TextStyle(fontSize: context.r(17), fontWeight: FontWeight.w700)),
             ),
           ),
@@ -1469,7 +1492,7 @@ class _AssignManagerSheetState extends State<_AssignManagerSheet> {
               padding: EdgeInsets.fromLTRB(context.r(24), 0, context.r(24), context.r(4)),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Manager hiện tại: ${widget.currentManagerName}',
+                child: Text(AppLocalizations.of(context)!.chiefCurrentManager(widget.currentManagerName!),
                     style: TextStyle(fontSize: context.r(12), color: AppColors.textSecondary)),
               ),
             ),
@@ -1483,7 +1506,7 @@ class _AssignManagerSheetState extends State<_AssignManagerSheet> {
                       RadioListTile<String?>(
                         value: null,
                         groupValue: _selectedId,
-                        title: const Text('Không có manager', style: TextStyle(color: AppColors.textSecondary)),
+                        title: Text(AppLocalizations.of(context)!.chiefNoManager, style: const TextStyle(color: AppColors.textSecondary)),
                         onChanged: (v) => setState(() { _selectedId = null; }),
                       ),
                       if (_managers.isEmpty)
@@ -1495,7 +1518,7 @@ class _AssignManagerSheetState extends State<_AssignManagerSheet> {
                                   size: context.r(40), color: AppColors.warning),
                               SizedBox(height: context.r(8)),
                               Text(
-                                'Chưa có Manager hoặc Giám đốc nào trong hệ thống.\nVui lòng bổ nhiệm người dùng làm Manager trước.',
+                                AppLocalizations.of(context)!.chiefNoManagerAvailable,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: context.r(12),
@@ -1513,7 +1536,7 @@ class _AssignManagerSheetState extends State<_AssignManagerSheet> {
                             value: mId,
                             groupValue: _selectedId,
                             title: Text(mName),
-                            subtitle: Text('${_roleLabel(mRole)} • ${m['department'] ?? ''}',
+                            subtitle: Text('${_roleLabel(context, mRole)} • ${m['department'] ?? ''}',
                                 style: TextStyle(fontSize: context.r(11))),
                             onChanged: (v) => setState(() { _selectedId = v; }),
                           );
@@ -1531,7 +1554,7 @@ class _AssignManagerSheetState extends State<_AssignManagerSheet> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.r(12))),
               ),
               onPressed: _submit,
-              child: const Text('Lưu phân công', style: TextStyle(fontWeight: FontWeight.w600)),
+              child: Text(AppLocalizations.of(context)!.chiefSaveAssign, style: const TextStyle(fontWeight: FontWeight.w600)),
             ),
           ),
         ]),
@@ -1539,9 +1562,12 @@ class _AssignManagerSheetState extends State<_AssignManagerSheet> {
     );
   }
 
-  String _roleLabel(String r) => switch (r) {
-        'CHIEF' => 'Giám đốc',
-        'MANAGER' => 'Quản lý',
-        _ => r,
-      };
+  String _roleLabel(BuildContext context, String r) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (r) {
+      'CHIEF' => l10n.roleChief,
+      'MANAGER' => l10n.roleManager,
+      _ => r,
+    };
+  }
 }

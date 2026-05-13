@@ -76,11 +76,11 @@ class _LedgerViewState extends State<_LedgerView> {
       body: BlocBuilder<LedgerBloc, LedgerState>(
         builder: (context, state) {
           if (state.status == LedgerStatus.loading) {
-            return const LoadingWidget(message: 'Fetching ledger records...');
+            return LoadingWidget(message: l10n.ledgerLoading);
           }
           if (state.status == LedgerStatus.failure) {
             return ErrorStateWidget(
-              message: state.errorMessage ?? 'Failed to fetch ledger',
+              message: state.errorMessage ?? l10n.ledgerLoadFailed,
               onRetry: _loadRecords,
             );
           }

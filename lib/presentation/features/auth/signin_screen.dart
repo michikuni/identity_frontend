@@ -75,10 +75,10 @@ class _SignInViewState extends State<_SignInView> {
             SnackBar(
               content: Text(
                 isPending
-                    ? 'Tài khoản đang chờ Admin duyệt. Vui lòng thử lại sau.'
+                    ? AppLocalizations.of(context)!.signinPendingApproval
                     : isRejected
-                    ? 'Tài khoản đã bị từ chối. Vui lòng liên hệ Admin.'
-                    : 'Đăng nhập thất bại. Kiểm tra lại thông tin.',
+                    ? AppLocalizations.of(context)!.signinRejected
+                    : AppLocalizations.of(context)!.signinFailed,
               ),
               backgroundColor: isPending ? AppColors.warning : AppColors.error,
               behavior: SnackBarBehavior.floating,

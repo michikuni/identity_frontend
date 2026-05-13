@@ -7,6 +7,7 @@ import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/qr/vc_qr_payload_codec.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/core/wallet/vc_schemas.dart';
 import 'package:identity_frontend/core/wallet/vp_builder.dart';
 import 'package:identity_frontend/core/wallet/wallet_service.dart';
@@ -297,7 +298,7 @@ class _WalletScreenState extends State<WalletScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Identity Wallet'),
+        title: Text(AppLocalizations.of(context)!.walletTitle),
         backgroundColor: AppColors.surface,
         elevation: 0,
         bottom: PreferredSize(
@@ -308,7 +309,7 @@ class _WalletScreenState extends State<WalletScreen> {
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: _load,
-            tooltip: 'Tải lại',
+            tooltip: AppLocalizations.of(context)!.walletRefresh,
           ),
         ],
       ),
@@ -333,24 +334,14 @@ class _WalletScreenState extends State<WalletScreen> {
                     // Đã có VC (đã được duyệt) nhưng DID resolve fail — không show pending
                   ] else if (_publicKeyJwk != null) ...[
                     _PendingCard(
-                      message:
-                          'DID đang chờ Admin phê duyệt.\n\nAdmin vào màn "Duyệt tài khoản" → nhấn ✓ để duyệt. Sau khi duyệt, DID và Employment VC sẽ tự động được cấp.',
+                      message: AppLocalizations.of(context)!.walletDidPending,
                       icon: Icons.hourglass_top_rounded,
                       color: AppColors.warning,
                     ),
                     const SizedBox(height: 16),
                   ] else ...[
                     _PendingCard(
-                      message:
-                          'DID Wallet chưa được khởi tạo.\n\n'
-                          'Nguyên nhân thường gặp:\n'
-                          '• Bạn chưa hoàn tất bước Onboarding (đăng ký phòng ban + chức vụ)\n'
-                          '• Tài khoản chưa được Admin duyệt\n\n'
-                          'Cách khắc phục:\n'
-                          '1. Đảm bảo bạn đã điền đầy đủ thông tin phòng ban và chức vụ trong bước Onboarding\n'
-                          '2. Liên hệ Admin để được duyệt tài khoản\n'
-                          '3. Sau khi Admin duyệt, Wallet và Employment VC sẽ tự động được tạo\n'
-                          '4. Nhấn nút Tải lại (↺) để kiểm tra lại',
+                      message: AppLocalizations.of(context)!.walletDidNotInit,
                       icon: Icons.info_outline_rounded,
                       color: AppColors.info,
                     ),
@@ -381,8 +372,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     const SizedBox(height: 16),
                   ] else if (_publicKeyJwk != null) ...[
                     _PendingCard(
-                      message:
-                          'Employment VC chưa được cấp — sẽ tự động xuất hiện sau khi Admin duyệt tài khoản.',
+                      message: AppLocalizations.of(context)!.walletVcPending,
                       icon: Icons.verified_outlined,
                       color: AppColors.warning,
                     ),
@@ -487,9 +477,9 @@ class _WalletScreenState extends State<WalletScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          title: const Text(
-            'Chọn thông tin chia sẻ',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          title: Text(
+            AppLocalizations.of(context)!.walletShareInfo,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -501,9 +491,9 @@ class _WalletScreenState extends State<WalletScreen> {
                   color: AppColors.primary.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  'Bạn đang chủ động chia sẻ VP với Verifier.\nChọn các trường muốn tiết lộ — Verifier sẽ quét QR này.',
-                  style: TextStyle(
+                child: Text(
+                  AppLocalizations.of(context)!.walletShareInfoHint,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                     height: 1.5,
@@ -527,13 +517,13 @@ class _WalletScreenState extends State<WalletScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Huỷ'),
+              child: Text(AppLocalizations.of(context)!.walletQrCancel),
             ),
             FilledButton(
               onPressed: selected.isEmpty
                   ? null
                   : () => Navigator.pop(ctx, Set<String>.from(selected)),
-              child: const Text('Tạo VP QR'),
+              child: Text(AppLocalizations.of(context)!.walletQrCreate),
             ),
           ],
         ),
@@ -569,7 +559,7 @@ class _WalletScreenState extends State<WalletScreen> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Không thể tạo VP session: $e'),
+              content: Text(AppLocalizations.of(context)!.walletVpSessionFailed(e.toString())),
               behavior: SnackBarBehavior.floating,
               backgroundColor: AppColors.error,
             ),
@@ -592,11 +582,8 @@ class _WalletScreenState extends State<WalletScreen> {
       );
       if (!context.mounted) return;
       final (msg, bg) = result.valid
-          ? (
-              'VP đã gửi thành công — Verifier có thể xem kết quả ✓',
-              AppColors.success,
-            )
-          : ('VP bị từ chối: ${result.reason}', AppColors.error);
+          ? (AppLocalizations.of(context)!.walletVpSentSuccess, AppColors.success)
+          : (AppLocalizations.of(context)!.walletVpRejected(result.reason), AppColors.error);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(msg),
@@ -609,7 +596,7 @@ class _WalletScreenState extends State<WalletScreen> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Gửi VP thất bại: $e'),
+          content: Text(AppLocalizations.of(context)!.walletVpSendFailed(e.toString())),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.error,
         ),
@@ -670,9 +657,9 @@ class _WalletScreenState extends State<WalletScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Select fields to include in the QR.',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.walletQrSelectFields,
+                style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary,
                   height: 1.4,
@@ -699,13 +686,13 @@ class _WalletScreenState extends State<WalletScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.walletQrCancel),
             ),
             FilledButton(
               onPressed: selected.isEmpty
                   ? null
                   : () => Navigator.pop(ctx, selected.toList()),
-              child: const Text('Create QR'),
+              child: Text(AppLocalizations.of(context)!.walletQrCreate),
             ),
           ],
         ),
@@ -755,7 +742,7 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Cho Verifier quét để xác minh',
+                AppLocalizations.of(context)!.walletQrForVerifier,
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 16),
@@ -780,15 +767,15 @@ class _WalletScreenState extends State<WalletScreen> {
               const SizedBox(height: 16),
               TextButton.icon(
                 icon: const Icon(Icons.copy_rounded, size: 16),
-                label: const Text('Sao chép VC JSON'),
+                label: Text(AppLocalizations.of(context)!.walletCopyVcJson),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: vcJson));
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Đã sao chép VC JSON'),
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.walletCopied),
                       behavior: SnackBarBehavior.floating,
-                      duration: Duration(seconds: 2),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 },
@@ -811,11 +798,12 @@ class _WalletHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ready = hasKeypair && hasVC;
+    final l10n = AppLocalizations.of(context)!;
     final (statusText, statusIcon) = ready
-        ? ('Đã xác minh — sẵn sàng dùng', Icons.verified_rounded)
+        ? (l10n.walletVerifiedReady, Icons.verified_rounded)
         : hasKeypair
-        ? ('Keypair đã tạo — chờ Admin duyệt', Icons.hourglass_top_rounded)
-        : ('Chưa khởi tạo Wallet', Icons.warning_amber_rounded);
+        ? (l10n.walletKeypairPending, Icons.hourglass_top_rounded)
+        : (l10n.walletNotInitialized, Icons.warning_amber_rounded);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -907,7 +895,7 @@ class _DIDCard extends StatelessWidget {
           _InfoRow(label: 'Controller', value: controller),
           const SizedBox(height: 6),
           _InfoRow(
-            label: 'Cấp lúc',
+            label: 'Issued at',
             value: createdAt.length >= 19
                 ? createdAt.substring(0, 19).replaceAll('T', ' ')
                 : '-',
@@ -972,7 +960,7 @@ class _VCCard extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.qr_code_rounded, size: 16),
-                  label: const Text('Tạo VC QR'),
+                  label: Text(AppLocalizations.of(context)!.walletCreateVcQr),
                   onPressed: onCreateVcQr,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: color,
@@ -987,7 +975,7 @@ class _VCCard extends StatelessWidget {
               Expanded(
                 child: FilledButton.icon(
                   icon: const Icon(Icons.qr_code_scanner_rounded, size: 16),
-                  label: const Text('Quét QR VP Request'),
+                  label: Text(AppLocalizations.of(context)!.walletScanVpRequest),
                   onPressed: onScanVpRequest,
                   style: FilledButton.styleFrom(
                     backgroundColor: color,
@@ -1067,14 +1055,14 @@ class _PublicKeyCard extends StatelessWidget {
                 size: 18,
                 color: AppColors.textSecondary,
               ),
-              tooltip: 'Sao chép',
+              tooltip: AppLocalizations.of(context)!.walletCopy,
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: jwk));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Đã sao chép public key'),
+                  SnackBar(
+                    content: Text(AppLocalizations.of(context)!.walletCopiedPublicKey),
                     behavior: SnackBarBehavior.floating,
-                    duration: Duration(seconds: 2),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               },
@@ -1210,10 +1198,10 @@ class _InfoRow extends StatelessWidget {
                 ? () {
                     Clipboard.setData(ClipboardData(text: value));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Đã sao chép'),
+                      SnackBar(
+                        content: Text(AppLocalizations.of(context)!.walletCopiedSnack),
                         behavior: SnackBarBehavior.floating,
-                        duration: Duration(seconds: 2),
+                        duration: const Duration(seconds: 2),
                       ),
                     );
                   }
@@ -1332,11 +1320,10 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
       );
       if (!mounted) return;
       Navigator.pop(context);
+      final l10n = AppLocalizations.of(context)!;
       final errorMsg = result.valid
-          ? 'VP được Verifier chấp nhận ✓'
-          : result.reason.contains('thiếu các trường') || result.reason.contains('Missing required')
-              ? 'Credential không hợp lệ: không đủ thông tin yêu cầu'
-              : 'VP bị từ chối: ${result.reason}';
+          ? l10n.walletVpAccepted
+          : l10n.walletVpRejected(result.reason);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMsg),
@@ -1348,7 +1335,7 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
     } catch (e) {
       setState(() {
         _submitting = false;
-        _errorMsg = 'Gửi VP thất bại: $e';
+        _errorMsg = AppLocalizations.of(context)!.walletVpSendFailed(e.toString());
       });
     }
   }
@@ -1359,13 +1346,13 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.shield_outlined, color: AppColors.primary, size: 22),
-            SizedBox(width: 8),
+            const Icon(Icons.shield_outlined, color: AppColors.primary, size: 22),
+            const SizedBox(width: 8),
             Text(
-              'Yêu cầu chia sẻ thông tin',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              AppLocalizations.of(context)!.walletRequestShareInfo,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
           ],
         ),
@@ -1382,18 +1369,18 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
                   color: AppColors.warning.withValues(alpha: 0.3),
                 ),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline_rounded,
                     color: AppColors.warning,
                     size: 16,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Verifier đang yêu cầu bạn chia sẻ thông tin sau. Chỉ xác nhận nếu bạn tin tưởng bên yêu cầu.',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.walletVerifierRequestHint,
+                      style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.warning,
                         height: 1.4,
@@ -1404,9 +1391,9 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Thông tin được yêu cầu:',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.walletRequestedFields,
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -1437,14 +1424,14 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Từ chối',
-              style: TextStyle(color: AppColors.error),
+            child: Text(
+              AppLocalizations.of(context)!.walletReject,
+              style: const TextStyle(color: AppColors.error),
             ),
           ),
           FilledButton.icon(
             icon: const Icon(Icons.check_rounded, size: 16),
-            label: const Text('Xác nhận chia sẻ'),
+            label: Text(AppLocalizations.of(context)!.walletConfirmShare),
             style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () => Navigator.pop(ctx, true),
           ),
@@ -1494,15 +1481,15 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Quét VP Request QR',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+            Text(
+              AppLocalizations.of(context)!.walletVerifierScanTitle,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Hướng camera vào QR trên màn Verifier\n(tab "Tạo VP Request")',
+            Text(
+              AppLocalizations.of(context)!.walletVerifierScanSubtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 16),
             if (_submitting)
@@ -1547,7 +1534,7 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
             const SizedBox(height: 16),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Đóng'),
+              child: Text(AppLocalizations.of(context)!.walletClose),
             ),
           ],
         ),

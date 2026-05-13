@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/domain/entities/attendance_entity.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'bloc/attendance_bloc.dart';
 import 'bloc/attendance_event.dart';
 import 'bloc/attendance_state.dart';
@@ -40,7 +41,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Lịch sử chấm công'),
+        title: Text(AppLocalizations.of(context)!.attendanceHistoryTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -77,7 +78,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
               onPressed: () => _changeMonth(-1),
             ),
             Text(
-              'Tháng $_month/$_year',
+              AppLocalizations.of(context)!.attendanceMonth(_month, _year),
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
             ),
             IconButton(
@@ -103,15 +104,18 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     );
   }
 
-  Widget _buildSummaryRow(int present, int late, int absent) => Row(
-        children: [
-          _summaryChip('Có mặt', present, AppColors.success),
-          const SizedBox(width: 8),
-          _summaryChip('Muộn', late, AppColors.warning),
-          const SizedBox(width: 8),
-          _summaryChip('Vắng', absent, AppColors.error),
-        ],
-      );
+  Widget _buildSummaryRow(int present, int late, int absent) {
+    final l10n = AppLocalizations.of(context)!;
+    return Row(
+      children: [
+        _summaryChip(l10n.attendancePresent, present, AppColors.success),
+        const SizedBox(width: 8),
+        _summaryChip(l10n.attendanceLate, late, AppColors.warning),
+        const SizedBox(width: 8),
+        _summaryChip(l10n.attendanceAbsent, absent, AppColors.error),
+      ],
+    );
+  }
 
   Widget _summaryChip(String label, int count, Color color) => Expanded(
         child: Container(
@@ -178,13 +182,14 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
         ),
       );
 
-  Widget _buildEmpty() => const Center(
+  Widget _buildEmpty() => Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.event_busy_rounded, size: 56, color: AppColors.inactive),
-            SizedBox(height: 12),
-            Text('Không có dữ liệu tháng này', style: TextStyle(color: AppColors.textSecondary)),
+            const Icon(Icons.event_busy_rounded, size: 56, color: AppColors.inactive),
+            const SizedBox(height: 12),
+            Text(AppLocalizations.of(context)!.attendanceNoDataMonth,
+                style: const TextStyle(color: AppColors.textSecondary)),
           ],
         ),
       );
@@ -203,12 +208,15 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
         _ => Icons.help_outline_rounded,
       };
 
-  String _statusLabel(String status) => switch (status) {
-        'PRESENT' => 'Có mặt',
-        'LATE' => 'Muộn',
-        'ABSENT' => 'Vắng',
-        _ => status,
-      };
+  String _statusLabel(String status) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (status) {
+      'PRESENT' => l10n.attendancePresent,
+      'LATE' => l10n.attendanceLate,
+      'ABSENT' => l10n.attendanceAbsent,
+      _ => status,
+    };
+  }
 
   String _fmt(String? raw) {
     if (raw == null) return '--:--';

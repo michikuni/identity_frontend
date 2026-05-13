@@ -3,6 +3,7 @@ import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 
 class ManagerTimesheetScreen extends StatefulWidget {
   const ManagerTimesheetScreen({super.key});
@@ -63,7 +64,7 @@ class _ManagerTimesheetScreenState extends State<ManagerTimesheetScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        title: const Text('Bảng công nhân viên'),
+        title: Text(AppLocalizations.of(context)!.managerTimesheetTitle),
         elevation: 0,
         actions: [
           IconButton(icon: const Icon(Icons.refresh_rounded), onPressed: _load),
@@ -95,7 +96,7 @@ class _ManagerTimesheetScreenState extends State<ManagerTimesheetScreen> {
               icon: const Icon(Icons.chevron_left_rounded, color: Colors.white),
               onPressed: () => _changeMonth(-1),
             ),
-            Text('Tháng $_month/$_year',
+            Text(AppLocalizations.of(context)!.attendanceMonth(_month, _year),
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
             IconButton(
@@ -202,15 +203,18 @@ class _ManagerTimesheetScreenState extends State<ManagerTimesheetScreen> {
         ]),
       );
 
-  Widget _buildSummaryRow(BuildContext context, int present, int late, int absent) => Row(
-        children: [
-          _chip(context, 'Có mặt', present, AppColors.success),
-          SizedBox(width: context.r(8)),
-          _chip(context, 'Muộn', late, AppColors.warning),
-          SizedBox(width: context.r(8)),
-          _chip(context, 'Vắng', absent, AppColors.error),
-        ],
-      );
+  Widget _buildSummaryRow(BuildContext context, int present, int late, int absent) {
+    final l10n = AppLocalizations.of(context)!;
+    return Row(
+      children: [
+        _chip(context, l10n.attendancePresent, present, AppColors.success),
+        SizedBox(width: context.r(8)),
+        _chip(context, l10n.attendanceLate, late, AppColors.warning),
+        SizedBox(width: context.r(8)),
+        _chip(context, l10n.attendanceAbsent, absent, AppColors.error),
+      ],
+    );
+  }
 
   Widget _chip(BuildContext context, String label, int count, Color color) => Expanded(
         child: Container(
@@ -234,7 +238,11 @@ class _ManagerTimesheetScreenState extends State<ManagerTimesheetScreen> {
 
   Widget _buildCalendar(BuildContext context, int daysInMonth, int firstWeekday,
       Map<String, _AttendanceRecord> map) {
-    const headers = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    final l10n = AppLocalizations.of(context)!;
+    final headers = [
+      l10n.weekdayMon, l10n.weekdayTue, l10n.weekdayWed, l10n.weekdayThu,
+      l10n.weekdayFri, l10n.weekdaySat, l10n.weekdaySun,
+    ];
     final startOffset = firstWeekday - 1;
 
     return Container(
@@ -296,10 +304,10 @@ class _ManagerTimesheetScreenState extends State<ManagerTimesheetScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _legendDot(AppColors.success, 'Có mặt'),
-            _legendDot(AppColors.warning, 'Muộn'),
-            _legendDot(AppColors.error, 'Vắng'),
-            _legendDot(AppColors.inactive, 'Cuối tuần'),
+            _legendDot(AppColors.success, AppLocalizations.of(context)!.attendancePresent),
+            _legendDot(AppColors.warning, AppLocalizations.of(context)!.attendanceLate),
+            _legendDot(AppColors.error, AppLocalizations.of(context)!.attendanceAbsent),
+            _legendDot(AppColors.inactive, AppLocalizations.of(context)!.attendanceWeekend),
           ],
         ),
       );
@@ -315,7 +323,7 @@ class _ManagerTimesheetScreenState extends State<ManagerTimesheetScreen> {
   Widget _buildDetailList(BuildContext context, List<_AttendanceRecord> records) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Chi tiết',
+          Text(AppLocalizations.of(context)!.attendanceDetail,
               style: TextStyle(
                   fontSize: context.r(14),
                   fontWeight: FontWeight.w700,
@@ -329,8 +337,8 @@ class _ManagerTimesheetScreenState extends State<ManagerTimesheetScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.event_busy_rounded, size: context.r(56), color: AppColors.inactive),
           SizedBox(height: context.r(12)),
-          const Text('Không có nhân viên cấp dưới',
-              style: TextStyle(color: AppColors.textSecondary)),
+          Text(AppLocalizations.of(context)!.managerNoSubordinates,
+              style: const TextStyle(color: AppColors.textSecondary)),
         ]),
       );
 }
@@ -434,7 +442,7 @@ class _DetailRow extends StatelessWidget {
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Text(_statusLabel(record.status),
+            child: Text(_statusLabel(context, record.status),
                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
           ),
         ],
@@ -449,12 +457,15 @@ class _DetailRow extends StatelessWidget {
         _ => AppColors.inactive,
       };
 
-  String _statusLabel(String status) => switch (status) {
-        'PRESENT' => 'Có mặt',
-        'LATE' => 'Muộn',
-        'ABSENT' => 'Vắng',
-        _ => status,
-      };
+  String _statusLabel(BuildContext context, String status) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (status) {
+      'PRESENT' => l10n.attendancePresent,
+      'LATE' => l10n.attendanceLate,
+      'ABSENT' => l10n.attendanceAbsent,
+      _ => status,
+    };
+  }
 
   String _fmtDate(String raw) {
     try {

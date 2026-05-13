@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/presentation/widgets/primary_button.dart';
 import 'bloc/request_bloc.dart';
 import 'bloc/request_event.dart';
@@ -22,17 +23,17 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
 
-  static const _types = [
-    ('LEAVE', 'Nghỉ phép', Icons.beach_access_rounded),
-    ('ATTENDANCE_CORRECTION', 'Sửa chấm công', Icons.edit_calendar_rounded),
-    ('WFH', 'Làm tại nhà', Icons.home_work_rounded),
-    ('BUSINESS_TRIP', 'Công tác', Icons.flight_rounded),
+  List<(String, String, IconData)> _types(AppLocalizations l10n) => [
+    ('LEAVE', l10n.requestTypeLeave, Icons.beach_access_rounded),
+    ('ATTENDANCE_CORRECTION', l10n.requestTypeAttendanceCorrection, Icons.edit_calendar_rounded),
+    ('WFH', l10n.requestTypeWfh, Icons.home_work_rounded),
+    ('BUSINESS_TRIP', l10n.requestTypeBusinessTrip, Icons.flight_rounded),
   ];
 
-  static const _sessions = [
-    ('FULL_DAY', 'Cả ngày'),
-    ('MORNING', 'Buổi sáng'),
-    ('AFTERNOON', 'Buổi chiều'),
+  List<(String, String)> _sessions(AppLocalizations l10n) => [
+    ('FULL_DAY', l10n.requestSessionFullDay),
+    ('MORNING', l10n.requestSessionMorning),
+    ('AFTERNOON', l10n.requestSessionAfternoon),
   ];
 
   @override
@@ -60,10 +61,11 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
   }
 
   void _submit() {
+    final l10n = AppLocalizations.of(context)!;
     if (_formKey.currentState?.validate() != true) return;
     if (_startDate == null || _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn ngày'), backgroundColor: AppColors.error),
+        SnackBar(content: Text(l10n.requestSelectDate), backgroundColor: AppColors.error),
       );
       return;
     }
@@ -78,23 +80,27 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final types = _types(l10n);
+    final sessions = _sessions(l10n);
+
     return BlocListener<RequestBloc, RequestState>(
       listener: (context, state) {
         if (state.actionSuccess) {
           context.pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Tạo đơn thành công'), backgroundColor: AppColors.success),
+            SnackBar(content: Text(l10n.requestCreateSuccess), backgroundColor: AppColors.success),
           );
         } else if (state.status == RequestStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.errorMessage ?? 'Lỗi'), backgroundColor: AppColors.error),
+            SnackBar(content: Text(state.errorMessage ?? l10n.error), backgroundColor: AppColors.error),
           );
         }
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: const Text('Tạo đơn'),
+          title: Text(l10n.requestCreate),
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
@@ -105,12 +111,12 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
             padding: const EdgeInsets.all(20),
             children: [
               // Type selector
-              _sectionLabel('Loại đơn'),
+              _sectionLabel(l10n.requestType),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: _types.map((t) {
+                children: types.map((t) {
                   final selected = _type == t.$1;
                   return ChoiceChip(
                     selected: selected,
@@ -128,23 +134,23 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
               const SizedBox(height: 20),
 
               // Date range
-              _sectionLabel('Ngày'),
+              _sectionLabel(l10n.requestDate),
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Expanded(child: _datePicker('Từ ngày', _startDate, () => _pickDate(true))),
+                  Expanded(child: _datePicker(l10n.requestFromDate, _startDate, () => _pickDate(true))),
                   const SizedBox(width: 12),
-                  Expanded(child: _datePicker('Đến ngày', _endDate, () => _pickDate(false))),
+                  Expanded(child: _datePicker(l10n.requestToDate, _endDate, () => _pickDate(false))),
                 ],
               ),
               const SizedBox(height: 20),
 
               // Session (only for LEAVE)
               if (_type == 'LEAVE') ...[
-                _sectionLabel('Buổi'),
+                _sectionLabel(l10n.requestSession),
                 const SizedBox(height: 10),
                 Row(
-                  children: _sessions.map((s) {
+                  children: sessions.map((s) {
                     final sel = _session == s.$1;
                     return Expanded(
                       child: Padding(
@@ -174,22 +180,22 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
               ],
 
               // Reason
-              _sectionLabel('Lý do'),
+              _sectionLabel(l10n.requestReason),
               const SizedBox(height: 10),
               TextFormField(
                 controller: _reasonCtrl,
                 maxLines: 3,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập lý do' : null,
-                decoration: const InputDecoration(
-                  hintText: 'Nhập lý do...',
-                  hintStyle: TextStyle(color: AppColors.textHint),
+                validator: (v) => (v == null || v.trim().isEmpty) ? l10n.requestReasonRequired : null,
+                decoration: InputDecoration(
+                  hintText: l10n.requestReasonHint,
+                  hintStyle: const TextStyle(color: AppColors.textHint),
                 ),
               ),
               const SizedBox(height: 32),
 
               BlocBuilder<RequestBloc, RequestState>(
                 builder: (context, state) => PrimaryButton(
-                  title: 'Gửi đơn',
+                  title: l10n.requestSubmit,
                   isLoading: state.status == RequestStatus.loading,
                   onPressed: _submit,
                 ),

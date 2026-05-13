@@ -3,6 +3,7 @@ import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 
 class PendingAccountsScreen extends StatefulWidget {
   const PendingAccountsScreen({super.key});
@@ -42,16 +43,18 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
       await ApiClient.instance.put(ApiConstants.adminApproveAccount(id));
       setState(() => _accounts.removeWhere((a) => a['id'] == id));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Đã duyệt tài khoản'),
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l10n.pendingApproved),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
         ));
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Lỗi: ${e.toString()}'),
+          content: Text(l10n.adminErrorPrefix(e.toString())),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ));
@@ -64,21 +67,24 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
   Future<void> _reject(String id, String email) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Từ chối tài khoản'),
-        content: Text('Từ chối tài khoản "$email"?\nTài khoản này sẽ không thể đăng nhập.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Huỷ'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Từ chối'),
-          ),
-        ],
-      ),
+      builder: (ctx) {
+        final ctxL10n = AppLocalizations.of(ctx)!;
+        return AlertDialog(
+          title: Text(ctxL10n.pendingRejectTitle),
+          content: Text(ctxL10n.pendingRejectConfirm(email)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(ctxL10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(foregroundColor: AppColors.error),
+              child: Text(ctxL10n.pendingReject),
+            ),
+          ],
+        );
+      },
     );
     if (confirmed != true) return;
 
@@ -87,16 +93,18 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
       await ApiClient.instance.put(ApiConstants.adminRejectAccount(id));
       setState(() => _accounts.removeWhere((a) => a['id'] == id));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Đã từ chối tài khoản'),
+        final mountedL10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(mountedL10n.pendingRejected),
           backgroundColor: AppColors.warning,
           behavior: SnackBarBehavior.floating,
         ));
       }
     } catch (e) {
       if (mounted) {
+        final mountedL10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Lỗi: ${e.toString()}'),
+          content: Text(mountedL10n.adminErrorPrefix(e.toString())),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ));
@@ -108,10 +116,11 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Duyệt tài khoản'),
+        title: Text(l10n.homeApproveAccounts),
         backgroundColor: AppColors.surface,
         elevation: 0,
         bottom: PreferredSize(
@@ -122,7 +131,7 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: _load,
-            tooltip: 'Tải lại',
+            tooltip: l10n.adminRefresh,
           ),
         ],
       ),
@@ -135,6 +144,7 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
   }
 
   Widget _buildEmpty(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -143,14 +153,15 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
               size: context.r(56),
               color: AppColors.success.withValues(alpha: 0.7)),
           SizedBox(height: context.r(12)),
-          const Text('Không có tài khoản nào chờ duyệt',
-              style: TextStyle(color: AppColors.textSecondary)),
+          Text(l10n.pendingEmpty,
+              style: const TextStyle(color: AppColors.textSecondary)),
         ],
       ),
     );
   }
 
   Widget _buildList(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Container(
@@ -164,7 +175,7 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
                   size: context.r(18), color: AppColors.warning),
               SizedBox(width: context.r(8)),
               Text(
-                '${_accounts.length} tài khoản đang chờ duyệt',
+                l10n.adminPendingAccountsBanner(_accounts.length),
                 style: TextStyle(
                     fontSize: context.r(13),
                     fontWeight: FontWeight.w600,
@@ -209,6 +220,7 @@ class _AccountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final email = account['email'] as String? ?? '';
     final phone = account['phone'] as String? ?? '';
 
@@ -265,13 +277,13 @@ class _AccountCard extends StatelessWidget {
                 IconButton(
                   icon: Icon(Icons.check_circle_rounded,
                       color: AppColors.success, size: context.r(24)),
-                  tooltip: 'Duyệt',
+                  tooltip: l10n.pendingApprove,
                   onPressed: onApprove,
                 ),
                 IconButton(
                   icon: Icon(Icons.cancel_rounded,
                       color: AppColors.error, size: context.r(24)),
-                  tooltip: 'Từ chối',
+                  tooltip: l10n.pendingReject,
                   onPressed: onReject,
                 ),
               ],

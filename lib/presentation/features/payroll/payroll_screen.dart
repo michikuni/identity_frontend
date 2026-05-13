@@ -41,12 +41,12 @@ class _PayrollView extends StatelessWidget {
       body: BlocBuilder<PayrollBloc, PayrollState>(
         builder: (context, state) {
           if (state.status == PayrollStatus.loading) {
-            return const LoadingWidget(message: 'Loading payroll...');
+            return LoadingWidget(message: l10n.payrollLoading);
           }
           if (state.status == PayrollStatus.failure || state.payroll == null) {
             return _EmptyOrErrorWidget(
               icon: Icons.payments_outlined,
-              message: 'Không có dữ liệu lương.\nVui lòng thử lại.',
+              message: l10n.payrollNoDataRetry,
               onRetry: () => context.read<PayrollBloc>().add(const PayrollFetch()),
             );
           }
@@ -102,7 +102,7 @@ class _PayrollView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SectionHeader(title: 'Salary Breakdown', icon: Icons.account_balance_outlined),
+                SectionHeader(title: l10n.payrollBreakdown, icon: Icons.account_balance_outlined),
                 InfoRow(label: l10n.payrollSalaryType, value: p.salaryType),
                 InfoRow(label: l10n.payrollBaseSalary, value: _fmtCurrency(p.baseSalary, currency)),
                 if (p.bonusSalary != null && p.bonusSalary! > 0)
@@ -177,6 +177,7 @@ class _EmptyOrErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -205,7 +206,7 @@ class _EmptyOrErrorWidget extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Thử lại'),
+              label: Text(l10n.retry),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
                 side: const BorderSide(color: AppColors.primary),

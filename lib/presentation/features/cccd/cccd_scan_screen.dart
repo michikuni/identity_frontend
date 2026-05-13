@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 /// Dữ liệu CCCD parse từ QR chip thẻ CCCD.
@@ -144,14 +145,14 @@ class _CccdScanScreenState extends State<CccdScanScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.of(context).maybePop(),
-          tooltip: 'Quay lại',
+          tooltip: AppLocalizations.of(context)!.cccdBack,
         ),
         actions: [
           TextButton(
             onPressed: widget.onSkip,
-            child: const Text(
-              'Bỏ qua',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+            child: Text(
+              AppLocalizations.of(context)!.cccdSkip,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
           ),
         ],
@@ -184,18 +185,18 @@ class _CccdScanScreenState extends State<CccdScanScreen> {
                   const Icon(Icons.credit_card_rounded,
                       color: Colors.white, size: 28),
                   const SizedBox(height: 10),
-                  const Text(
-                    'Quét QR chip thẻ CCCD',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.cccdTitle,
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Hướng camera vào mã QR ở mặt sau thẻ CCCD gắn chip của bạn để tự động điền thông tin',
+                  Text(
+                    AppLocalizations.of(context)!.cccdInstruction,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.white60, fontSize: 12, height: 1.5),
                   ),
                   const SizedBox(height: 16),
@@ -207,7 +208,7 @@ class _CccdScanScreenState extends State<CccdScanScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: const Text('Nhập thông tin thủ công'),
+                    child: Text(AppLocalizations.of(context)!.cccdManualInput),
                   ),
                 ],
               ),

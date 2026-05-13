@@ -6,6 +6,7 @@ import 'package:identity_frontend/core/locale/locale_cubit.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
+import 'package:identity_frontend/core/utils/label_helpers.dart';
 import 'package:identity_frontend/domain/entities/employee_entity.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/presentation/features/auth/bloc/auth_bloc.dart';
@@ -19,7 +20,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => HomeBloc(employeeUseCase: sl())..add(const HomeFetchData()),
+      create: (_) =>
+          HomeBloc(employeeUseCase: sl())..add(const HomeFetchData()),
       child: const _HomeView(),
     );
   }
@@ -55,14 +57,15 @@ class _HomeViewState extends State<_HomeView> {
             slivers: [
               _buildAppBar(context, l10n, state),
               if (state.status == HomeStatus.loading)
-                const SliverFillRemaining(
-                  child: LoadingWidget(message: 'Loading your profile...'),
+                SliverFillRemaining(
+                  child: LoadingWidget(message: l10n.homeLoadingProfile),
                 )
               else if (state.status == HomeStatus.failure)
                 SliverFillRemaining(
                   child: ErrorStateWidget(
-                    message: state.errorMessage ?? 'Failed to load data',
-                    onRetry: () => context.read<HomeBloc>().add(const HomeFetchData()),
+                    message: state.errorMessage ?? l10n.homeLoadFailed,
+                    onRetry: () =>
+                        context.read<HomeBloc>().add(const HomeFetchData()),
                   ),
                 )
               else if (state.employee != null)
@@ -76,7 +79,11 @@ class _HomeViewState extends State<_HomeView> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, AppLocalizations l10n, HomeState state) {
+  Widget _buildAppBar(
+    BuildContext context,
+    AppLocalizations l10n,
+    HomeState state,
+  ) {
     return SliverAppBar(
       expandedHeight: context.r(200),
       pinned: true,
@@ -91,7 +98,11 @@ class _HomeViewState extends State<_HomeView> {
             ),
           ),
           padding: EdgeInsets.fromLTRB(
-              context.r(24), context.r(60), context.r(24), context.r(20)),
+            context.r(24),
+            context.r(60),
+            context.r(24),
+            context.r(20),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.end,
@@ -105,8 +116,11 @@ class _HomeViewState extends State<_HomeView> {
                       color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.person_outline,
-                        color: Colors.white, size: context.r(26)),
+                    child: Icon(
+                      Icons.person_outline,
+                      color: Colors.white,
+                      size: context.r(26),
+                    ),
                   ),
                   SizedBox(width: context.r(12)),
                   Expanded(
@@ -139,7 +153,9 @@ class _HomeViewState extends State<_HomeView> {
                         onTap: () => context.read<LocaleCubit>().toggle(),
                         child: Container(
                           padding: EdgeInsets.symmetric(
-                              horizontal: context.r(10), vertical: context.r(5)),
+                            horizontal: context.r(10),
+                            vertical: context.r(5),
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(context.r(20)),
@@ -147,8 +163,10 @@ class _HomeViewState extends State<_HomeView> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(isVi ? '🇻🇳' : '🇺🇸',
-                                  style: TextStyle(fontSize: context.r(13))),
+                              Text(
+                                isVi ? '🇻🇳' : '🇺🇸',
+                                style: TextStyle(fontSize: context.r(13)),
+                              ),
                               SizedBox(width: context.r(4)),
                               Text(
                                 isVi ? 'VI' : 'EN',
@@ -166,8 +184,11 @@ class _HomeViewState extends State<_HomeView> {
                   ),
                   SizedBox(width: context.r(8)),
                   IconButton(
-                    icon: Icon(Icons.logout_rounded,
-                        color: Colors.white, size: context.r(22)),
+                    icon: Icon(
+                      Icons.logout_rounded,
+                      color: Colors.white,
+                      size: context.r(22),
+                    ),
                     tooltip: l10n.logout,
                     onPressed: () {
                       context.read<AuthBloc>().add(const AuthLoggedOut());
@@ -191,7 +212,12 @@ class _HomeViewState extends State<_HomeView> {
     );
   }
 
-  Widget _buildContent(BuildContext context, AppLocalizations l10n, EmployeeEntity emp, String role) {
+  Widget _buildContent(
+    BuildContext context,
+    AppLocalizations l10n,
+    EmployeeEntity emp,
+    String role,
+  ) {
     return SliverPadding(
       padding: EdgeInsets.all(context.r(16)),
       sliver: SliverList(
@@ -231,16 +257,29 @@ class _HomeViewState extends State<_HomeView> {
                 SizedBox(height: context.r(20)),
                 Row(
                   children: [
-                    _statItem(context, Icons.work_outline_rounded, l10n.homeWorkingType, emp.workingType),
+                    _statItem(
+                      context,
+                      Icons.work_outline_rounded,
+                      l10n.homeWorkingType,
+                      workingTypeLabel(l10n, emp.workingType),
+                    ),
                     SizedBox(width: context.r(16)),
-                    _statItem(context, Icons.badge_outlined, l10n.homeEmployee, emp.role),
+                    _statItem(
+                      context,
+                      Icons.badge_outlined,
+                      l10n.homeEmployee,
+                      roleLabel(l10n, emp.role),
+                    ),
                   ],
                 ),
               ],
             ),
           ),
           SizedBox(height: context.r(16)),
-          Text(l10n.homeQuickAccess, style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            l10n.homeQuickAccess,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           SizedBox(height: context.r(12)),
           GridView.count(
             shrinkWrap: true,
@@ -250,12 +289,42 @@ class _HomeViewState extends State<_HomeView> {
             crossAxisSpacing: context.r(12),
             childAspectRatio: 1.6,
             children: [
-              _quickCard(context, Icons.person_outlined, l10n.navProfile, '/app/profile', AppColors.info),
-              _quickCard(context, Icons.description_outlined, l10n.navContract, '/app/contract', AppColors.success),
-              _quickCard(context, Icons.payments_outlined, l10n.navPayroll, '/app/payroll', AppColors.accent),
+              _quickCard(
+                context,
+                Icons.person_outlined,
+                l10n.navProfile,
+                '/app/profile',
+                AppColors.info,
+              ),
+              _quickCard(
+                context,
+                Icons.description_outlined,
+                l10n.navContract,
+                '/app/contract',
+                AppColors.success,
+              ),
+              _quickCard(
+                context,
+                Icons.payments_outlined,
+                l10n.navPayroll,
+                '/app/payroll',
+                AppColors.accent,
+              ),
               if (role == 'CHIEF') ...[
-                _quickCard(context, Icons.how_to_reg_outlined, 'Duyệt tài khoản', '/app/admin/pending-accounts', AppColors.warning),
-                _quickCard(context, Icons.manage_accounts_outlined, 'Nhân sự', '/app/chief', AppColors.primary),
+                _quickCard(
+                  context,
+                  Icons.how_to_reg_outlined,
+                  l10n.homeApproveAccounts,
+                  '/app/admin/pending-accounts',
+                  AppColors.warning,
+                ),
+                _quickCard(
+                  context,
+                  Icons.manage_accounts_outlined,
+                  l10n.homeStaff,
+                  '/app/chief',
+                  AppColors.primary,
+                ),
               ],
             ],
           ),
@@ -272,23 +341,41 @@ class _HomeViewState extends State<_HomeView> {
                         color: AppColors.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(context.r(8)),
                       ),
-                      child: Icon(Icons.info_outline_rounded,
-                          size: context.r(16), color: AppColors.primary),
+                      child: Icon(
+                        Icons.info_outline_rounded,
+                        size: context.r(16),
+                        color: AppColors.primary,
+                      ),
                     ),
                     SizedBox(width: context.r(10)),
-                    Text(l10n.homeEmployee, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      l10n.homeEmployee,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ],
                 ),
                 SizedBox(height: context.r(12)),
                 const Divider(),
                 _detailRow(context, l10n.homeDepartment, emp.department),
                 _detailRow(context, l10n.homePosition, emp.position),
-                _detailRow(context, l10n.homeWorkingType, emp.workingType),
+                _detailRow(
+                  context,
+                  l10n.homeWorkingType,
+                  workingTypeLabel(l10n, emp.workingType),
+                ),
                 if (emp.createdAt != null)
-                  _detailRow(context, l10n.homeJoinedDate,
-                      '${emp.createdAt!.day}/${emp.createdAt!.month}/${emp.createdAt!.year}'),
+                  _detailRow(
+                    context,
+                    l10n.homeJoinedDate,
+                    '${emp.createdAt!.day}/${emp.createdAt!.month}/${emp.createdAt!.year}',
+                  ),
                 if (emp.note != null && emp.note!.isNotEmpty)
-                  _detailRow(context, l10n.homeNote, emp.note!, showDivider: false),
+                  _detailRow(
+                    context,
+                    l10n.homeNote,
+                    emp.note!,
+                    showDivider: false,
+                  ),
               ],
             ),
           ),
@@ -298,26 +385,41 @@ class _HomeViewState extends State<_HomeView> {
     );
   }
 
-  Widget _statItem(BuildContext context, IconData icon, String label, String value) {
+  Widget _statItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     return Expanded(
       child: Row(
         children: [
-          Icon(icon, color: Colors.white.withValues(alpha: 0.7), size: context.r(16)),
+          Icon(
+            icon,
+            color: Colors.white.withValues(alpha: 0.7),
+            size: context.r(16),
+          ),
           SizedBox(width: context.r(6)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        fontSize: context.r(11))),
-                Text(value,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: context.r(13),
-                        fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: context.r(11),
+                  ),
+                ),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: context.r(13),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -326,7 +428,13 @@ class _HomeViewState extends State<_HomeView> {
     );
   }
 
-  Widget _quickCard(BuildContext context, IconData icon, String label, String route, Color color) {
+  Widget _quickCard(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String route,
+    Color color,
+  ) {
     return AppCard(
       onTap: () => context.go(route),
       padding: EdgeInsets.all(context.r(14)),
@@ -354,8 +462,12 @@ class _HomeViewState extends State<_HomeView> {
     );
   }
 
-  Widget _detailRow(BuildContext context, String label, String value,
-      {bool showDivider = true}) {
+  Widget _detailRow(
+    BuildContext context,
+    String label,
+    String value, {
+    bool showDivider = true,
+  }) {
     return Column(
       children: [
         Padding(
@@ -364,16 +476,24 @@ class _HomeViewState extends State<_HomeView> {
             children: [
               Expanded(
                 flex: 4,
-                child: Text(label,
-                    style: TextStyle(
-                        fontSize: context.r(13), color: AppColors.textSecondary)),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: context.r(13),
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
               Expanded(
                 flex: 6,
-                child: Text(value,
-                    style: TextStyle(
-                        fontSize: context.r(13), fontWeight: FontWeight.w500),
-                    textAlign: TextAlign.right),
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: context.r(13),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
               ),
             ],
           ),

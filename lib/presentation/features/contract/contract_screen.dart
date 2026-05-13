@@ -41,12 +41,12 @@ class _ContractView extends StatelessWidget {
       body: BlocBuilder<ContractBloc, ContractState>(
         builder: (context, state) {
           if (state.status == ContractStatus.loading) {
-            return const LoadingWidget(message: 'Loading contract...');
+            return LoadingWidget(message: l10n.contractLoading);
           }
           if (state.status == ContractStatus.failure || state.contract == null) {
             return _EmptyOrErrorWidget(
               icon: Icons.description_outlined,
-              message: 'Không có dữ liệu hợp đồng.\nVui lòng thử lại.',
+              message: l10n.contractNoDataRetry,
               onRetry: () => context.read<ContractBloc>().add(const ContractFetch()),
             );
           }
@@ -98,7 +98,7 @@ class _ContractView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SectionHeader(title: 'Contract Dates', icon: Icons.calendar_today_outlined),
+                SectionHeader(title: l10n.contractDatesSection, icon: Icons.calendar_today_outlined),
                 InfoRow(label: l10n.contractStart, value: _fmtDate(c.startDate)),
                 if (c.endDate != null)
                   InfoRow(label: l10n.contractEnd, value: _fmtDate(c.endDate)),
@@ -121,7 +121,7 @@ class _ContractView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SectionHeader(title: 'Insurance & Tax', icon: Icons.security_outlined),
+                SectionHeader(title: l10n.contractInsuranceTax, icon: Icons.security_outlined),
                 if (c.taxCode != null)
                   InfoRow(label: l10n.contractTaxCode, value: c.taxCode!),
                 if (c.socialInsuranceNumber != null)
@@ -159,6 +159,7 @@ class _EmptyOrErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -187,7 +188,7 @@ class _EmptyOrErrorWidget extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Thử lại'),
+              label: Text(l10n.retry),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
                 side: const BorderSide(color: AppColors.primary),

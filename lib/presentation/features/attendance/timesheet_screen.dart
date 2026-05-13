@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/attendance_entity.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'bloc/attendance_bloc.dart';
 import 'bloc/attendance_event.dart';
 import 'bloc/attendance_state.dart';
@@ -41,7 +42,7 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Bảng công'),
+        title: Text(AppLocalizations.of(context)!.navTimesheet),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -75,7 +76,7 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
               onPressed: () => _changeMonth(-1),
             ),
             Text(
-              'Tháng $_month/$_year',
+              AppLocalizations.of(context)!.attendanceMonth(_month, _year),
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
             ),
             IconButton(
@@ -112,15 +113,16 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
   }
 
   Widget _buildSummaryCards(int present, int late, int absent, int workdays) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
-        _summaryCard(context, 'Có mặt', present, AppColors.success, Icons.check_circle_outline_rounded),
+        _summaryCard(context, l10n.attendancePresent, present, AppColors.success, Icons.check_circle_outline_rounded),
         const SizedBox(width: 8),
-        _summaryCard(context, 'Muộn', late, AppColors.warning, Icons.schedule_rounded),
+        _summaryCard(context, l10n.attendanceLate, late, AppColors.warning, Icons.schedule_rounded),
         const SizedBox(width: 8),
-        _summaryCard(context, 'Vắng', absent, AppColors.error, Icons.cancel_outlined),
+        _summaryCard(context, l10n.attendanceAbsent, absent, AppColors.error, Icons.cancel_outlined),
         const SizedBox(width: 8),
-        _summaryCard(context, 'Làm việc', workdays, AppColors.info, Icons.work_outline_rounded),
+        _summaryCard(context, l10n.attendanceWorkdays, workdays, AppColors.info, Icons.work_outline_rounded),
       ],
     );
   }
@@ -149,7 +151,8 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
       );
 
   Widget _buildCalendarGrid(int daysInMonth, int firstWeekday, Map<String, AttendanceEntity> map) {
-    const headers = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    final l10n = AppLocalizations.of(context)!;
+    final headers = [l10n.weekdayMon, l10n.weekdayTue, l10n.weekdayWed, l10n.weekdayThu, l10n.weekdayFri, l10n.weekdaySat, l10n.weekdaySun];
     // firstWeekday: 1=Mon=index0, 7=Sun=index6
     final startOffset = firstWeekday - 1;
 
@@ -216,16 +219,19 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.border),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _legendItem(AppColors.success, 'Có mặt'),
-            _legendItem(AppColors.warning, 'Muộn'),
-            _legendItem(AppColors.error, 'Vắng'),
-            _legendItem(AppColors.inactive, 'Cuối tuần'),
-            _legendItem(AppColors.primary, 'Hôm nay'),
-          ],
-        ),
+        child: Builder(builder: (context) {
+          final l10n = AppLocalizations.of(context)!;
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _legendItem(AppColors.success, l10n.attendancePresent),
+              _legendItem(AppColors.warning, l10n.attendanceLate),
+              _legendItem(AppColors.error, l10n.attendanceAbsent),
+              _legendItem(AppColors.inactive, l10n.attendanceWeekend),
+              _legendItem(AppColors.primary, l10n.attendanceToday),
+            ],
+          );
+        }),
       );
 
   Widget _legendItem(Color color, String label) => Row(
@@ -240,15 +246,18 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
         ],
       );
 
-  Widget _buildDailyList(List<AttendanceEntity> history) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Chi tiết',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-          const SizedBox(height: 8),
-          ...history.map((a) => _DailyRow(attendance: a)),
-        ],
-      );
+  Widget _buildDailyList(List<AttendanceEntity> history) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.attendanceDetail,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        const SizedBox(height: 8),
+        ...history.map((a) => _DailyRow(attendance: a)),
+      ],
+    );
+  }
 
   int _countWorkdays(int daysInMonth) {
     int count = 0;
@@ -372,7 +381,7 @@ class _DailyRow extends StatelessWidget {
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Text(_statusLabel(attendance.status),
+            child: Text(_statusLabel(context, attendance.status),
                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
           ),
         ],
@@ -387,12 +396,15 @@ class _DailyRow extends StatelessWidget {
         _ => AppColors.inactive,
       };
 
-  String _statusLabel(String status) => switch (status) {
-        'PRESENT' => 'Có mặt',
-        'LATE' => 'Muộn',
-        'ABSENT' => 'Vắng',
-        _ => status,
-      };
+  String _statusLabel(BuildContext context, String status) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (status) {
+      'PRESENT' => l10n.attendancePresent,
+      'LATE' => l10n.attendanceLate,
+      'ABSENT' => l10n.attendanceAbsent,
+      _ => status,
+    };
+  }
 
   String _fmtDate(String raw) {
     try {

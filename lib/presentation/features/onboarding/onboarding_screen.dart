@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/di/injection.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/label_helpers.dart';
 import 'package:identity_frontend/core/wallet/wallet_service.dart';
+import 'package:identity_frontend/l10n/l10n.dart';
 import 'package:identity_frontend/presentation/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:identity_frontend/presentation/widgets/app_input.dart';
 import 'package:identity_frontend/presentation/widgets/primary_button.dart';
@@ -63,13 +65,14 @@ class _OnboardingViewState extends State<_OnboardingView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return BlocListener<OnboardingBloc, OnboardingState>(
       listener: (context, state) {
         if (state.status == OnboardingStatus.success) {
-          context.go('/auth/onboarding/cccd-scan');
+          context.push('/auth/onboarding/cccd-scan');
         } else if (state.status == OnboardingStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(state.errorMessage ?? 'Có lỗi xảy ra, vui lòng thử lại'),
+            content: Text(state.errorMessage ?? l10n.onboardingError),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -101,13 +104,13 @@ class _OnboardingViewState extends State<_OnboardingView> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Thiết lập hồ sơ công việc',
+                    l10n.onboardingTitle,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Điền thông tin để hoàn tất đăng ký tài khoản',
-                    style: TextStyle(color: AppColors.textSecondary),
+                  Text(
+                    l10n.onboardingSubtitle,
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 36),
 
@@ -117,16 +120,16 @@ class _OnboardingViewState extends State<_OnboardingView> {
 
                   // ── Fields ────────────────────────────────────────────
                   AppInput(
-                    label: 'Phòng ban',
-                    hint: 'VD: Phòng Kỹ thuật',
+                    label: l10n.onboardingDepartment,
+                    hint: l10n.onboardingDepartmentHint,
                     controller: _departmentCtrl,
                     prefixIcon: const Icon(Icons.business_outlined,
                         size: 20, color: AppColors.inactive),
                   ),
                   const SizedBox(height: 16),
                   AppInput(
-                    label: 'Chức vụ',
-                    hint: 'VD: Kỹ sư phần mềm',
+                    label: l10n.onboardingPosition,
+                    hint: l10n.onboardingPositionHint,
                     controller: _positionCtrl,
                     prefixIcon: const Icon(Icons.badge_outlined,
                         size: 20, color: AppColors.inactive),
@@ -137,9 +140,9 @@ class _OnboardingViewState extends State<_OnboardingView> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Loại hình làm việc',
-                        style: TextStyle(
+                      Text(
+                        l10n.onboardingWorkingType,
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
@@ -156,7 +159,7 @@ class _OnboardingViewState extends State<_OnboardingView> {
                             .map((t) => DropdownMenuItem(
                                   value: t,
                                   child: Text(
-                                    t == 'FULL_TIME' ? 'Toàn thời gian' : 'Bán thời gian',
+                                    workingTypeLabel(l10n, t),
                                   ),
                                 ))
                             .toList(),
@@ -166,8 +169,8 @@ class _OnboardingViewState extends State<_OnboardingView> {
                   ),
                   const SizedBox(height: 16),
                   AppInput(
-                    label: 'Ghi chú (tuỳ chọn)',
-                    hint: 'Thông tin bổ sung...',
+                    label: l10n.onboardingNote,
+                    hint: l10n.onboardingNoteHint,
                     controller: _noteCtrl,
                     maxLines: 3,
                     prefixIcon: const Icon(Icons.notes_outlined,
@@ -178,7 +181,7 @@ class _OnboardingViewState extends State<_OnboardingView> {
                   // ── Submit ────────────────────────────────────────────
                   BlocBuilder<OnboardingBloc, OnboardingState>(
                     builder: (context, state) => PrimaryButton(
-                      title: 'Hoàn tất đăng ký',
+                      title: l10n.onboardingSubmit,
                       isLoading: state.status == OnboardingStatus.loading,
                       onPressed: _submit,
                       icon: Icons.check_circle_outline_rounded,

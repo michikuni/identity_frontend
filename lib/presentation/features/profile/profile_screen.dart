@@ -46,7 +46,7 @@ class _ProfileView extends StatelessWidget {
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
           if (state.status == ProfileStatus.loading) {
-            return const LoadingWidget(message: 'Loading profile...');
+            return LoadingWidget(message: l10n.profileLoading);
           }
           if (state.status == ProfileStatus.failure || state.profile == null) {
             return _NoProfileView(
@@ -215,12 +215,12 @@ class _NoProfileView extends StatelessWidget {
                   size: context.r(48), color: AppColors.primary),
             ),
             SizedBox(height: context.r(20)),
-            Text('Chưa có hồ sơ',
+            Text(AppLocalizations.of(context)!.profileNoData,
                 style: TextStyle(
                     fontSize: context.r(18), fontWeight: FontWeight.w700)),
             SizedBox(height: context.r(8)),
             Text(
-              'Thiết lập hồ sơ để sử dụng đầy đủ tính năng',
+              AppLocalizations.of(context)!.profileSetupHint,
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: AppColors.textSecondary, fontSize: context.r(14)),
@@ -228,7 +228,7 @@ class _NoProfileView extends StatelessWidget {
             SizedBox(height: context.r(28)),
             ElevatedButton.icon(
               icon: Icon(Icons.edit_outlined, size: context.r(18)),
-              label: const Text('Thiết lập hồ sơ'),
+              label: Text(AppLocalizations.of(context)!.profileSetup),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -388,14 +388,14 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
         if (state.status == ProfileStatus.success) {
           Navigator.pop(context);
           widget.onCreated();
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Hồ sơ đã được tạo thành công'),
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(AppLocalizations.of(context)!.profileCreated),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ));
         } else if (state.status == ProfileStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(state.errorMessage ?? 'Có lỗi xảy ra'),
+            content: Text(state.errorMessage ?? AppLocalizations.of(context)!.profileError),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ));
@@ -429,8 +429,8 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
                   children: [
                     Text(
                       _step == 0
-                          ? 'Bước 1/2 — Thông tin công việc'
-                          : 'Bước 2/2 — Thông tin cá nhân',
+                          ? AppLocalizations.of(context)!.profileStep1
+                          : AppLocalizations.of(context)!.profileStep2,
                       style: TextStyle(
                           fontSize: context.r(16), fontWeight: FontWeight.w700),
                     ),
@@ -466,25 +466,25 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
   Widget _buildWorkStep(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       AppInput(
-        label: 'Phòng ban *',
-        hint: 'VD: Ban Giám đốc',
+        label: AppLocalizations.of(context)!.profileDepartmentLabel,
+        hint: AppLocalizations.of(context)!.profileDepartmentHint,
         controller: _deptCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.business_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(14)),
       AppInput(
-        label: 'Chức vụ *',
-        hint: 'VD: Giám đốc điều hành',
+        label: AppLocalizations.of(context)!.profilePositionLabel,
+        hint: AppLocalizations.of(context)!.profilePositionHint,
         controller: _posCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.badge_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(14)),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Loại hình làm việc',
+        Text(AppLocalizations.of(context)!.profileWorkingTypeLabel,
             style: TextStyle(
                 fontSize: context.r(13),
                 fontWeight: FontWeight.w500,
@@ -496,9 +496,9 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
             prefixIcon: Icon(Icons.schedule_outlined,
                 size: context.r(20), color: AppColors.inactive),
           ),
-          items: const [
-            DropdownMenuItem(value: 'FULL_TIME', child: Text('Toàn thời gian')),
-            DropdownMenuItem(value: 'PART_TIME', child: Text('Bán thời gian')),
+          items: [
+            DropdownMenuItem(value: 'FULL_TIME', child: Text(AppLocalizations.of(context)!.chiefFullTime)),
+            DropdownMenuItem(value: 'PART_TIME', child: Text(AppLocalizations.of(context)!.chiefPartTime)),
           ],
           onChanged: (v) => setState(() => _workingType = v ?? 'FULL_TIME'),
         ),
@@ -519,7 +519,7 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
                 height: context.r(20),
                 child: const CircularProgressIndicator(
                     strokeWidth: 2, color: Colors.white))
-            : Text('Tiếp theo',
+            : Text(AppLocalizations.of(context)!.profileNext,
                 style: TextStyle(
                     fontSize: context.r(15), fontWeight: FontWeight.w600)),
       ),
@@ -528,163 +528,167 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
 
   Widget _buildProfileStep(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _section(context, 'Thông tin cá nhân', Icons.person_outline_rounded),
+      _section(context, AppLocalizations.of(context)!.profilePersonalInfo, Icons.person_outline_rounded),
       AppInput(
-        label: 'Họ và tên *',
-        hint: 'Nguyễn Văn A',
+        label: AppLocalizations.of(context)!.profileFullNameLabel,
+        hint: AppLocalizations.of(context)!.profileFullNameHint,
         controller: _nameCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.badge_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
-      _dropdownField(context, 'Giới tính', _gender, ['MALE', 'FEMALE', 'OTHER'],
-          (v) => switch (v) { 'MALE' => 'Nam', 'FEMALE' => 'Nữ', _ => 'Khác' },
+      _dropdownField(context, AppLocalizations.of(context)!.profileGender, _gender, ['MALE', 'FEMALE', 'OTHER'],
+          (v) => switch (v) {
+            'MALE' => AppLocalizations.of(context)!.genderMale,
+            'FEMALE' => AppLocalizations.of(context)!.genderFemale,
+            _ => AppLocalizations.of(context)!.genderOther,
+          },
           (v) => setState(() => _gender = v!)),
       SizedBox(height: context.r(12)),
       _DatePickerField(
-        label: 'Ngày sinh *',
+        label: AppLocalizations.of(context)!.profileDobLabel,
         selectedDate: _selectedDob,
         onDateSelected: (date) => setState(() => _selectedDob = date),
-        validator: (_) => _selectedDob == null ? 'Bắt buộc' : null,
+        validator: (_) => _selectedDob == null ? AppLocalizations.of(context)!.profileRequired : null,
       ),
       SizedBox(height: context.r(20)),
-      _section(context, 'Giấy tờ tùy thân', Icons.badge_outlined),
-      _dropdownField(context, 'Loại giấy tờ', _identityType,
+      _section(context, AppLocalizations.of(context)!.profileIdentityDocLabel, Icons.badge_outlined),
+      _dropdownField(context, AppLocalizations.of(context)!.profileIdentityType, _identityType,
           ['CCCD', 'CMND', 'PASSPORT'], (v) => v,
           (v) => setState(() => _identityType = v!)),
       SizedBox(height: context.r(12)),
       AppInput(
-        label: 'Số giấy tờ *',
+        label: AppLocalizations.of(context)!.profileIdentityDocNumberLabel,
         hint: '0123456789',
         controller: _idNumCtrl,
         keyboardType: TextInputType.number,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.numbers_rounded,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
       AppInput(
-        label: 'Năm cấp *',
+        label: AppLocalizations.of(context)!.profileIdentityIssueYearLabel,
         hint: '2020',
         controller: _idYearCtrl,
         keyboardType: TextInputType.number,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.calendar_today_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
       AppInput(
-        label: 'Nơi cấp *',
-        hint: 'Cục CSQLHC về TTXH',
+        label: AppLocalizations.of(context)!.profileIdentityIssuePlaceLabel,
+        hint: AppLocalizations.of(context)!.profileIdentityIssuePlaceHint,
         controller: _idPlaceCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.location_city_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(20)),
-      _section(context, 'Liên hệ khẩn cấp', Icons.emergency_outlined),
+      _section(context, AppLocalizations.of(context)!.profileEmergencySection, Icons.emergency_outlined),
       AppInput(
-        label: 'Họ tên *',
-        hint: 'Nguyễn Thị B',
+        label: AppLocalizations.of(context)!.profileEmergencyName,
+        hint: AppLocalizations.of(context)!.profileEmergencyFullNameHint,
         controller: _emergencyNameCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.person_outline_rounded,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
       AppInput(
-        label: 'Số điện thoại *',
+        label: AppLocalizations.of(context)!.profileEmergencyPhoneLabel,
         hint: '0987654321',
         controller: _emergencyPhoneCtrl,
         keyboardType: TextInputType.phone,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.phone_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
       AppInput(
-        label: 'Mối quan hệ *',
-        hint: 'Cha/Mẹ, Vợ/Chồng',
+        label: AppLocalizations.of(context)!.profileEmergencyRelLabel,
+        hint: AppLocalizations.of(context)!.profileEmergencyRelHint,
         controller: _emergencyRelCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.group_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(20)),
-      _section(context, 'Cư trú & Sức khỏe', Icons.home_outlined),
+      _section(context, AppLocalizations.of(context)!.profileResidenceHealthSection, Icons.home_outlined),
       AppInput(
-        label: 'Địa chỉ thường trú *',
-        hint: 'Số nhà, đường, phường, quận, tỉnh',
+        label: AppLocalizations.of(context)!.profilePermanentAddressLabel,
+        hint: AppLocalizations.of(context)!.profileAddressHint,
         controller: _permResCtrl,
         maxLines: 2,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.home_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
       AppInput(
-        label: 'Địa chỉ hiện tại *',
-        hint: 'Số nhà, đường, phường, quận, tỉnh',
+        label: AppLocalizations.of(context)!.profileCurrentAddressLabel,
+        hint: AppLocalizations.of(context)!.profileAddressHint,
         controller: _nowResCtrl,
         maxLines: 2,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.location_on_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
       AppInput(
-        label: 'Tình trạng sức khỏe *',
-        hint: 'VD: Tốt',
+        label: AppLocalizations.of(context)!.profileHealthLabel,
+        hint: AppLocalizations.of(context)!.profileHealthHint,
         controller: _healthCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.favorite_outline_rounded,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
-      _dropdownField(context, 'Tình trạng hôn nhân', _married,
+      _dropdownField(context, AppLocalizations.of(context)!.profileMaritalLabel, _married,
           ['SINGLE', 'MARRIED', 'DIVORCED'],
           (v) => switch (v) {
-                'MARRIED' => 'Đã kết hôn',
-                'DIVORCED' => 'Đã ly hôn',
-                _ => 'Độc thân'
+                'MARRIED' => AppLocalizations.of(context)!.marriedMarried,
+                'DIVORCED' => AppLocalizations.of(context)!.marriedDivorced,
+                _ => AppLocalizations.of(context)!.marriedSingle,
               },
           (v) => setState(() => _married = v!)),
       SizedBox(height: context.r(20)),
-      _section(context, 'Học vấn & Kỹ năng', Icons.school_outlined),
+      _section(context, AppLocalizations.of(context)!.profileEducationSkillsSection, Icons.school_outlined),
       AppInput(
-        label: 'Trình độ học vấn *',
-        hint: 'Đại học',
+        label: AppLocalizations.of(context)!.profileEducationLevelLabel,
+        hint: AppLocalizations.of(context)!.profileEducationLevelHint,
         controller: _eduCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.school_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
       AppInput(
-        label: 'Chuyên ngành *',
-        hint: 'Công nghệ thông tin',
+        label: AppLocalizations.of(context)!.profileMajorLabel,
+        hint: AppLocalizations.of(context)!.profileMajorHint,
         controller: _majorCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.book_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
       AppInput(
-        label: 'Số năm kinh nghiệm *',
+        label: AppLocalizations.of(context)!.profileExpYearsLabel,
         hint: '5',
         controller: _expCtrl,
         keyboardType: TextInputType.number,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.work_history_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
       SizedBox(height: context.r(12)),
       AppInput(
-        label: 'Kỹ năng *',
-        hint: 'Flutter, Kotlin (cách nhau bởi dấu phẩy)',
+        label: AppLocalizations.of(context)!.profileSkillsLabel,
+        hint: AppLocalizations.of(context)!.profileSkillsHint,
         controller: _skillsCtrl,
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+        validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.profileRequired : null,
         prefixIcon: Icon(Icons.psychology_outlined,
             size: context.r(20), color: AppColors.inactive),
       ),
@@ -705,7 +709,7 @@ class _ProfileSetupSheetState extends State<_ProfileSetupSheet> {
                   height: context.r(20),
                   child: const CircularProgressIndicator(
                       strokeWidth: 2, color: Colors.white))
-              : Text('Lưu hồ sơ',
+              : Text(AppLocalizations.of(context)!.profileSaveProfile,
                   style: TextStyle(
                       fontSize: context.r(15), fontWeight: FontWeight.w600)),
         ),
@@ -765,8 +769,8 @@ class _DatePickerField extends StatelessWidget {
     this.validator,
   });
 
-  String get _displayText => selectedDate == null
-      ? 'Chọn ngày sinh'
+  String _displayText(BuildContext context) => selectedDate == null
+      ? AppLocalizations.of(context)!.profileSelectDob
       : '${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}';
 
   Future<void> _pickDate(BuildContext context) async {
@@ -806,7 +810,7 @@ class _DatePickerField extends StatelessWidget {
                 const Icon(Icons.cake_outlined, size: 20, color: AppColors.inactive),
                 const SizedBox(width: 10),
                 Text(
-                  _displayText,
+                  _displayText(context),
                   style: TextStyle(
                     fontSize: 15,
                     color: selectedDate == null ? AppColors.inactive : AppColors.textPrimary,

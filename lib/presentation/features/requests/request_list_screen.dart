@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/request_entity.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'bloc/request_bloc.dart';
 import 'bloc/request_event.dart';
 import 'bloc/request_state.dart';
@@ -13,6 +14,7 @@ class RequestListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -21,22 +23,22 @@ class RequestListScreen extends StatelessWidget {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          title: const Text('Đơn từ'),
+          title: Text(l10n.navRequests),
           actions: [
             IconButton(
               icon: const Icon(Icons.add_circle_outline_rounded),
-              tooltip: 'Tạo đơn',
+              tooltip: l10n.requestCreate,
               onPressed: () => context.push('/app/requests/create'),
             ),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white60,
             indicatorColor: Colors.white,
             tabs: [
-              Tab(text: 'Tất cả'),
-              Tab(text: 'Chờ duyệt'),
-              Tab(text: 'Đã xử lý'),
+              Tab(text: l10n.requestTabAll),
+              Tab(text: l10n.requestTabPending),
+              Tab(text: l10n.requestTabDone),
             ],
           ),
         ),
@@ -68,6 +70,7 @@ class _RequestTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (items.isEmpty) {
       return Center(
         child: Column(
@@ -75,7 +78,7 @@ class _RequestTab extends StatelessWidget {
           children: [
             Icon(Icons.inbox_rounded, size: context.r(56), color: AppColors.inactive),
             SizedBox(height: context.r(12)),
-            Text('Không có đơn',
+            Text(l10n.requestEmpty,
                 style: TextStyle(
                     color: AppColors.textSecondary, fontSize: context.r(14))),
           ],
@@ -101,6 +104,7 @@ class _RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final color = _statusColor(item.status);
     return Container(
       decoration: BoxDecoration(
@@ -131,7 +135,7 @@ class _RequestCard extends StatelessWidget {
                     size: context.r(18), color: AppColors.primary),
                 SizedBox(width: context.r(8)),
                 Expanded(
-                  child: Text(_typeLabel(item.requestType),
+                  child: Text(_typeLabel(l10n, item.requestType),
                       style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: context.r(14))),
@@ -143,7 +147,7 @@ class _RequestCard extends StatelessWidget {
                     color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(context.r(20)),
                   ),
-                  child: Text(_statusLabel(item.status),
+                  child: Text(_statusLabel(l10n, item.status),
                       style: TextStyle(
                           fontSize: context.r(11),
                           fontWeight: FontWeight.w700,
@@ -161,14 +165,14 @@ class _RequestCard extends StatelessWidget {
                     '${item.startDate} → ${item.endDate}'),
                 if (item.session != null)
                   _infoRow(context, Icons.wb_sunny_outlined,
-                      _sessionLabel(item.session!)),
+                      _sessionLabel(l10n, item.session!)),
                 _infoRow(context, Icons.notes_rounded, item.reason),
                 if (item.approverName != null)
                   _infoRow(context, Icons.person_outline_rounded,
-                      'Người duyệt: ${item.approverName}'),
+                      l10n.requestApprover(item.approverName!)),
                 if (item.rejectedReason != null)
                   _infoRow(context, Icons.error_outline_rounded,
-                      'Lý do từ chối: ${item.rejectedReason}',
+                      l10n.requestRejectedReason(item.rejectedReason!),
                       color: AppColors.error),
               ],
             ),
@@ -202,10 +206,10 @@ class _RequestCard extends StatelessWidget {
         _ => AppColors.warning,
       };
 
-  String _statusLabel(String s) => switch (s) {
-        'APPROVED' => 'Đã duyệt',
-        'REJECTED' => 'Từ chối',
-        _ => 'Chờ duyệt',
+  String _statusLabel(AppLocalizations l10n, String s) => switch (s) {
+        'APPROVED' => l10n.requestStatusApproved,
+        'REJECTED' => l10n.requestStatusRejected,
+        _ => l10n.requestStatusPending,
       };
 
   IconData _typeIcon(String t) => switch (t) {
@@ -215,17 +219,17 @@ class _RequestCard extends StatelessWidget {
         _ => Icons.edit_calendar_rounded,
       };
 
-  String _typeLabel(String t) => switch (t) {
-        'LEAVE' => 'Đơn xin nghỉ phép',
-        'WFH' => 'Làm việc tại nhà',
-        'BUSINESS_TRIP' => 'Công tác',
-        'ATTENDANCE_CORRECTION' => 'Sửa chấm công',
+  String _typeLabel(AppLocalizations l10n, String t) => switch (t) {
+        'LEAVE' => l10n.requestTypeLeave,
+        'WFH' => l10n.requestTypeWfh,
+        'BUSINESS_TRIP' => l10n.requestTypeBusinessTrip,
+        'ATTENDANCE_CORRECTION' => l10n.requestTypeAttendanceCorrection,
         _ => t,
       };
 
-  String _sessionLabel(String s) => switch (s) {
-        'MORNING' => 'Buổi sáng',
-        'AFTERNOON' => 'Buổi chiều',
-        _ => 'Cả ngày',
+  String _sessionLabel(AppLocalizations l10n, String s) => switch (s) {
+        'MORNING' => l10n.requestSessionMorning,
+        'AFTERNOON' => l10n.requestSessionAfternoon,
+        _ => l10n.requestSessionFullDay,
       };
 }

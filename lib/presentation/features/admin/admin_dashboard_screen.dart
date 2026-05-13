@@ -5,6 +5,7 @@ import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/presentation/features/auth/bloc/auth_bloc.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -43,27 +44,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _int(String key) => ((_stats ?? {})[key] as num?)?.toInt() ?? 0;
 
   Future<void> _showIssueSalaryVcSheet(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final idCtrl = TextEditingController();
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Issue Salary Range VC'),
+        title: Text(l10n.adminIssueSalaryVcTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Nhập Employee ID để phát hành SalaryRangeVC.\nYêu cầu nhân viên đã có payroll được gán.',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            Text(
+              l10n.adminIssueSalaryVcDesc,
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: idCtrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Employee ID',
-                hintText: 'VD: 5',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.adminEmployeeId,
+                hintText: l10n.adminEmployeeIdHint,
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -71,7 +73,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Huỷ'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -81,8 +83,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               try {
                 await ApiClient.instance.put('/admin/employees/$id/issue-salary-vc');
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('SalaryRangeVC đã được phát hành'),
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(l10n.adminSalaryVcIssued),
                     backgroundColor: AppColors.success,
                     behavior: SnackBarBehavior.floating,
                   ));
@@ -90,14 +92,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('Lỗi: $e'),
+                    content: Text(l10n.adminErrorPrefix(e.toString())),
                     backgroundColor: AppColors.error,
                     behavior: SnackBarBehavior.floating,
                   ));
                 }
               }
             },
-            child: const Text('Issue VC'),
+            child: Text(l10n.adminIssueVc),
           ),
         ],
       ),
@@ -107,22 +109,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        title: const Text('Bảng điều hành', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(l10n.adminDashboardTitle, style: const TextStyle(fontWeight: FontWeight.w700)),
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: _load,
-            tooltip: 'Tải lại',
+            tooltip: l10n.adminRefresh,
           ),
           IconButton(
             icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Đăng xuất',
+            tooltip: l10n.logout,
             onPressed: () {
               context.read<AuthBloc>().add(const AuthLoggedOut());
               context.go('/auth/sign-in');
@@ -133,19 +136,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _buildError()
-              : _buildContent(context),
+              ? _buildError(l10n)
+              : _buildContent(context, l10n),
     );
   }
 
-  Widget _buildError() => Center(
+  Widget _buildError(AppLocalizations l10n) => Center(
         child: Padding(
           padding: EdgeInsets.all(context.r(32)),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.error_outline_rounded, size: context.r(52), color: AppColors.error),
             SizedBox(height: context.r(12)),
-            const Text('Không tải được dữ liệu',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            Text(l10n.adminLoadFailed,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             SizedBox(height: context.r(8)),
             Text(_error!,
                 textAlign: TextAlign.center,
@@ -153,7 +156,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             SizedBox(height: context.r(20)),
             ElevatedButton.icon(
               icon: Icon(Icons.refresh_rounded, size: context.r(18)),
-              label: const Text('Thử lại'),
+              label: Text(l10n.retry),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -164,7 +167,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
       );
 
-  Widget _buildContent(BuildContext context) {
+  Widget _buildContent(BuildContext context, AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(context.r(20)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -191,13 +194,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
             SizedBox(width: context.r(14)),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Tổng quan hệ thống',
+              Text(l10n.adminSystemOverview,
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: context.r(17),
                       fontWeight: FontWeight.w700)),
               SizedBox(height: context.r(2)),
-              Text('Dữ liệu thời gian thực',
+              Text(l10n.adminRealTimeData,
                   style: TextStyle(color: Colors.white70, fontSize: context.r(12))),
             ]),
           ]),
@@ -220,7 +223,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 SizedBox(width: context.r(10)),
                 Expanded(
                   child: Text(
-                    '${_int('pendingAccounts')} tài khoản đang chờ duyệt',
+                    l10n.adminPendingAccountsBanner(_int('pendingAccounts')),
                     style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: AppColors.warning,
@@ -244,13 +247,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           crossAxisSpacing: context.r(14),
           childAspectRatio: 1.45,
           children: [
-            _statCard(context, 'Tổng NV', _int('totalEmployees'),
+            _statCard(context, l10n.adminStatTotalEmployees, _int('totalEmployees'),
                 Icons.group_rounded, AppColors.primary),
-            _statCard(context, 'Đang làm', _int('activeEmployees'),
+            _statCard(context, l10n.adminStatActiveEmployees, _int('activeEmployees'),
                 Icons.how_to_reg_rounded, AppColors.success),
-            _statCard(context, 'Vào hôm nay', _int('todayAttendance'),
+            _statCard(context, l10n.adminStatTodayAttendance, _int('todayAttendance'),
                 Icons.login_rounded, AppColors.info),
-            _statCard(context, 'Đơn chờ', _int('pendingRequests'),
+            _statCard(context, l10n.adminStatPendingRequests, _int('pendingRequests'),
                 Icons.pending_actions_rounded, AppColors.warning),
           ],
         ),
@@ -262,7 +265,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: _quickCard(
               context,
               icon: Icons.people_alt_rounded,
-              label: 'Quản lý nhân sự',
+              label: l10n.adminManageStaff,
               color: AppColors.primary,
               onTap: () => context.go('/app/chief'),
             ),
@@ -272,7 +275,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: _quickCard(
               context,
               icon: Icons.manage_accounts_rounded,
-              label: 'Duyệt tài khoản',
+              label: l10n.homeApproveAccounts,
               color: AppColors.warning,
               onTap: () => context.push('/app/admin/pending-accounts'),
             ),
@@ -286,7 +289,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: _quickCard(
               context,
               icon: Icons.attach_money_rounded,
-              label: 'Issue Salary VC',
+              label: l10n.adminIssueSalaryVc,
               color: AppColors.accent,
               onTap: () => _showIssueSalaryVcSheet(context),
             ),
@@ -296,7 +299,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: _quickCard(
               context,
               icon: Icons.qr_code_scanner_rounded,
-              label: 'Verifier Scanner',
+              label: l10n.adminVerifierScanner,
               color: AppColors.info,
               onTap: () => context.push('/app/verifier'),
             ),

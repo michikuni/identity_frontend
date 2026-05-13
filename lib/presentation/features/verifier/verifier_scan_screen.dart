@@ -5,6 +5,7 @@ import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/qr/vc_qr_payload_codec.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/core/wallet/vc_schemas.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -178,8 +179,8 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
         ? _modeBSelected[activeType]!.toList()
         : <String>[];
     if (activeType == null || claims.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Hãy chọn ít nhất 1 trường ở 1 VC'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.verifierSelectAtLeastOne),
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.warning,
       ));
@@ -215,7 +216,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
       setState(() => _modeBLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Tạo VP Request thất bại: $e'),
+          content: Text(AppLocalizations.of(context)!.verifierCreateVpRequestFailed(e.toString())),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.error,
         ));
@@ -251,8 +252,8 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
       } else if (newStatus == _PollStatus.rejected && mounted) {
         _showResultPopup({}, reason: reason, rejected: true);
       } else if (newStatus == _PollStatus.pending && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Employee chưa quét QR hoặc chưa xác nhận chia sẻ'),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.verifierPollStillPending),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.warning,
         ));
@@ -278,7 +279,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
             ),
             const SizedBox(width: 8),
             Text(
-              rejected ? 'VP bị từ chối' : 'Thông tin được chia sẻ',
+              rejected ? AppLocalizations.of(context)!.verifierVpRejectedTitle : AppLocalizations.of(context)!.verifierVpSharedTitle,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -289,21 +290,21 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
         ),
         content: rejected
             ? Text(
-                reason.isNotEmpty ? reason : 'VP không hợp lệ hoặc bị từ chối',
+                reason.isNotEmpty ? reason : AppLocalizations.of(context)!.verifierVpInvalidDefault,
                 style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
               )
             : disclosed.isEmpty
-                ? const Text(
-                    'Employee đã xác nhận nhưng không có trường nào được chia sẻ.',
-                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                ? Text(
+                    AppLocalizations.of(context)!.verifierEmployeeConfirmedNoFields,
+                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                   )
                 : Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Employee đã xác nhận và chia sẻ các thông tin sau:',
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      Text(
+                        AppLocalizations.of(context)!.verifierEmployeeSharedInfo,
+                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                       ),
                       const SizedBox(height: 12),
                       Container(
@@ -355,7 +356,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
             style: FilledButton.styleFrom(
               backgroundColor: rejected ? AppColors.error : AppColors.success,
             ),
-            child: const Text('Đóng'),
+            child: Text(AppLocalizations.of(context)!.verifierClose),
           ),
         ],
       ),
@@ -369,7 +370,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Verifier'),
+        title: Text(AppLocalizations.of(context)!.verifierTitle),
         backgroundColor: AppColors.surface,
         elevation: 0,
         bottom: PreferredSize(
@@ -382,16 +383,16 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
                 labelColor: AppColors.primary,
                 unselectedLabelColor: AppColors.textSecondary,
                 indicatorColor: AppColors.primary,
-                tabs: const [
+                tabs: [
                   Tab(
-                    icon: Icon(Icons.qr_code_scanner_rounded, size: 18),
-                    text: 'Xác minh VC',
-                    iconMargin: EdgeInsets.only(bottom: 2),
+                    icon: const Icon(Icons.qr_code_scanner_rounded, size: 18),
+                    text: AppLocalizations.of(context)!.verifierVerifyVc,
+                    iconMargin: const EdgeInsets.only(bottom: 2),
                   ),
                   Tab(
-                    icon: Icon(Icons.rule_rounded, size: 18),
-                    text: 'Yêu cầu VP',
-                    iconMargin: EdgeInsets.only(bottom: 2),
+                    icon: const Icon(Icons.rule_rounded, size: 18),
+                    text: AppLocalizations.of(context)!.verifierRequestVp,
+                    iconMargin: const EdgeInsets.only(bottom: 2),
                   ),
                 ],
               ),
@@ -446,26 +447,24 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
         Container(
           color: AppColors.surface,
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          child: const Column(
+          child: Column(
             children: [
-              Icon(Icons.qr_code_scanner_rounded,
+              const Icon(Icons.qr_code_scanner_rounded,
                   color: AppColors.primary, size: 28),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
-                'Hướng camera vào QR Code trên app của Employee',
+                AppLocalizations.of(context)!.verifierScanInstruction,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               Text(
-                'Chấp nhận 2 loại QR:\n'
-                '• QR từ nút "Xuất QR" — xác minh VC trực tiếp\n'
-                '• QR từ nút "Present VP" — xác minh VP Token đã được Employee ký',
+                AppLocalizations.of(context)!.verifierScanDescription,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.5),
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.5),
               ),
             ],
           ),
@@ -538,12 +537,12 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
-                    SizedBox(width: 6),
+                  children: [
+                    const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                    const SizedBox(width: 6),
                     Text(
-                      'Cách hoạt động',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.verifierHowItWorks,
+                      style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: AppColors.primary),
@@ -551,13 +550,9 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  '1. Chọn thông tin bạn muốn Employee cung cấp\n'
-                  '2. Nhấn "Tạo VP Request QR" → QR được tạo\n'
-                  '3. Cho Employee quét QR này bằng app của họ\n'
-                  '4. Employee xem xét và gửi Verifiable Presentation\n'
-                  '5. Nhấn "Kiểm tra kết quả" để xem thông tin Employee đã chia sẻ',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.6),
+                Text(
+                  AppLocalizations.of(context)!.verifierHowItWorksSteps,
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.6),
                 ),
               ],
             ),
@@ -581,7 +576,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
                           strokeWidth: 2, color: Colors.white),
                     )
                   : const Icon(Icons.qr_code_2_rounded),
-              label: const Text('Bước 2 — Tạo QR cho Employee quét'),
+              label: Text(AppLocalizations.of(context)!.verifierCreateQrBtn),
               onPressed: _modeBLoading ? null : _createVpRequest,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -595,7 +590,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
           // QR display + poll
           if (_modeBQrData != null) ...[
             _SectionCard(
-              title: 'Bước 3 — Cho Employee quét QR này',
+              title: AppLocalizations.of(context)!.verifierQrTitle,
               child: Column(
                 children: [
                   Center(
@@ -639,7 +634,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
             if (_modeBStatus == _PollStatus.pending)
               OutlinedButton.icon(
                 icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('Bước 5 — Kiểm tra kết quả'),
+                label: Text(AppLocalizations.of(context)!.verifierCheckResult),
                 onPressed: _pollResult,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
@@ -684,7 +679,8 @@ class _VerifyResultCard extends StatelessWidget {
     final color = result.valid ? AppColors.success : AppColors.error;
     final bgColor = result.valid ? AppColors.successLight : AppColors.errorLight;
     final icon = result.valid ? Icons.verified_rounded : Icons.cancel_rounded;
-    final label = result.valid ? 'HỢP LỆ' : 'KHÔNG HỢP LỆ';
+    final l10n = AppLocalizations.of(context)!;
+    final label = result.valid ? l10n.verifierResultValid : l10n.verifierResultInvalid;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -727,7 +723,7 @@ class _VerifyResultCard extends StatelessWidget {
           // Disclosed subject fields
           if (result.subject != null && result.subject!.isNotEmpty) ...[
             _SectionCard(
-              title: 'Thông tin được tiết lộ',
+              title: AppLocalizations.of(context)!.verifierDisclosedInfo,
               child: Column(
                 children: result.subject!.entries
                     .where((e) => e.key != 'id')
@@ -762,7 +758,7 @@ class _VerifyResultCard extends StatelessWidget {
 
           OutlinedButton.icon(
             icon: const Icon(Icons.qr_code_scanner_rounded, size: 18),
-            label: const Text('Quét lại'),
+            label: Text(AppLocalizations.of(context)!.verifierScanAgain),
             onPressed: onReset,
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
@@ -793,11 +789,12 @@ class _PollStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final (icon, label, color, bg) = switch (status) {
-      _PollStatus.idle     => (Icons.hourglass_empty_rounded, 'Chưa có yêu cầu nào', AppColors.inactive, AppColors.surfaceVariant),
-      _PollStatus.pending  => (Icons.hourglass_top_rounded, 'Chờ Employee quét QR và gửi VP...', AppColors.warning, AppColors.warningLight),
-      _PollStatus.accepted => (Icons.verified_rounded, 'Employee đã gửi VP — Đã xác minh hợp lệ', AppColors.success, AppColors.successLight),
-      _PollStatus.rejected => (Icons.cancel_rounded, 'VP không hợp lệ hoặc bị từ chối', AppColors.error, AppColors.errorLight),
+      _PollStatus.idle     => (Icons.hourglass_empty_rounded, l10n.verifierPollIdle, AppColors.inactive, AppColors.surfaceVariant),
+      _PollStatus.pending  => (Icons.hourglass_top_rounded, l10n.verifierPollPending, AppColors.warning, AppColors.warningLight),
+      _PollStatus.accepted => (Icons.verified_rounded, l10n.verifierPollAccepted, AppColors.success, AppColors.successLight),
+      _PollStatus.rejected => (Icons.cancel_rounded, l10n.verifierPollRejected, AppColors.error, AppColors.errorLight),
     };
 
     return Container(
@@ -838,9 +835,9 @@ class _PollStatusCard extends StatelessWidget {
             const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 12),
-            const Text(
-              'Thông tin Employee đã chia sẻ',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.verifierSharedInfo,
+              style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary),

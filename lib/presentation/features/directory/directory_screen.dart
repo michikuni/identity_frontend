@@ -4,6 +4,7 @@ import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/directory_entity.dart';
 import 'package:identity_frontend/domain/usecases/directory_usecase.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 
 // ── BLoC (inline, nhỏ gọn) ───────────────────────────────────────────────────
 
@@ -71,12 +72,13 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        title: const Text('Danh sách nhân viên'),
+        title: Text(l10n.directoryTitle),
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(context.r(56)),
@@ -88,7 +90,7 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
               onChanged: (q) => context.read<DirectoryBloc>().search(q),
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Tìm tên, phòng ban, chức vụ...',
+                hintText: l10n.directorySearchHint,
                 hintStyle:
                     TextStyle(color: Colors.white.withValues(alpha: 0.6)),
                 prefixIcon: Icon(Icons.search_rounded,
@@ -116,7 +118,7 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
                 Icon(Icons.group_off_rounded,
                     size: context.r(56), color: AppColors.inactive),
                 SizedBox(height: context.r(12)),
-                Text('Không tìm thấy',
+                Text(l10n.directoryNotFound,
                     style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: context.r(14))),
@@ -144,6 +146,7 @@ class _EmployeeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final roleColor = _roleColor(item.role);
     return Container(
       padding: EdgeInsets.all(context.r(14)),
@@ -191,7 +194,7 @@ class _EmployeeCard extends StatelessWidget {
                       item.department, AppColors.info),
                   SizedBox(width: context.r(6)),
                   _chip(context, Icons.shield_outlined,
-                      _roleLabel(item.role), roleColor),
+                      _roleLabel(item.role, l10n), roleColor),
                 ]),
               ],
             ),
@@ -226,10 +229,10 @@ class _EmployeeCard extends StatelessWidget {
         _ => AppColors.success,
       };
 
-  String _roleLabel(String role) => switch (role) {
-        'ADMIN' => 'Admin',
-        'CHIEF' => 'Giám đốc',
-        'MANAGER' => 'Quản lý',
-        _ => 'Nhân viên',
+  String _roleLabel(String role, AppLocalizations l10n) => switch (role) {
+        'ADMIN' => l10n.roleAdmin,
+        'CHIEF' => l10n.roleChief,
+        'MANAGER' => l10n.roleManager,
+        _ => l10n.roleEmployee,
       };
 }

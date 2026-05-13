@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/request_entity.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/presentation/features/requests/bloc/request_bloc.dart';
 import 'package:identity_frontend/presentation/features/requests/bloc/request_event.dart';
 import 'package:identity_frontend/presentation/features/requests/bloc/request_state.dart';
@@ -30,20 +31,26 @@ class _ManagerRequestsScreenState extends State<ManagerRequestsScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          title: const Text('Duyệt đơn'),
+          title: Text(AppLocalizations.of(context)!.navApproveRequests),
           elevation: 0,
-          bottom: const TabBar(
+          bottom: TabBar(
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white60,
             indicatorColor: Colors.white,
-            tabs: [Tab(text: 'Chờ duyệt'), Tab(text: 'Đã xử lý')],
+            tabs: [
+              Tab(text: AppLocalizations.of(context)!.requestTabPending),
+              Tab(text: AppLocalizations.of(context)!.requestTabDone),
+            ],
           ),
         ),
         body: BlocConsumer<RequestBloc, RequestState>(
           listener: (context, state) {
             if (state.actionSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã xử lý đơn'), backgroundColor: AppColors.success),
+                SnackBar(
+                  content: Text(AppLocalizations.of(context)!.managerRequestProcessed),
+                  backgroundColor: AppColors.success,
+                ),
               );
             }
           },
@@ -66,7 +73,7 @@ class _ManagerRequestsScreenState extends State<ManagerRequestsScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.task_alt_rounded, size: context.r(56), color: AppColors.inactive),
           SizedBox(height: context.r(12)),
-          Text('Không có đơn nào',
+          Text(AppLocalizations.of(context)!.managerRequestEmpty,
               style: TextStyle(color: AppColors.textSecondary, fontSize: context.r(14))),
         ]),
       );
@@ -129,7 +136,7 @@ class _ApprovalCard extends StatelessWidget {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_typeLabel(item.requestType),
+                      Text(_typeLabel(context, item.requestType),
                           style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: context.r(13))),
@@ -157,7 +164,7 @@ class _ApprovalCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     icon: Icon(Icons.close_rounded, size: context.r(16)),
-                    label: const Text('Từ chối'),
+                    label: Text(AppLocalizations.of(context)!.pendingReject),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.error,
                       side: const BorderSide(color: AppColors.error),
@@ -169,7 +176,7 @@ class _ApprovalCard extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     icon: Icon(Icons.check_rounded, size: context.r(16)),
-                    label: const Text('Duyệt'),
+                    label: Text(AppLocalizations.of(context)!.pendingApprove),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.success,
                       foregroundColor: Colors.white,
@@ -191,34 +198,40 @@ class _ApprovalCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Lý do từ chối'),
+        title: Text(AppLocalizations.of(ctx)!.managerRejectReasonTitle),
         content: TextField(
           controller: ctrl,
           maxLines: 3,
-          decoration: const InputDecoration(hintText: 'Nhập lý do...'),
+          decoration: InputDecoration(hintText: AppLocalizations.of(ctx)!.requestReasonHint),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Huỷ')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(AppLocalizations.of(ctx)!.cancel),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () {
               Navigator.pop(ctx);
               context.read<RequestBloc>().add(RequestReject(id, ctrl.text));
             },
-            child: const Text('Xác nhận', style: TextStyle(color: Colors.white)),
+            child: Text(AppLocalizations.of(ctx)!.confirm, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
   }
 
-  String _typeLabel(String t) => switch (t) {
-        'LEAVE' => 'Đơn nghỉ phép',
-        'WFH' => 'Làm tại nhà',
-        'BUSINESS_TRIP' => 'Công tác',
-        'ATTENDANCE_CORRECTION' => 'Sửa chấm công',
-        _ => t,
-      };
+  String _typeLabel(BuildContext context, String t) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (t) {
+      'LEAVE' => l10n.managerRequestTypeLeave,
+      'WFH' => l10n.requestTypeWfh,
+      'BUSINESS_TRIP' => l10n.requestTypeBusinessTrip,
+      'ATTENDANCE_CORRECTION' => l10n.requestTypeAttendanceCorrection,
+      _ => t,
+    };
+  }
 }
 
 class _StatusBadge extends StatelessWidget {
@@ -227,15 +240,16 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final color = switch (status) {
       'APPROVED' => AppColors.success,
       'REJECTED' => AppColors.error,
       _ => AppColors.warning,
     };
     final label = switch (status) {
-      'APPROVED' => 'Đã duyệt',
-      'REJECTED' => 'Từ chối',
-      _ => 'Chờ duyệt',
+      'APPROVED' => l10n.requestStatusApproved,
+      'REJECTED' => l10n.requestStatusRejected,
+      _ => l10n.requestStatusPending,
     };
     return Container(
       padding: EdgeInsets.symmetric(

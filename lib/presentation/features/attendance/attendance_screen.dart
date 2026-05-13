@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/attendance_entity.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'bloc/attendance_bloc.dart';
 import 'bloc/attendance_event.dart';
 import 'bloc/attendance_state.dart';
@@ -50,39 +51,42 @@ class AttendanceScreen extends StatelessWidget {
     );
   }
 
-  SliverAppBar _buildAppBar(BuildContext context) => SliverAppBar(
-        expandedHeight: context.r(140),
-        pinned: true,
-        backgroundColor: AppColors.primary,
-        flexibleSpace: FlexibleSpaceBar(
-          background: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: AppColors.primaryGradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            padding: EdgeInsets.fromLTRB(
-                context.r(24), context.r(60), context.r(24), context.r(16)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text('Chấm Công',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: context.r(24),
-                        fontWeight: FontWeight.w700)),
-                Text(_today(),
-                    style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.75),
-                        fontSize: context.r(13))),
-              ],
+  SliverAppBar _buildAppBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SliverAppBar(
+      expandedHeight: context.r(140),
+      pinned: true,
+      backgroundColor: AppColors.primary,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: AppColors.primaryGradient,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
+          padding: EdgeInsets.fromLTRB(
+              context.r(24), context.r(60), context.r(24), context.r(16)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(l10n.navAttendance,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: context.r(24),
+                      fontWeight: FontWeight.w700)),
+              Text(_today(context),
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      fontSize: context.r(13))),
+            ],
+          ),
         ),
-      );
+      ),
+    );
+  }
 
   Widget _buildCheckCard(BuildContext context, AttendanceState state) {
     final today = state.today;
@@ -119,7 +123,7 @@ class AttendanceScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: context.r(4)),
-          Text(_today(),
+          Text(_today(context),
               style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.75),
                   fontSize: context.r(13))),
@@ -127,7 +131,7 @@ class AttendanceScreen extends StatelessWidget {
           if (!hasCheckedIn)
             _actionButton(
               context,
-              label: 'Check In',
+              label: AppLocalizations.of(context)!.attendanceCheckInBtn,
               icon: Icons.login_rounded,
               color: Colors.white,
               textColor: AppColors.primary,
@@ -137,7 +141,7 @@ class AttendanceScreen extends StatelessWidget {
           else
             _actionButton(
               context,
-              label: 'Check Out',
+              label: AppLocalizations.of(context)!.attendanceCheckOutBtn,
               icon: Icons.logout_rounded,
               color: Colors.white.withValues(alpha: 0.2),
               textColor: Colors.white,
@@ -194,17 +198,17 @@ class AttendanceScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Hôm nay', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppLocalizations.of(context)!.attendanceToday, style: Theme.of(context).textTheme.titleMedium),
           SizedBox(height: context.r(12)),
           Row(
             children: [
               Expanded(
-                  child: _timeCell(context, 'Giờ vào', today?.checkInTime,
-                      Icons.login_rounded, AppColors.success)),
+                  child: _timeCell(context, AppLocalizations.of(context)!.attendanceCheckIn,
+                      today?.checkInTime, Icons.login_rounded, AppColors.success)),
               SizedBox(width: context.r(12)),
               Expanded(
-                  child: _timeCell(context, 'Giờ ra', today?.checkOutTime,
-                      Icons.logout_rounded, AppColors.error)),
+                  child: _timeCell(context, AppLocalizations.of(context)!.attendanceCheckOut,
+                      today?.checkOutTime, Icons.logout_rounded, AppColors.error)),
             ],
           ),
         ],
@@ -251,7 +255,7 @@ class AttendanceScreen extends StatelessWidget {
           Expanded(
             child: _quickBtn(context,
                 icon: Icons.calendar_month_rounded,
-                label: 'Lịch sử',
+                label: AppLocalizations.of(context)!.attendanceHistory,
                 color: AppColors.info,
                 onTap: () => context.go('/app/attendance/history')),
           ),
@@ -259,7 +263,7 @@ class AttendanceScreen extends StatelessWidget {
           Expanded(
             child: _quickBtn(context,
                 icon: Icons.table_chart_outlined,
-                label: 'Bảng công',
+                label: AppLocalizations.of(context)!.navTimesheet,
                 color: AppColors.accent,
                 onTap: () => context.go('/app/attendance/timesheet')),
           ),
@@ -298,9 +302,18 @@ class AttendanceScreen extends StatelessWidget {
         ),
       );
 
-  String _today() {
+  String _today(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
-    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    final days = [
+      l10n.weekdayFullSun,
+      l10n.weekdayFullMon,
+      l10n.weekdayFullTue,
+      l10n.weekdayFullWed,
+      l10n.weekdayFullThu,
+      l10n.weekdayFullFri,
+      l10n.weekdayFullSat,
+    ];
     return '${days[now.weekday % 7]}, ${now.day}/${now.month}/${now.year}';
   }
 
