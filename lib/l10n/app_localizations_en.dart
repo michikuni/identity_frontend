@@ -27,10 +27,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signinSubtitle => 'Sign in to access your identity';
 
   @override
-  String get signinPendingApproval => 'Account is pending Admin approval. Please try again later.';
+  String get signinPendingApproval =>
+      'Account is pending Admin approval. Please try again later.';
 
   @override
-  String get signinRejected => 'Account has been rejected. Please contact Admin.';
+  String get signinRejected =>
+      'Account has been rejected. Please contact Admin.';
 
   @override
   String get signinFailed => 'Sign in failed. Please check your credentials.';
@@ -399,7 +401,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingTitle => 'Set up your work profile';
 
   @override
-  String get onboardingSubtitle => 'Fill in the details to complete registration';
+  String get onboardingSubtitle =>
+      'Fill in the details to complete registration';
 
   @override
   String get onboardingDepartment => 'Department';
@@ -498,7 +501,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminRealTimeData => 'Real-time data';
 
   @override
-  String adminPendingAccountsBanner(int count) => '$count accounts pending approval';
+  String adminPendingAccountsBanner(int count) {
+    return '$count accounts pending approval';
+  }
 
   @override
   String get adminStatTotalEmployees => 'Total Staff';
@@ -538,7 +543,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminSalaryVcIssued => 'SalaryRangeVC has been issued';
 
   @override
-  String adminErrorPrefix(String message) => 'Error: $message';
+  String adminErrorPrefix(String message) {
+    return 'Error: $message';
+  }
 
   @override
   String get adminIssueVc => 'Issue VC';
@@ -550,8 +557,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pendingRejectTitle => 'Reject Account';
 
   @override
-  String pendingRejectConfirm(String email) =>
-      'Reject account "$email"?\nThis account will not be able to sign in.';
+  String pendingRejectConfirm(String email) {
+    return 'Reject account \"$email\"?\nThis account will not be able to sign in.';
+  }
 
   @override
   String get pendingReject => 'Reject';
@@ -644,10 +652,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get requestStatusPending => 'Pending';
 
   @override
-  String requestApprover(String name) => 'Approver: $name';
+  String requestApprover(String name) {
+    return 'Approver: $name';
+  }
 
   @override
-  String requestRejectedReason(String reason) => 'Reject reason: $reason';
+  String requestRejectedReason(String reason) {
+    return 'Reject reason: $reason';
+  }
 
   @override
   String get managerRequestProcessed => 'Request processed';
@@ -665,7 +677,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get managerTimesheetTitle => 'Staff Timesheet';
 
   @override
-  String attendanceMonth(int month, int year) => 'Month $month/$year';
+  String attendanceMonth(int month, int year) {
+    return 'Month $month/$year';
+  }
 
   @override
   String get attendancePresent => 'Present';
@@ -754,13 +768,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get attendanceWorkdays => 'Workdays';
 
-  // ── Company ────────────────────────────────────────────────────────────────
-
   @override
   String get companyTitle => 'Company Information';
 
   @override
-  String companyTaxCode(String code) => 'Tax ID: $code';
+  String companyTaxCode(String code) {
+    return 'Tax ID: $code';
+  }
 
   @override
   String get companyLegalInfo => 'Legal Entity';
@@ -795,8 +809,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get companyEmptyHint => 'The director can register the legal entity';
 
-  // ── Directory ──────────────────────────────────────────────────────────────
-
   @override
   String get directoryTitle => 'Employee Directory';
 
@@ -805,8 +817,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get directoryNotFound => 'No results found';
-
-  // ── Contract extras ────────────────────────────────────────────────────────
 
   @override
   String get contractLoading => 'Loading contract...';
@@ -820,8 +830,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get contractInsuranceTax => 'Insurance & Tax';
 
-  // ── Payroll extras ─────────────────────────────────────────────────────────
-
   @override
   String get payrollLoading => 'Loading payroll...';
 
@@ -831,15 +839,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get payrollBreakdown => 'Salary Breakdown';
 
-  // ── Ledger extras ──────────────────────────────────────────────────────────
-
   @override
   String get ledgerLoading => 'Fetching ledger records...';
 
   @override
   String get ledgerLoadFailed => 'Failed to fetch ledger';
-
-  // ── Profile screen extras ──────────────────────────────────────────────────
 
   @override
   String get profileLoading => 'Loading profile...';
@@ -923,7 +927,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePermanentAddressLabel => 'Permanent Address *';
 
   @override
-  String get profileAddressHint => 'House number, street, ward, district, province';
+  String get profileAddressHint =>
+      'House number, street, ward, district, province';
 
   @override
   String get profileCurrentAddressLabel => 'Current Address *';
@@ -973,8 +978,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get profileError => 'An error occurred';
 
-  // ── Onboarding personal screen extras ─────────────────────────────────────
-
   @override
   String get onboardingProvince => 'Province / City';
 
@@ -988,7 +991,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingPersonalTitle => 'Personal Information';
 
   @override
-  String get onboardingPersonalSubtitle => 'Complete your profile for admin approval';
+  String get onboardingPersonalSubtitle =>
+      'Complete your profile for admin approval';
 
   @override
   String get onboardingSkip => 'Skip, complete later';
@@ -1072,7 +1076,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingSkillsLabel => 'Skills *';
 
   @override
-  String get onboardingSkillsHint => 'e.g. Flutter, Kotlin, Spring Boot (comma separated)';
+  String get onboardingSkillsHint =>
+      'e.g. Flutter, Kotlin, Spring Boot (comma separated)';
 
   @override
   String get onboardingCertificateLabel => 'Certificates (optional)';
@@ -1102,10 +1107,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingValidatePhoneFormat => 'Invalid phone number';
 
   @override
-  String get onboardingValidatePermanentAddress => 'Please select permanent address';
+  String get onboardingValidatePermanentAddress =>
+      'Please select permanent address';
 
   @override
-  String get onboardingValidateCurrentAddress => 'Please select current address';
+  String get onboardingValidateCurrentAddress =>
+      'Please select current address';
 
   @override
   String get onboardingValidateMajor => 'Please enter major';
@@ -1118,8 +1125,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingGenericError => 'An error occurred';
-
-  // ── Auth screen extras ─────────────────────────────────────────────────────
 
   @override
   String get authSignInPending =>
@@ -1135,8 +1140,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authSignUpFailed => 'Sign up failed';
-
-  // ── Gender / Marital helpers ───────────────────────────────────────────────
 
   @override
   String get genderMale => 'Male';
@@ -1171,8 +1174,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get requiredField => 'Required';
 
-  // ── Chief ──────────────────────────────────────────────────────────────────
-
   @override
   String get chiefTitle => 'Staff Management';
 
@@ -1204,8 +1205,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chiefFilterTerminated => 'Terminated';
 
   @override
-  String chiefPendingBanner(int count) =>
-      '$count accounts pending approval — tap to review';
+  String chiefPendingBanner(int count) {
+    return '$count accounts pending approval — tap to review';
+  }
 
   @override
   String get chiefNoEmployees => 'No employees found';
@@ -1250,7 +1252,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chiefChangeRoleTitle => 'Change Role';
 
   @override
-  String chiefNewRoleLabel(String role) => 'New role: $role';
+  String chiefNewRoleLabel(String role) {
+    return 'New role: $role';
+  }
 
   @override
   String get chiefNewPositionLabel => 'New position (optional)';
@@ -1437,7 +1441,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chiefAssignManagerTitle => 'Assign Manager';
 
   @override
-  String chiefCurrentManager(String name) => 'Current Manager: $name';
+  String chiefCurrentManager(String name) {
+    return 'Current Manager: $name';
+  }
 
   @override
   String get chiefNoManager => 'No manager';
@@ -1456,10 +1462,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chiefIssueSalaryVcTitle => 'Issue Salary Range VC';
 
   @override
-  String chiefIssueSalaryVcContent(String name) =>
-      'Issue SalaryRangeVC for $name?\n\nEmployee must have a payroll assigned.';
-
-  // ── Wallet ─────────────────────────────────────────────────────────────────
+  String chiefIssueSalaryVcContent(String name) {
+    return 'Issue SalaryRangeVC for $name?\n\nEmployee must have a payroll assigned.';
+  }
 
   @override
   String get walletTitle => 'Identity Wallet';
@@ -1474,14 +1479,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walletVerifiedReady => 'Verified — ready to use';
 
   @override
-  String get walletKeypairPending => 'Keypair created — awaiting Admin approval';
+  String get walletKeypairPending =>
+      'Keypair created — awaiting Admin approval';
 
   @override
   String get walletNotInitialized => 'Wallet not initialized';
 
   @override
   String get walletDidPending =>
-      'DID pending Admin approval.\n\nAdmin must approve in "Approve Accounts" screen. After approval, DID and Employment VC will be issued automatically.';
+      'DID pending Admin approval.\n\nAdmin must approve in \"Approve Accounts\" screen. After approval, DID and Employment VC will be issued automatically.';
 
   @override
   String get walletDidNotInit =>
@@ -1496,7 +1502,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walletVerifierScanSubtitle =>
-      'Point camera at QR on Verifier screen\n(tab "Create VP Request")';
+      'Point camera at QR on Verifier screen\n(tab \"Create VP Request\")';
 
   @override
   String get walletShareInfo => 'Select information to share';
@@ -1526,10 +1532,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'VP sent successfully — Verifier can view the result ✓';
 
   @override
-  String walletVpSendFailed(String error) => 'Failed to send VP: $error';
+  String walletVpSendFailed(String error) {
+    return 'Failed to send VP: $error';
+  }
 
   @override
-  String walletVpSessionFailed(String error) => 'Cannot create VP session: $error';
+  String walletVpSessionFailed(String error) {
+    return 'Cannot create VP session: $error';
+  }
 
   @override
   String get walletCreateVcQr => 'Create VC QR';
@@ -1556,7 +1566,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walletCopiedSnack => 'Copied';
 
   @override
-  String walletIssuedAt(String time) => 'Issued at: $time';
+  String walletIssuedAt(String time) {
+    return 'Issued at: $time';
+  }
 
   @override
   String get walletQrSelectFields => 'Select fields to include in the QR.';
@@ -1571,12 +1583,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walletVpAccepted => 'VP accepted by Verifier ✓';
 
   @override
-  String walletVpRejected(String reason) => 'VP rejected: $reason';
+  String walletVpRejected(String reason) {
+    return 'VP rejected: $reason';
+  }
 
   @override
   String get walletClose => 'Close';
-
-  // ── CCCD ───────────────────────────────────────────────────────────────────
 
   @override
   String get cccdBack => 'Back';
@@ -1594,8 +1606,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cccdManualInput => 'Enter manually';
 
-  // ── Verifier ───────────────────────────────────────────────────────────────
-
   @override
   String get verifierTitle => 'Verifier';
 
@@ -1610,22 +1620,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verifierScanInstruction =>
-      "Point camera at QR Code on employee's app";
+      'Point camera at QR Code on employee\'s app';
 
   @override
   String get verifierScanDescription =>
-      'Accepts 2 QR types:\n• QR from "Export QR" button — verify VC directly\n• QR from "Present VP" button — verify VP Token signed by Employee';
+      'Accepts 2 QR types:\n• QR from \"Export QR\" button — verify VC directly\n• QR from \"Present VP\" button — verify VP Token signed by Employee';
 
   @override
   String get verifierHowItWorks => 'How it works';
 
   @override
   String get verifierHowItWorksSteps =>
-      '1. Select information you want Employee to provide\n'
-      '2. Tap "Create VP Request QR" → QR is generated\n'
-      '3. Have Employee scan this QR with their app\n'
-      '4. Employee reviews and sends Verifiable Presentation\n'
-      '5. Tap "Check Result" to view the shared information';
+      '1. Select information you want Employee to provide\n2. Tap \"Create VP Request QR\" → QR is generated\n3. Have Employee scan this QR with their app\n4. Employee reviews and sends Verifiable Presentation\n5. Tap \"Check Result\" to view the shared information';
 
   @override
   String get verifierSelectAtLeastOne =>
@@ -1641,8 +1647,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifierCheckResult => 'Step 5 — Check Result';
 
   @override
-  String verifierCreateVpRequestFailed(String error) =>
-      'Failed to create VP Request: $error';
+  String verifierCreateVpRequestFailed(String error) {
+    return 'Failed to create VP Request: $error';
+  }
 
   @override
   String get verifierPollIdle => 'No request yet';

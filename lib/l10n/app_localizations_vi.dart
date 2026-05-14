@@ -27,10 +27,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get signinSubtitle => 'Đăng nhập để truy cập danh tính của bạn';
 
   @override
-  String get signinPendingApproval => 'Tài khoản đang chờ Admin duyệt. Vui lòng thử lại sau.';
+  String get signinPendingApproval =>
+      'Tài khoản đang chờ Admin duyệt. Vui lòng thử lại sau.';
 
   @override
-  String get signinRejected => 'Tài khoản đã bị từ chối. Vui lòng liên hệ Admin.';
+  String get signinRejected =>
+      'Tài khoản đã bị từ chối. Vui lòng liên hệ Admin.';
 
   @override
   String get signinFailed => 'Đăng nhập thất bại. Kiểm tra lại thông tin.';
@@ -399,7 +401,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onboardingTitle => 'Thiết lập hồ sơ công việc';
 
   @override
-  String get onboardingSubtitle => 'Điền thông tin để hoàn tất đăng ký tài khoản';
+  String get onboardingSubtitle =>
+      'Điền thông tin để hoàn tất đăng ký tài khoản';
 
   @override
   String get onboardingDepartment => 'Phòng ban';
@@ -498,7 +501,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get adminRealTimeData => 'Dữ liệu thời gian thực';
 
   @override
-  String adminPendingAccountsBanner(int count) => '$count tài khoản đang chờ duyệt';
+  String adminPendingAccountsBanner(int count) {
+    return '$count tài khoản đang chờ duyệt';
+  }
 
   @override
   String get adminStatTotalEmployees => 'Tổng NV';
@@ -538,7 +543,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get adminSalaryVcIssued => 'SalaryRangeVC đã được phát hành';
 
   @override
-  String adminErrorPrefix(String message) => 'Lỗi: $message';
+  String adminErrorPrefix(String message) {
+    return 'Lỗi: $message';
+  }
 
   @override
   String get adminIssueVc => 'Phát hành VC';
@@ -550,8 +557,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get pendingRejectTitle => 'Từ chối tài khoản';
 
   @override
-  String pendingRejectConfirm(String email) =>
-      'Từ chối tài khoản "$email"?\nTài khoản này sẽ không thể đăng nhập.';
+  String pendingRejectConfirm(String email) {
+    return 'Từ chối tài khoản \"$email\"?\nTài khoản này sẽ không thể đăng nhập.';
+  }
 
   @override
   String get pendingReject => 'Từ chối';
@@ -644,10 +652,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String get requestStatusPending => 'Chờ duyệt';
 
   @override
-  String requestApprover(String name) => 'Người duyệt: $name';
+  String requestApprover(String name) {
+    return 'Người duyệt: $name';
+  }
 
   @override
-  String requestRejectedReason(String reason) => 'Lý do từ chối: $reason';
+  String requestRejectedReason(String reason) {
+    return 'Lý do từ chối: $reason';
+  }
 
   @override
   String get managerRequestProcessed => 'Đã xử lý đơn';
@@ -665,7 +677,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get managerTimesheetTitle => 'Bảng công nhân viên';
 
   @override
-  String attendanceMonth(int month, int year) => 'Tháng $month/$year';
+  String attendanceMonth(int month, int year) {
+    return 'Tháng $month/$year';
+  }
 
   @override
   String get attendancePresent => 'Có mặt';
@@ -754,13 +768,13 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get attendanceWorkdays => 'Làm việc';
 
-  // ── Company ────────────────────────────────────────────────────────────────
-
   @override
   String get companyTitle => 'Thông tin công ty';
 
   @override
-  String companyTaxCode(String code) => 'MST: $code';
+  String companyTaxCode(String code) {
+    return 'MST: $code';
+  }
 
   @override
   String get companyLegalInfo => 'Thông tin pháp nhân';
@@ -795,8 +809,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get companyEmptyHint => 'Giám đốc có thể đăng ký pháp nhân';
 
-  // ── Directory ──────────────────────────────────────────────────────────────
-
   @override
   String get directoryTitle => 'Danh sách nhân viên';
 
@@ -806,21 +818,18 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get directoryNotFound => 'Không tìm thấy';
 
-  // ── Contract extras ────────────────────────────────────────────────────────
-
   @override
   String get contractLoading => 'Đang tải hợp đồng...';
 
   @override
-  String get contractNoDataRetry => 'Không có dữ liệu hợp đồng.\nVui lòng thử lại.';
+  String get contractNoDataRetry =>
+      'Không có dữ liệu hợp đồng.\nVui lòng thử lại.';
 
   @override
   String get contractDatesSection => 'Ngày hợp đồng';
 
   @override
   String get contractInsuranceTax => 'Bảo hiểm & Thuế';
-
-  // ── Payroll extras ─────────────────────────────────────────────────────────
 
   @override
   String get payrollLoading => 'Đang tải thông tin lương...';
@@ -831,15 +840,11 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get payrollBreakdown => 'Chi tiết lương';
 
-  // ── Ledger extras ──────────────────────────────────────────────────────────
-
   @override
   String get ledgerLoading => 'Đang tải dữ liệu sổ cái...';
 
   @override
   String get ledgerLoadFailed => 'Không tải được dữ liệu sổ cái';
-
-  // ── Profile screen extras ──────────────────────────────────────────────────
 
   @override
   String get profileLoading => 'Đang tải hồ sơ...';
@@ -972,8 +977,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get profileError => 'Có lỗi xảy ra';
-
-  // ── Onboarding personal screen extras ─────────────────────────────────────
 
   @override
   String get onboardingProvince => 'Tỉnh / Thành phố';
@@ -1116,16 +1119,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onboardingValidateMajor => 'Vui lòng nhập chuyên ngành';
 
   @override
-  String get onboardingValidateExpYears =>
-      'Vui lòng nhập số năm kinh nghiệm';
+  String get onboardingValidateExpYears => 'Vui lòng nhập số năm kinh nghiệm';
 
   @override
   String get onboardingValidateSkills => 'Vui lòng nhập ít nhất 1 kỹ năng';
 
   @override
   String get onboardingGenericError => 'Có lỗi xảy ra';
-
-  // ── Auth screen extras ─────────────────────────────────────────────────────
 
   @override
   String get authSignInPending =>
@@ -1136,13 +1136,10 @@ class AppLocalizationsVi extends AppLocalizations {
       'Tài khoản đã bị từ chối. Vui lòng liên hệ Admin.';
 
   @override
-  String get authSignInFailed =>
-      'Đăng nhập thất bại. Kiểm tra lại thông tin.';
+  String get authSignInFailed => 'Đăng nhập thất bại. Kiểm tra lại thông tin.';
 
   @override
   String get authSignUpFailed => 'Đăng ký thất bại';
-
-  // ── Gender / Marital helpers ───────────────────────────────────────────────
 
   @override
   String get genderMale => 'Nam';
@@ -1177,26 +1174,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get requiredField => 'Bắt buộc';
 
-  // ── CCCD ──────────────────────────────────────────────────────────────────
-
-  @override
-  String get cccdBack => 'Quay lại';
-
-  @override
-  String get cccdSkip => 'Bỏ qua';
-
-  @override
-  String get cccdTitle => 'Quét QR chip thẻ CCCD';
-
-  @override
-  String get cccdInstruction =>
-      'Hướng camera vào mã QR ở mặt sau thẻ CCCD gắn chip của bạn để tự động điền thông tin';
-
-  @override
-  String get cccdManualInput => 'Nhập thông tin thủ công';
-
-  // ── Chief ─────────────────────────────────────────────────────────────────
-
   @override
   String get chiefTitle => 'Quản lý nhân sự';
 
@@ -1228,14 +1205,72 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chiefFilterTerminated => 'Đã nghỉ việc';
 
   @override
-  String chiefPendingBanner(int count) =>
-      '$count tài khoản đang chờ duyệt — nhấn ✓ để phê duyệt';
+  String chiefPendingBanner(int count) {
+    return '$count tài khoản đang chờ duyệt — nhấn ✓ để phê duyệt';
+  }
 
   @override
   String get chiefNoEmployees => 'Không tìm thấy nhân viên';
 
   @override
   String get chiefTerminated => 'Đã nghỉ việc';
+
+  @override
+  String get chiefPromoteAdmin => 'Thăng cấp lên Admin';
+
+  @override
+  String get chiefPromoteChief => 'Thăng cấp lên Giám đốc';
+
+  @override
+  String get chiefPromoteManager => 'Thăng cấp lên Quản lý';
+
+  @override
+  String get chiefDemoteEmployee => 'Hạ cấp xuống Nhân viên';
+
+  @override
+  String get chiefAssignManager => 'Phân công Manager';
+
+  @override
+  String get chiefCreateContract => 'Tạo / Cập nhật Hợp đồng';
+
+  @override
+  String get chiefCreatePayroll => 'Tạo / Cập nhật Lương';
+
+  @override
+  String get chiefIssueSalaryVc => 'Cấp Salary VC';
+
+  @override
+  String get chiefTerminateContract => 'Chấm dứt hợp đồng';
+
+  @override
+  String get chiefTerminateTitle => 'Chấm dứt hợp đồng';
+
+  @override
+  String get chiefTerminateReasonHint => 'Lý do...';
+
+  @override
+  String get chiefChangeRoleTitle => 'Thay đổi vai trò';
+
+  @override
+  String chiefNewRoleLabel(String role) {
+    return 'Vai trò mới: $role';
+  }
+
+  @override
+  String get chiefNewPositionLabel => 'Chức vụ mới (tùy chọn)';
+
+  @override
+  String get chiefNewPositionHint => 'VD: Kỹ sư cao cấp';
+
+  @override
+  String get chiefPromotionVcNote =>
+      '* Hệ thống sẽ tự động cấp Promotion VC sau khi thay đổi vai trò';
+
+  @override
+  String get chiefUpdateSuccess => 'Cập nhật thành công';
+
+  @override
+  String get chiefCreateStaffTitle => 'Thêm nhân viên mới';
 
   @override
   String get chiefSectionAccount => 'Tài khoản';
@@ -1292,69 +1327,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chiefCreateBtn => 'Tạo nhân viên';
 
   @override
-  String get chiefCreateStaffTitle => 'Thêm nhân viên mới';
-
-  @override
   String get chiefCreateSuccess => 'Tạo nhân viên thành công';
-
-  @override
-  String get chiefUpdateSuccess => 'Cập nhật thành công';
-
-  @override
-  String get chiefTerminateTitle => 'Chấm dứt hợp đồng';
-
-  @override
-  String get chiefTerminateReasonHint => 'Lý do...';
-
-  @override
-  String get chiefTerminateContract => 'Chấm dứt hợp đồng';
-
-  @override
-  String get chiefIssueSalaryVc => 'Cấp Salary VC';
-
-  @override
-  String get chiefIssueSalaryVcTitle => 'Cấp Salary Range VC';
-
-  @override
-  String chiefIssueSalaryVcContent(String name) =>
-      'Cấp Verifiable Credential về mức lương cho $name?';
-
-  @override
-  String get chiefChangeRoleTitle => 'Thay đổi vai trò';
-
-  @override
-  String chiefNewRoleLabel(String role) => 'Vai trò mới: $role';
-
-  @override
-  String get chiefNewPositionLabel => 'Chức vụ mới (tùy chọn)';
-
-  @override
-  String get chiefNewPositionHint => 'VD: Kỹ sư cao cấp';
-
-  @override
-  String get chiefPromotionVcNote =>
-      '* Hệ thống sẽ tự động cấp Promotion VC sau khi thay đổi vai trò';
-
-  @override
-  String get chiefPromoteManager => 'Thăng cấp lên Quản lý';
-
-  @override
-  String get chiefPromoteChief => 'Thăng cấp lên Giám đốc';
-
-  @override
-  String get chiefPromoteAdmin => 'Thăng cấp lên Admin';
-
-  @override
-  String get chiefDemoteEmployee => 'Hạ cấp xuống Nhân viên';
-
-  @override
-  String get chiefAssignManager => 'Phân công Manager';
-
-  @override
-  String get chiefCreateContract => 'Tạo / Cập nhật Hợp đồng';
-
-  @override
-  String get chiefCreatePayroll => 'Tạo / Cập nhật Lương';
 
   @override
   String get chiefContractTitle => 'Tạo / Cập nhật Hợp đồng';
@@ -1468,7 +1441,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chiefAssignManagerTitle => 'Phân công Manager';
 
   @override
-  String chiefCurrentManager(String name) => 'Manager hiện tại: $name';
+  String chiefCurrentManager(String name) {
+    return 'Manager hiện tại: $name';
+  }
 
   @override
   String get chiefNoManager => 'Không có manager';
@@ -1483,7 +1458,152 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get chiefAssignSuccess => 'Đã phân công manager thành công';
 
-  // ── Verifier ──────────────────────────────────────────────────────────────
+  @override
+  String get chiefIssueSalaryVcTitle => 'Cấp Salary Range VC';
+
+  @override
+  String chiefIssueSalaryVcContent(String name) {
+    return 'Cấp Verifiable Credential về mức lương cho $name?';
+  }
+
+  @override
+  String get walletTitle => 'Ví Danh tính';
+
+  @override
+  String get walletRefresh => 'Tải lại';
+
+  @override
+  String get walletDisclosedInfo => 'Thông tin được tiết lộ';
+
+  @override
+  String get walletVerifiedReady => 'Đã xác minh — sẵn sàng dùng';
+
+  @override
+  String get walletKeypairPending => 'Keypair đã tạo — chờ Admin duyệt';
+
+  @override
+  String get walletNotInitialized => 'Chưa khởi tạo Wallet';
+
+  @override
+  String get walletDidPending =>
+      'DID đang chờ Admin phê duyệt.\n\nAdmin vào màn \"Duyệt tài khoản\" → nhấn ✓ để duyệt. Sau khi duyệt, DID và Employment VC sẽ tự động được cấp.';
+
+  @override
+  String get walletDidNotInit =>
+      'DID Wallet chưa được khởi tạo.\n\nNguyên nhân thường gặp:\n• Bạn chưa hoàn tất bước Onboarding (đăng ký phòng ban + chức vụ)\n• Tài khoản chưa được Admin duyệt\n\nCách khắc phục:\n1. Đảm bảo bạn đã điền đầy đủ thông tin phòng ban và chức vụ trong bước Onboarding\n2. Liên hệ Admin để được duyệt tài khoản\n3. Sau khi Admin duyệt, Wallet và Employment VC sẽ tự động được tạo\n4. Nhấn nút Tải lại (↺) để kiểm tra lại';
+
+  @override
+  String get walletVcPending =>
+      'Employment VC chưa được cấp — sẽ tự động xuất hiện sau khi Admin duyệt tài khoản.';
+
+  @override
+  String get walletVerifierScanTitle => 'Quét VP Request QR';
+
+  @override
+  String get walletVerifierScanSubtitle =>
+      'Hướng camera vào QR trên màn Verifier\n(tab \"Tạo VP Request\")';
+
+  @override
+  String get walletShareInfo => 'Chọn thông tin chia sẻ';
+
+  @override
+  String get walletShareInfoHint =>
+      'Bạn đang chủ động chia sẻ VP với Verifier.\nChọn các trường muốn tiết lộ — Verifier sẽ quét QR này.';
+
+  @override
+  String get walletRequestShareInfo => 'Yêu cầu chia sẻ thông tin';
+
+  @override
+  String get walletVerifierRequestHint =>
+      'Verifier đang yêu cầu bạn chia sẻ thông tin sau. Chỉ xác nhận nếu bạn tin tưởng bên yêu cầu.';
+
+  @override
+  String get walletRequestedFields => 'Thông tin được yêu cầu:';
+
+  @override
+  String get walletReject => 'Từ chối';
+
+  @override
+  String get walletConfirmShare => 'Xác nhận chia sẻ';
+
+  @override
+  String get walletVpSentSuccess =>
+      'VP đã gửi thành công — Verifier có thể xem kết quả ✓';
+
+  @override
+  String walletVpSendFailed(String error) {
+    return 'Gửi VP thất bại: $error';
+  }
+
+  @override
+  String walletVpSessionFailed(String error) {
+    return 'Không thể tạo VP session: $error';
+  }
+
+  @override
+  String get walletCreateVcQr => 'Tạo VC QR';
+
+  @override
+  String get walletScanVpRequest => 'Quét QR VP Request';
+
+  @override
+  String get walletQrForVerifier => 'Cho Verifier quét để xác minh';
+
+  @override
+  String get walletCopyVcJson => 'Sao chép VC JSON';
+
+  @override
+  String get walletCopied => 'Đã sao chép VC JSON';
+
+  @override
+  String get walletCopiedPublicKey => 'Đã sao chép public key';
+
+  @override
+  String get walletCopy => 'Sao chép';
+
+  @override
+  String get walletCopiedSnack => 'Đã sao chép';
+
+  @override
+  String walletIssuedAt(String time) {
+    return 'Cấp lúc: $time';
+  }
+
+  @override
+  String get walletQrSelectFields => 'Chọn các trường muốn đưa vào QR.';
+
+  @override
+  String get walletQrCancel => 'Huỷ';
+
+  @override
+  String get walletQrCreate => 'Tạo QR';
+
+  @override
+  String get walletVpAccepted => 'VP được Verifier chấp nhận ✓';
+
+  @override
+  String walletVpRejected(String reason) {
+    return 'VP bị từ chối: $reason';
+  }
+
+  @override
+  String get walletClose => 'Đóng';
+
+  @override
+  String get cccdBack => 'Quay lại';
+
+  @override
+  String get cccdSkip => 'Bỏ qua';
+
+  @override
+  String get cccdTitle => 'Quét QR chip thẻ CCCD';
+
+  @override
+  String get cccdInstruction =>
+      'Hướng camera vào mã QR ở mặt sau thẻ CCCD gắn chip của bạn để tự động điền thông tin';
+
+  @override
+  String get cccdManualInput => 'Nhập thông tin thủ công';
 
   @override
   String get verifierTitle => 'Verifier';
@@ -1503,20 +1623,14 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get verifierScanDescription =>
-      'Chấp nhận 2 loại QR:\n'
-      '• QR từ nút "Xuất QR" — xác minh VC trực tiếp\n'
-      '• QR từ nút "Present VP" — xác minh VP Token đã được Employee ký';
+      'Chấp nhận 2 loại QR:\n• QR từ nút \"Xuất QR\" — xác minh VC trực tiếp\n• QR từ nút \"Present VP\" — xác minh VP Token đã được Employee ký';
 
   @override
   String get verifierHowItWorks => 'Cách hoạt động';
 
   @override
   String get verifierHowItWorksSteps =>
-      '1. Chọn thông tin bạn muốn Employee cung cấp\n'
-      '2. Nhấn "Tạo VP Request QR" → QR được tạo\n'
-      '3. Cho Employee quét QR này bằng app của họ\n'
-      '4. Employee xem xét và gửi Verifiable Presentation\n'
-      '5. Nhấn "Kiểm tra kết quả" để xem thông tin Employee đã chia sẻ';
+      '1. Chọn thông tin bạn muốn Employee cung cấp\n2. Nhấn \"Tạo VP Request QR\" → QR được tạo\n3. Cho Employee quét QR này bằng app của họ\n4. Employee xem xét và gửi Verifiable Presentation\n5. Nhấn \"Kiểm tra kết quả\" để xem thông tin Employee đã chia sẻ';
 
   @override
   String get verifierSelectAtLeastOne => 'Hãy chọn ít nhất 1 trường ở 1 VC';
@@ -1531,8 +1645,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get verifierCheckResult => 'Bước 5 — Kiểm tra kết quả';
 
   @override
-  String verifierCreateVpRequestFailed(String error) =>
-      'Tạo VP Request thất bại: $error';
+  String verifierCreateVpRequestFailed(String error) {
+    return 'Tạo VP Request thất bại: $error';
+  }
 
   @override
   String get verifierPollIdle => 'Chưa có yêu cầu nào';
@@ -1551,6 +1666,9 @@ class AppLocalizationsVi extends AppLocalizations {
       'Employee chưa quét QR hoặc chưa xác nhận chia sẻ';
 
   @override
+  String get verifierSharedInfo => 'Thông tin Employee đã chia sẻ';
+
+  @override
   String get verifierResultValid => 'HỢP LỆ';
 
   @override
@@ -1558,9 +1676,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get verifierDisclosedInfo => 'Thông tin được tiết lộ';
-
-  @override
-  String get verifierSharedInfo => 'Thông tin Employee đã chia sẻ';
 
   @override
   String get verifierVpRejectedTitle => 'VP bị từ chối';
@@ -1601,131 +1716,4 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get verifierConfirmShare => 'Xác nhận chia sẻ';
-
-  // ── Wallet ────────────────────────────────────────────────────────────────
-
-  @override
-  String get walletTitle => 'Ví Danh tính';
-
-  @override
-  String get walletRefresh => 'Tải lại';
-
-  @override
-  String get walletDisclosedInfo => 'Thông tin được tiết lộ';
-
-  @override
-  String get walletVerifiedReady => 'Đã xác minh — sẵn sàng dùng';
-
-  @override
-  String get walletKeypairPending => 'Keypair đã tạo — chờ Admin duyệt';
-
-  @override
-  String get walletNotInitialized => 'Chưa khởi tạo Wallet';
-
-  @override
-  String get walletDidPending =>
-      'DID đang chờ Admin phê duyệt.\n\nAdmin vào màn "Duyệt tài khoản" → nhấn ✓ để duyệt. Sau khi duyệt, DID và Employment VC sẽ tự động được cấp.';
-
-  @override
-  String get walletDidNotInit =>
-      'DID Wallet chưa được khởi tạo.\n\n'
-      'Nguyên nhân thường gặp:\n'
-      '• Bạn chưa hoàn tất bước Onboarding (đăng ký phòng ban + chức vụ)\n'
-      '• Tài khoản chưa được Admin duyệt\n\n'
-      'Cách khắc phục:\n'
-      '1. Đảm bảo bạn đã điền đầy đủ thông tin phòng ban và chức vụ trong bước Onboarding\n'
-      '2. Liên hệ Admin để được duyệt tài khoản\n'
-      '3. Sau khi Admin duyệt, Wallet và Employment VC sẽ tự động được tạo\n'
-      '4. Nhấn nút Tải lại (↺) để kiểm tra lại';
-
-  @override
-  String get walletVcPending =>
-      'Employment VC chưa được cấp — sẽ tự động xuất hiện sau khi Admin duyệt tài khoản.';
-
-  @override
-  String get walletVerifierScanTitle => 'Quét VP Request QR';
-
-  @override
-  String get walletVerifierScanSubtitle =>
-      'Hướng camera vào QR trên màn Verifier\n(tab "Tạo VP Request")';
-
-  @override
-  String get walletShareInfo => 'Chọn thông tin chia sẻ';
-
-  @override
-  String get walletShareInfoHint =>
-      'Bạn đang chủ động chia sẻ VP với Verifier.\nChọn các trường muốn tiết lộ — Verifier sẽ quét QR này.';
-
-  @override
-  String get walletRequestShareInfo => 'Yêu cầu chia sẻ thông tin';
-
-  @override
-  String get walletVerifierRequestHint =>
-      'Verifier đang yêu cầu bạn chia sẻ thông tin sau. Chỉ xác nhận nếu bạn tin tưởng bên yêu cầu.';
-
-  @override
-  String get walletRequestedFields => 'Thông tin được yêu cầu:';
-
-  @override
-  String get walletReject => 'Từ chối';
-
-  @override
-  String get walletConfirmShare => 'Xác nhận chia sẻ';
-
-  @override
-  String get walletVpSentSuccess =>
-      'VP đã gửi thành công — Verifier có thể xem kết quả ✓';
-
-  @override
-  String walletVpSendFailed(String error) => 'Gửi VP thất bại: $error';
-
-  @override
-  String walletVpSessionFailed(String error) =>
-      'Không thể tạo VP session: $error';
-
-  @override
-  String get walletCreateVcQr => 'Tạo VC QR';
-
-  @override
-  String get walletScanVpRequest => 'Quét QR VP Request';
-
-  @override
-  String get walletQrForVerifier => 'Cho Verifier quét để xác minh';
-
-  @override
-  String get walletCopyVcJson => 'Sao chép VC JSON';
-
-  @override
-  String get walletCopied => 'Đã sao chép VC JSON';
-
-  @override
-  String get walletCopiedPublicKey => 'Đã sao chép public key';
-
-  @override
-  String get walletCopy => 'Sao chép';
-
-  @override
-  String get walletCopiedSnack => 'Đã sao chép';
-
-  @override
-  String walletIssuedAt(String time) => 'Cấp lúc: $time';
-
-  @override
-  String get walletQrSelectFields => 'Chọn các trường muốn đưa vào QR.';
-
-  @override
-  String get walletQrCancel => 'Huỷ';
-
-  @override
-  String get walletQrCreate => 'Tạo QR';
-
-  @override
-  String get walletVpAccepted => 'VP được Verifier chấp nhận ✓';
-
-  @override
-  String walletVpRejected(String reason) => 'VP bị từ chối: $reason';
-
-  @override
-  String get walletClose => 'Đóng';
-
 }

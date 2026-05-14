@@ -134,8 +134,22 @@ abstract class AppLocalizations {
   /// **'Sign in to access your identity'**
   String get signinSubtitle;
 
+  /// No description provided for @signinPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Account is pending Admin approval. Please try again later.'**
   String get signinPendingApproval;
+
+  /// No description provided for @signinRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Account has been rejected. Please contact Admin.'**
   String get signinRejected;
+
+  /// No description provided for @signinFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in failed. Please check your credentials.'**
   String get signinFailed;
 
   /// No description provided for @signupGetStarted.
@@ -1167,7 +1181,7 @@ abstract class AppLocalizations {
   /// No description provided for @pendingRejectConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Reject account "$email"?\nThis account will not be able to sign in.'**
+  /// **'Reject account \"{email}\"?\nThis account will not be able to sign in.'**
   String pendingRejectConfirm(String email);
 
   /// No description provided for @pendingReject.
@@ -1353,13 +1367,13 @@ abstract class AppLocalizations {
   /// No description provided for @requestApprover.
   ///
   /// In en, this message translates to:
-  /// **'Approver: $name'**
+  /// **'Approver: {name}'**
   String requestApprover(String name);
 
   /// No description provided for @requestRejectedReason.
   ///
   /// In en, this message translates to:
-  /// **'Reject reason: $reason'**
+  /// **'Reject reason: {reason}'**
   String requestRejectedReason(String reason);
 
   /// No description provided for @managerRequestProcessed.
@@ -1395,7 +1409,7 @@ abstract class AppLocalizations {
   /// No description provided for @attendanceMonth.
   ///
   /// In en, this message translates to:
-  /// **'Month $month/$year'**
+  /// **'Month {month}/{year}'**
   String attendanceMonth(int month, int year);
 
   /// No description provided for @attendancePresent.
@@ -1572,8 +1586,6 @@ abstract class AppLocalizations {
   /// **'Workdays'**
   String get attendanceWorkdays;
 
-  // ── Company ────────────────────────────────────────────────────────────────
-
   /// No description provided for @companyTitle.
   ///
   /// In en, this message translates to:
@@ -1583,7 +1595,7 @@ abstract class AppLocalizations {
   /// No description provided for @companyTaxCode.
   ///
   /// In en, this message translates to:
-  /// **'Tax ID: $code'**
+  /// **'Tax ID: {code}'**
   String companyTaxCode(String code);
 
   /// No description provided for @companyLegalInfo.
@@ -1652,8 +1664,6 @@ abstract class AppLocalizations {
   /// **'The director can register the legal entity'**
   String get companyEmptyHint;
 
-  // ── Directory ──────────────────────────────────────────────────────────────
-
   /// No description provided for @directoryTitle.
   ///
   /// In en, this message translates to:
@@ -1671,8 +1681,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No results found'**
   String get directoryNotFound;
-
-  // ── Contract extras ────────────────────────────────────────────────────────
 
   /// No description provided for @contractLoading.
   ///
@@ -1698,8 +1706,6 @@ abstract class AppLocalizations {
   /// **'Insurance & Tax'**
   String get contractInsuranceTax;
 
-  // ── Payroll extras ─────────────────────────────────────────────────────────
-
   /// No description provided for @payrollLoading.
   ///
   /// In en, this message translates to:
@@ -1718,8 +1724,6 @@ abstract class AppLocalizations {
   /// **'Salary Breakdown'**
   String get payrollBreakdown;
 
-  // ── Ledger extras ──────────────────────────────────────────────────────────
-
   /// No description provided for @ledgerLoading.
   ///
   /// In en, this message translates to:
@@ -1732,7 +1736,647 @@ abstract class AppLocalizations {
   /// **'Failed to fetch ledger'**
   String get ledgerLoadFailed;
 
-  // ── Chief ──────────────────────────────────────────────────────────────────
+  /// No description provided for @profileLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading profile...'**
+  String get profileLoading;
+
+  /// No description provided for @profileSetupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your profile to use all features'**
+  String get profileSetupHint;
+
+  /// No description provided for @profileSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Up Profile'**
+  String get profileSetup;
+
+  /// No description provided for @profileCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile created successfully'**
+  String get profileCreated;
+
+  /// No description provided for @profileStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 1/2 — Work Information'**
+  String get profileStep1;
+
+  /// No description provided for @profileStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 2/2 — Personal Information'**
+  String get profileStep2;
+
+  /// No description provided for @profileDepartmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Department *'**
+  String get profileDepartmentLabel;
+
+  /// No description provided for @profileDepartmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Board of Directors'**
+  String get profileDepartmentHint;
+
+  /// No description provided for @profilePositionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Position *'**
+  String get profilePositionLabel;
+
+  /// No description provided for @profilePositionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Chief Executive Officer'**
+  String get profilePositionHint;
+
+  /// No description provided for @profileWorkingTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Working Type'**
+  String get profileWorkingTypeLabel;
+
+  /// No description provided for @profileFullNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name *'**
+  String get profileFullNameLabel;
+
+  /// No description provided for @profileFullNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nguyen Van A'**
+  String get profileFullNameHint;
+
+  /// No description provided for @profileDobLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth *'**
+  String get profileDobLabel;
+
+  /// No description provided for @profileSelectDob.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date of birth'**
+  String get profileSelectDob;
+
+  /// No description provided for @profileIdentityDocLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity Document'**
+  String get profileIdentityDocLabel;
+
+  /// No description provided for @profileIdentityDocNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Number *'**
+  String get profileIdentityDocNumberLabel;
+
+  /// No description provided for @profileIdentityIssueYearLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Year *'**
+  String get profileIdentityIssueYearLabel;
+
+  /// No description provided for @profileIdentityIssuePlaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Place *'**
+  String get profileIdentityIssuePlaceLabel;
+
+  /// No description provided for @profileIdentityIssuePlaceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Department of Police'**
+  String get profileIdentityIssuePlaceHint;
+
+  /// No description provided for @profileEmergencySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Contact'**
+  String get profileEmergencySection;
+
+  /// No description provided for @profileEmergencyFullNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nguyen Thi B'**
+  String get profileEmergencyFullNameHint;
+
+  /// No description provided for @profileEmergencyPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number *'**
+  String get profileEmergencyPhoneLabel;
+
+  /// No description provided for @profileEmergencyRelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Relationship *'**
+  String get profileEmergencyRelLabel;
+
+  /// No description provided for @profileEmergencyRelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Father/Mother, Husband/Wife'**
+  String get profileEmergencyRelHint;
+
+  /// No description provided for @profileResidenceHealthSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence & Health'**
+  String get profileResidenceHealthSection;
+
+  /// No description provided for @profilePermanentAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanent Address *'**
+  String get profilePermanentAddressLabel;
+
+  /// No description provided for @profileAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'House number, street, ward, district, province'**
+  String get profileAddressHint;
+
+  /// No description provided for @profileCurrentAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Address *'**
+  String get profileCurrentAddressLabel;
+
+  /// No description provided for @profileHealthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Status *'**
+  String get profileHealthLabel;
+
+  /// No description provided for @profileHealthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Good'**
+  String get profileHealthHint;
+
+  /// No description provided for @profileMaritalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Marital Status'**
+  String get profileMaritalLabel;
+
+  /// No description provided for @profileEducationSkillsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Education & Skills'**
+  String get profileEducationSkillsSection;
+
+  /// No description provided for @profileEducationLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Education Level *'**
+  String get profileEducationLevelLabel;
+
+  /// No description provided for @profileEducationLevelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'University'**
+  String get profileEducationLevelHint;
+
+  /// No description provided for @profileMajorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Major *'**
+  String get profileMajorLabel;
+
+  /// No description provided for @profileMajorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Information Technology'**
+  String get profileMajorHint;
+
+  /// No description provided for @profileExpYearsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience (years) *'**
+  String get profileExpYearsLabel;
+
+  /// No description provided for @profileSkillsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills *'**
+  String get profileSkillsLabel;
+
+  /// No description provided for @profileSkillsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Flutter, Kotlin (comma separated)'**
+  String get profileSkillsHint;
+
+  /// No description provided for @profileNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get profileNext;
+
+  /// No description provided for @profileSaveProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Profile'**
+  String get profileSaveProfile;
+
+  /// No description provided for @profileRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get profileRequired;
+
+  /// No description provided for @profileError.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred'**
+  String get profileError;
+
+  /// No description provided for @onboardingProvince.
+  ///
+  /// In en, this message translates to:
+  /// **'Province / City'**
+  String get onboardingProvince;
+
+  /// No description provided for @onboardingDistrict.
+  ///
+  /// In en, this message translates to:
+  /// **'District'**
+  String get onboardingDistrict;
+
+  /// No description provided for @onboardingWard.
+  ///
+  /// In en, this message translates to:
+  /// **'Ward'**
+  String get onboardingWard;
+
+  /// No description provided for @onboardingPersonalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Information'**
+  String get onboardingPersonalTitle;
+
+  /// No description provided for @onboardingPersonalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile for admin approval'**
+  String get onboardingPersonalSubtitle;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip, complete later'**
+  String get onboardingSkip;
+
+  /// No description provided for @onboardingSelectYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Select year'**
+  String get onboardingSelectYear;
+
+  /// No description provided for @onboardingFullNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name *'**
+  String get onboardingFullNameLabel;
+
+  /// No description provided for @onboardingGenderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender *'**
+  String get onboardingGenderLabel;
+
+  /// No description provided for @onboardingDobLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth *'**
+  String get onboardingDobLabel;
+
+  /// No description provided for @onboardingSelectDob.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date of birth'**
+  String get onboardingSelectDob;
+
+  /// No description provided for @onboardingIdentityDocSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity Document'**
+  String get onboardingIdentityDocSection;
+
+  /// No description provided for @onboardingIdentityDocTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Type *'**
+  String get onboardingIdentityDocTypeLabel;
+
+  /// No description provided for @onboardingIdentityDocNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Number *'**
+  String get onboardingIdentityDocNumberLabel;
+
+  /// No description provided for @onboardingIssueYearLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Year *'**
+  String get onboardingIssueYearLabel;
+
+  /// No description provided for @onboardingIssuePlaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Place *'**
+  String get onboardingIssuePlaceLabel;
+
+  /// No description provided for @onboardingEmergencySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Contact'**
+  String get onboardingEmergencySection;
+
+  /// No description provided for @onboardingEmergencyFullNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nguyen Thi B'**
+  String get onboardingEmergencyFullNameHint;
+
+  /// No description provided for @onboardingEmergencyPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number *'**
+  String get onboardingEmergencyPhoneLabel;
+
+  /// No description provided for @onboardingEmergencyRelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Relationship *'**
+  String get onboardingEmergencyRelLabel;
+
+  /// No description provided for @onboardingResidenceHealthSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence & Health'**
+  String get onboardingResidenceHealthSection;
+
+  /// No description provided for @onboardingPermanentAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanent Address *'**
+  String get onboardingPermanentAddressLabel;
+
+  /// No description provided for @onboardingCurrentAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Address *'**
+  String get onboardingCurrentAddressLabel;
+
+  /// No description provided for @onboardingHealthStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Status *'**
+  String get onboardingHealthStatusLabel;
+
+  /// No description provided for @onboardingMaritalStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Marital Status *'**
+  String get onboardingMaritalStatusLabel;
+
+  /// No description provided for @onboardingEducationSkillsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Education & Skills'**
+  String get onboardingEducationSkillsSection;
+
+  /// No description provided for @onboardingEducationLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Education Level *'**
+  String get onboardingEducationLevelLabel;
+
+  /// No description provided for @onboardingMajorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Major *'**
+  String get onboardingMajorLabel;
+
+  /// No description provided for @onboardingMajorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Information Technology'**
+  String get onboardingMajorHint;
+
+  /// No description provided for @onboardingExpYearsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience (years) *'**
+  String get onboardingExpYearsLabel;
+
+  /// No description provided for @onboardingExpYearsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 3'**
+  String get onboardingExpYearsHint;
+
+  /// No description provided for @onboardingSkillsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills *'**
+  String get onboardingSkillsLabel;
+
+  /// No description provided for @onboardingSkillsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Flutter, Kotlin, Spring Boot (comma separated)'**
+  String get onboardingSkillsHint;
+
+  /// No description provided for @onboardingCertificateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates (optional)'**
+  String get onboardingCertificateLabel;
+
+  /// No description provided for @onboardingCertificateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. AWS, PMP (comma separated)'**
+  String get onboardingCertificateHint;
+
+  /// No description provided for @onboardingCompleteBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Registration'**
+  String get onboardingCompleteBtn;
+
+  /// No description provided for @onboardingValidateFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter full name'**
+  String get onboardingValidateFullName;
+
+  /// No description provided for @onboardingValidateDob.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select date of birth'**
+  String get onboardingValidateDob;
+
+  /// No description provided for @onboardingValidateDocNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter document number'**
+  String get onboardingValidateDocNumber;
+
+  /// No description provided for @onboardingValidateIssueYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select issue year'**
+  String get onboardingValidateIssueYear;
+
+  /// No description provided for @onboardingValidatePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter phone number'**
+  String get onboardingValidatePhone;
+
+  /// No description provided for @onboardingValidatePhoneFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid phone number'**
+  String get onboardingValidatePhoneFormat;
+
+  /// No description provided for @onboardingValidatePermanentAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select permanent address'**
+  String get onboardingValidatePermanentAddress;
+
+  /// No description provided for @onboardingValidateCurrentAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select current address'**
+  String get onboardingValidateCurrentAddress;
+
+  /// No description provided for @onboardingValidateMajor.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter major'**
+  String get onboardingValidateMajor;
+
+  /// No description provided for @onboardingValidateExpYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter experience years'**
+  String get onboardingValidateExpYears;
+
+  /// No description provided for @onboardingValidateSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter at least 1 skill'**
+  String get onboardingValidateSkills;
+
+  /// No description provided for @onboardingGenericError.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred'**
+  String get onboardingGenericError;
+
+  /// No description provided for @authSignInPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Account is pending admin approval. Please try again later.'**
+  String get authSignInPending;
+
+  /// No description provided for @authSignInRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Account has been rejected. Please contact Admin.'**
+  String get authSignInRejected;
+
+  /// No description provided for @authSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in failed. Please check your credentials.'**
+  String get authSignInFailed;
+
+  /// No description provided for @authSignUpFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up failed'**
+  String get authSignUpFailed;
+
+  /// No description provided for @genderMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get genderMale;
+
+  /// No description provided for @genderFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get genderFemale;
+
+  /// No description provided for @genderOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get genderOther;
+
+  /// No description provided for @marriedSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get marriedSingle;
+
+  /// No description provided for @marriedMarried.
+  ///
+  /// In en, this message translates to:
+  /// **'Married'**
+  String get marriedMarried;
+
+  /// No description provided for @marriedDivorced.
+  ///
+  /// In en, this message translates to:
+  /// **'Divorced'**
+  String get marriedDivorced;
+
+  /// No description provided for @marriedWidowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Widowed'**
+  String get marriedWidowed;
+
+  /// No description provided for @marriedSeparated.
+  ///
+  /// In en, this message translates to:
+  /// **'Separated'**
+  String get marriedSeparated;
+
+  /// No description provided for @marriedEngaged.
+  ///
+  /// In en, this message translates to:
+  /// **'Engaged'**
+  String get marriedEngaged;
+
+  /// No description provided for @marriedRemarried.
+  ///
+  /// In en, this message translates to:
+  /// **'Remarried'**
+  String get marriedRemarried;
+
+  /// No description provided for @requiredField.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get requiredField;
 
   /// No description provided for @chiefTitle.
   ///
@@ -2298,8 +2942,6 @@ abstract class AppLocalizations {
   /// **'Issue SalaryRangeVC for {name}?\n\nEmployee must have a payroll assigned.'**
   String chiefIssueSalaryVcContent(String name);
 
-  // ── Wallet ─────────────────────────────────────────────────────────────────
-
   /// No description provided for @walletTitle.
   ///
   /// In en, this message translates to:
@@ -2339,7 +2981,7 @@ abstract class AppLocalizations {
   /// No description provided for @walletDidPending.
   ///
   /// In en, this message translates to:
-  /// **'DID pending Admin approval.\n\nAdmin must approve in "Approve Accounts" screen. After approval, DID and Employment VC will be issued automatically.'**
+  /// **'DID pending Admin approval.\n\nAdmin must approve in \"Approve Accounts\" screen. After approval, DID and Employment VC will be issued automatically.'**
   String get walletDidPending;
 
   /// No description provided for @walletDidNotInit.
@@ -2363,7 +3005,7 @@ abstract class AppLocalizations {
   /// No description provided for @walletVerifierScanSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Point camera at QR on Verifier screen\n(tab "Create VP Request")'**
+  /// **'Point camera at QR on Verifier screen\n(tab \"Create VP Request\")'**
   String get walletVerifierScanSubtitle;
 
   /// No description provided for @walletShareInfo.
@@ -2516,8 +3158,6 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get walletClose;
 
-  // ── CCCD ───────────────────────────────────────────────────────────────────
-
   /// No description provided for @cccdBack.
   ///
   /// In en, this message translates to:
@@ -2547,8 +3187,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter manually'**
   String get cccdManualInput;
-
-  // ── Verifier ───────────────────────────────────────────────────────────────
 
   /// No description provided for @verifierTitle.
   ///
@@ -2583,7 +3221,7 @@ abstract class AppLocalizations {
   /// No description provided for @verifierScanDescription.
   ///
   /// In en, this message translates to:
-  /// **'Accepts 2 QR types:\n• QR from "Export QR" button — verify VC directly\n• QR from "Present VP" button — verify VP Token signed by Employee'**
+  /// **'Accepts 2 QR types:\n• QR from \"Export QR\" button — verify VC directly\n• QR from \"Present VP\" button — verify VP Token signed by Employee'**
   String get verifierScanDescription;
 
   /// No description provided for @verifierHowItWorks.
@@ -2595,7 +3233,7 @@ abstract class AppLocalizations {
   /// No description provided for @verifierHowItWorksSteps.
   ///
   /// In en, this message translates to:
-  /// **'1. Select information you want Employee to provide\n2. Tap "Create VP Request QR" → QR is generated\n3. Have Employee scan this QR with their app\n4. Employee reviews and sends Verifiable Presentation\n5. Tap "Check Result" to view the shared information'**
+  /// **'1. Select information you want Employee to provide\n2. Tap \"Create VP Request QR\" → QR is generated\n3. Have Employee scan this QR with their app\n4. Employee reviews and sends Verifiable Presentation\n5. Tap \"Check Result\" to view the shared information'**
   String get verifierHowItWorksSteps;
 
   /// No description provided for @verifierSelectAtLeastOne.
@@ -2753,656 +3391,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm Share'**
   String get verifierConfirmShare;
-
-  // ── Profile screen extras ──────────────────────────────────────────────────
-
-  /// No description provided for @profileLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading profile...'**
-  String get profileLoading;
-
-  /// No description provided for @profileSetupHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Set up your profile to use all features'**
-  String get profileSetupHint;
-
-  /// No description provided for @profileSetup.
-  ///
-  /// In en, this message translates to:
-  /// **'Set Up Profile'**
-  String get profileSetup;
-
-  /// No description provided for @profileCreated.
-  ///
-  /// In en, this message translates to:
-  /// **'Profile created successfully'**
-  String get profileCreated;
-
-  /// No description provided for @profileStep1.
-  ///
-  /// In en, this message translates to:
-  /// **'Step 1/2 — Work Information'**
-  String get profileStep1;
-
-  /// No description provided for @profileStep2.
-  ///
-  /// In en, this message translates to:
-  /// **'Step 2/2 — Personal Information'**
-  String get profileStep2;
-
-  /// No description provided for @profileDepartmentLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Department *'**
-  String get profileDepartmentLabel;
-
-  /// No description provided for @profileDepartmentHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Board of Directors'**
-  String get profileDepartmentHint;
-
-  /// No description provided for @profilePositionLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Position *'**
-  String get profilePositionLabel;
-
-  /// No description provided for @profilePositionHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Chief Executive Officer'**
-  String get profilePositionHint;
-
-  /// No description provided for @profileWorkingTypeLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Working Type'**
-  String get profileWorkingTypeLabel;
-
-  /// No description provided for @profileFullNameLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Full Name *'**
-  String get profileFullNameLabel;
-
-  /// No description provided for @profileFullNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Nguyen Van A'**
-  String get profileFullNameHint;
-
-  /// No description provided for @profileDobLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Date of Birth *'**
-  String get profileDobLabel;
-
-  /// No description provided for @profileSelectDob.
-  ///
-  /// In en, this message translates to:
-  /// **'Select date of birth'**
-  String get profileSelectDob;
-
-  /// No description provided for @profileIdentityDocLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Identity Document'**
-  String get profileIdentityDocLabel;
-
-  /// No description provided for @profileIdentityDocNumberLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Document Number *'**
-  String get profileIdentityDocNumberLabel;
-
-  /// No description provided for @profileIdentityIssueYearLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Issue Year *'**
-  String get profileIdentityIssueYearLabel;
-
-  /// No description provided for @profileIdentityIssuePlaceLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Issue Place *'**
-  String get profileIdentityIssuePlaceLabel;
-
-  /// No description provided for @profileIdentityIssuePlaceHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Department of Police'**
-  String get profileIdentityIssuePlaceHint;
-
-  /// No description provided for @profileEmergencySection.
-  ///
-  /// In en, this message translates to:
-  /// **'Emergency Contact'**
-  String get profileEmergencySection;
-
-  /// No description provided for @profileEmergencyFullNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Nguyen Thi B'**
-  String get profileEmergencyFullNameHint;
-
-  /// No description provided for @profileEmergencyPhoneLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone Number *'**
-  String get profileEmergencyPhoneLabel;
-
-  /// No description provided for @profileEmergencyRelLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Relationship *'**
-  String get profileEmergencyRelLabel;
-
-  /// No description provided for @profileEmergencyRelHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Father/Mother, Husband/Wife'**
-  String get profileEmergencyRelHint;
-
-  /// No description provided for @profileResidenceHealthSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Residence & Health'**
-  String get profileResidenceHealthSection;
-
-  /// No description provided for @profilePermanentAddressLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Permanent Address *'**
-  String get profilePermanentAddressLabel;
-
-  /// No description provided for @profileAddressHint.
-  ///
-  /// In en, this message translates to:
-  /// **'House number, street, ward, district, province'**
-  String get profileAddressHint;
-
-  /// No description provided for @profileCurrentAddressLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Current Address *'**
-  String get profileCurrentAddressLabel;
-
-  /// No description provided for @profileHealthLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Health Status *'**
-  String get profileHealthLabel;
-
-  /// No description provided for @profileHealthHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Good'**
-  String get profileHealthHint;
-
-  /// No description provided for @profileMaritalLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Marital Status'**
-  String get profileMaritalLabel;
-
-  /// No description provided for @profileEducationSkillsSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Education & Skills'**
-  String get profileEducationSkillsSection;
-
-  /// No description provided for @profileEducationLevelLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Education Level *'**
-  String get profileEducationLevelLabel;
-
-  /// No description provided for @profileEducationLevelHint.
-  ///
-  /// In en, this message translates to:
-  /// **'University'**
-  String get profileEducationLevelHint;
-
-  /// No description provided for @profileMajorLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Major *'**
-  String get profileMajorLabel;
-
-  /// No description provided for @profileMajorHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Information Technology'**
-  String get profileMajorHint;
-
-  /// No description provided for @profileExpYearsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Experience (years) *'**
-  String get profileExpYearsLabel;
-
-  /// No description provided for @profileSkillsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Skills *'**
-  String get profileSkillsLabel;
-
-  /// No description provided for @profileSkillsHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Flutter, Kotlin (comma separated)'**
-  String get profileSkillsHint;
-
-  /// No description provided for @profileNext.
-  ///
-  /// In en, this message translates to:
-  /// **'Next'**
-  String get profileNext;
-
-  /// No description provided for @profileSaveProfile.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Profile'**
-  String get profileSaveProfile;
-
-  /// No description provided for @profileRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Required'**
-  String get profileRequired;
-
-  /// No description provided for @profileError.
-  ///
-  /// In en, this message translates to:
-  /// **'An error occurred'**
-  String get profileError;
-
-  // ── Onboarding personal screen extras ─────────────────────────────────────
-
-  /// No description provided for @onboardingProvince.
-  ///
-  /// In en, this message translates to:
-  /// **'Province / City'**
-  String get onboardingProvince;
-
-  /// No description provided for @onboardingDistrict.
-  ///
-  /// In en, this message translates to:
-  /// **'District'**
-  String get onboardingDistrict;
-
-  /// No description provided for @onboardingWard.
-  ///
-  /// In en, this message translates to:
-  /// **'Ward'**
-  String get onboardingWard;
-
-  /// No description provided for @onboardingPersonalTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Personal Information'**
-  String get onboardingPersonalTitle;
-
-  /// No description provided for @onboardingPersonalSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Complete your profile for admin approval'**
-  String get onboardingPersonalSubtitle;
-
-  /// No description provided for @onboardingSkip.
-  ///
-  /// In en, this message translates to:
-  /// **'Skip, complete later'**
-  String get onboardingSkip;
-
-  /// No description provided for @onboardingSelectYear.
-  ///
-  /// In en, this message translates to:
-  /// **'Select year'**
-  String get onboardingSelectYear;
-
-  /// No description provided for @onboardingFullNameLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Full Name *'**
-  String get onboardingFullNameLabel;
-
-  /// No description provided for @onboardingGenderLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Gender *'**
-  String get onboardingGenderLabel;
-
-  /// No description provided for @onboardingDobLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Date of Birth *'**
-  String get onboardingDobLabel;
-
-  /// No description provided for @onboardingSelectDob.
-  ///
-  /// In en, this message translates to:
-  /// **'Select date of birth'**
-  String get onboardingSelectDob;
-
-  /// No description provided for @onboardingIdentityDocSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Identity Document'**
-  String get onboardingIdentityDocSection;
-
-  /// No description provided for @onboardingIdentityDocTypeLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Document Type *'**
-  String get onboardingIdentityDocTypeLabel;
-
-  /// No description provided for @onboardingIdentityDocNumberLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Document Number *'**
-  String get onboardingIdentityDocNumberLabel;
-
-  /// No description provided for @onboardingIssueYearLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Issue Year *'**
-  String get onboardingIssueYearLabel;
-
-  /// No description provided for @onboardingIssuePlaceLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Issue Place *'**
-  String get onboardingIssuePlaceLabel;
-
-  /// No description provided for @onboardingEmergencySection.
-  ///
-  /// In en, this message translates to:
-  /// **'Emergency Contact'**
-  String get onboardingEmergencySection;
-
-  /// No description provided for @onboardingEmergencyFullNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Nguyen Thi B'**
-  String get onboardingEmergencyFullNameHint;
-
-  /// No description provided for @onboardingEmergencyPhoneLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone Number *'**
-  String get onboardingEmergencyPhoneLabel;
-
-  /// No description provided for @onboardingEmergencyRelLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Relationship *'**
-  String get onboardingEmergencyRelLabel;
-
-  /// No description provided for @onboardingResidenceHealthSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Residence & Health'**
-  String get onboardingResidenceHealthSection;
-
-  /// No description provided for @onboardingPermanentAddressLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Permanent Address *'**
-  String get onboardingPermanentAddressLabel;
-
-  /// No description provided for @onboardingCurrentAddressLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Current Address *'**
-  String get onboardingCurrentAddressLabel;
-
-  /// No description provided for @onboardingHealthStatusLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Health Status *'**
-  String get onboardingHealthStatusLabel;
-
-  /// No description provided for @onboardingMaritalStatusLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Marital Status *'**
-  String get onboardingMaritalStatusLabel;
-
-  /// No description provided for @onboardingEducationSkillsSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Education & Skills'**
-  String get onboardingEducationSkillsSection;
-
-  /// No description provided for @onboardingEducationLevelLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Education Level *'**
-  String get onboardingEducationLevelLabel;
-
-  /// No description provided for @onboardingMajorLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Major *'**
-  String get onboardingMajorLabel;
-
-  /// No description provided for @onboardingMajorHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Information Technology'**
-  String get onboardingMajorHint;
-
-  /// No description provided for @onboardingExpYearsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Experience (years) *'**
-  String get onboardingExpYearsLabel;
-
-  /// No description provided for @onboardingExpYearsHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. 3'**
-  String get onboardingExpYearsHint;
-
-  /// No description provided for @onboardingSkillsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Skills *'**
-  String get onboardingSkillsLabel;
-
-  /// No description provided for @onboardingSkillsHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Flutter, Kotlin, Spring Boot (comma separated)'**
-  String get onboardingSkillsHint;
-
-  /// No description provided for @onboardingCertificateLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Certificates (optional)'**
-  String get onboardingCertificateLabel;
-
-  /// No description provided for @onboardingCertificateHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. AWS, PMP (comma separated)'**
-  String get onboardingCertificateHint;
-
-  /// No description provided for @onboardingCompleteBtn.
-  ///
-  /// In en, this message translates to:
-  /// **'Complete Registration'**
-  String get onboardingCompleteBtn;
-
-  /// No description provided for @onboardingValidateFullName.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter full name'**
-  String get onboardingValidateFullName;
-
-  /// No description provided for @onboardingValidateDob.
-  ///
-  /// In en, this message translates to:
-  /// **'Please select date of birth'**
-  String get onboardingValidateDob;
-
-  /// No description provided for @onboardingValidateDocNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter document number'**
-  String get onboardingValidateDocNumber;
-
-  /// No description provided for @onboardingValidateIssueYear.
-  ///
-  /// In en, this message translates to:
-  /// **'Please select issue year'**
-  String get onboardingValidateIssueYear;
-
-  /// No description provided for @onboardingValidatePhone.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter phone number'**
-  String get onboardingValidatePhone;
-
-  /// No description provided for @onboardingValidatePhoneFormat.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid phone number'**
-  String get onboardingValidatePhoneFormat;
-
-  /// No description provided for @onboardingValidatePermanentAddress.
-  ///
-  /// In en, this message translates to:
-  /// **'Please select permanent address'**
-  String get onboardingValidatePermanentAddress;
-
-  /// No description provided for @onboardingValidateCurrentAddress.
-  ///
-  /// In en, this message translates to:
-  /// **'Please select current address'**
-  String get onboardingValidateCurrentAddress;
-
-  /// No description provided for @onboardingValidateMajor.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter major'**
-  String get onboardingValidateMajor;
-
-  /// No description provided for @onboardingValidateExpYears.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter experience years'**
-  String get onboardingValidateExpYears;
-
-  /// No description provided for @onboardingValidateSkills.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter at least 1 skill'**
-  String get onboardingValidateSkills;
-
-  /// No description provided for @onboardingGenericError.
-  ///
-  /// In en, this message translates to:
-  /// **'An error occurred'**
-  String get onboardingGenericError;
-
-  // ── Auth screen extras ─────────────────────────────────────────────────────
-
-  /// No description provided for @authSignInPending.
-  ///
-  /// In en, this message translates to:
-  /// **'Account is pending admin approval. Please try again later.'**
-  String get authSignInPending;
-
-  /// No description provided for @authSignInRejected.
-  ///
-  /// In en, this message translates to:
-  /// **'Account has been rejected. Please contact Admin.'**
-  String get authSignInRejected;
-
-  /// No description provided for @authSignInFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in failed. Please check your credentials.'**
-  String get authSignInFailed;
-
-  /// No description provided for @authSignUpFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign up failed'**
-  String get authSignUpFailed;
-
-  // ── Gender / Marital helpers ───────────────────────────────────────────────
-
-  /// No description provided for @genderMale.
-  ///
-  /// In en, this message translates to:
-  /// **'Male'**
-  String get genderMale;
-
-  /// No description provided for @genderFemale.
-  ///
-  /// In en, this message translates to:
-  /// **'Female'**
-  String get genderFemale;
-
-  /// No description provided for @genderOther.
-  ///
-  /// In en, this message translates to:
-  /// **'Other'**
-  String get genderOther;
-
-  /// No description provided for @marriedSingle.
-  ///
-  /// In en, this message translates to:
-  /// **'Single'**
-  String get marriedSingle;
-
-  /// No description provided for @marriedMarried.
-  ///
-  /// In en, this message translates to:
-  /// **'Married'**
-  String get marriedMarried;
-
-  /// No description provided for @marriedDivorced.
-  ///
-  /// In en, this message translates to:
-  /// **'Divorced'**
-  String get marriedDivorced;
-
-  /// No description provided for @marriedWidowed.
-  ///
-  /// In en, this message translates to:
-  /// **'Widowed'**
-  String get marriedWidowed;
-
-  /// No description provided for @marriedSeparated.
-  ///
-  /// In en, this message translates to:
-  /// **'Separated'**
-  String get marriedSeparated;
-
-  /// No description provided for @marriedEngaged.
-  ///
-  /// In en, this message translates to:
-  /// **'Engaged'**
-  String get marriedEngaged;
-
-  /// No description provided for @marriedRemarried.
-  ///
-  /// In en, this message translates to:
-  /// **'Remarried'**
-  String get marriedRemarried;
-
-  /// No description provided for @requiredField.
-  ///
-  /// In en, this message translates to:
-  /// **'Required'**
-  String get requiredField;
 }
 
 class _AppLocalizationsDelegate
