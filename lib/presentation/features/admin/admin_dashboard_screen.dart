@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
+import 'package:identity_frontend/presentation/features/admin/on_chain_explorer.dart';
 import 'package:identity_frontend/presentation/features/auth/bloc/auth_bloc.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -16,6 +18,7 @@ class AdminDashboardScreen extends StatefulWidget {
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Map<String, dynamic>? _stats;
+  Map<String, dynamic>? _issuerStats;
   bool _loading = true;
   String? _error;
 
@@ -30,9 +33,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     setState(() { _loading = true; _error = null; });
     try {
       final res = await ApiClient.instance.get(ApiConstants.adminDashboard);
+      // Issuer stats endpoint is new; tolerate absence so old backends still
+      // render the legacy HR KPIs without throwing.
+      Map<String, dynamic>? issuer;
+      try {
+        final r2 = await ApiClient.instance.get(ApiConstants.adminIssuerStats);
+        issuer = r2.data['data'] as Map<String, dynamic>?;
+      } catch (_) {
+        issuer = null;
+      }
       if (!mounted) return;
       setState(() {
         _stats = res.data['data'] as Map<String, dynamic>?;
+        _issuerStats = issuer;
         _loading = false;
       });
     } catch (e) {
@@ -42,10 +55,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   int _int(String key) => ((_stats ?? {})[key] as num?)?.toInt() ?? 0;
+  int _issuerInt(String key) => ((_issuerStats ?? {})[key] as num?)?.toInt() ?? 0;
 
   Future<void> _showIssueSalaryVcSheet(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    final idCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -60,8 +74,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: idCtrl,
-              keyboardType: TextInputType.number,
+              controller: emailCtrl,
+              keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 labelText: l10n.adminEmployeeId,
                 hintText: l10n.adminEmployeeIdHint,
@@ -77,11 +91,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
           FilledButton(
             onPressed: () async {
-              final id = idCtrl.text.trim();
-              if (id.isEmpty) return;
+              final email = emailCtrl.text.trim();
+              if (email.isEmpty) return;
               Navigator.pop(ctx);
               try {
-                await ApiClient.instance.put('/admin/employees/$id/issue-salary-vc');
+                await ApiClient.instance.put(
+                  '/admin/employees/issue-salary-vc',
+                  queryParameters: {'email': email},
+                );
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(l10n.adminSalaryVcIssued),
@@ -91,8 +108,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 }
               } catch (e) {
                 if (context.mounted) {
+                  final msg = e is DioException
+                      ? ApiException.fromDioError(e).message
+                      : e.toString();
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(l10n.adminErrorPrefix(e.toString())),
+                    content: Text(l10n.adminErrorPrefix(msg)),
                     backgroundColor: AppColors.error,
                     behavior: SnackBarBehavior.floating,
                   ));
@@ -104,40 +124,60 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ],
       ),
     );
-    idCtrl.dispose();
+    emailCtrl.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        title: Text(l10n.adminDashboardTitle, style: const TextStyle(fontWeight: FontWeight.w700)),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: _load,
-            tooltip: l10n.adminRefresh,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          title: Text(l10n.issuerConsoleTitle,
+              style: const TextStyle(fontWeight: FontWeight.w700)),
+          elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              onPressed: _load,
+              tooltip: l10n.adminRefresh,
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout_rounded),
+              tooltip: l10n.logout,
+              onPressed: () {
+                context.read<AuthBloc>().add(const AuthLoggedOut());
+                context.go('/auth/sign-in');
+              },
+            ),
+          ],
+          bottom: const TabBar(
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white60,
+            labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            unselectedLabelStyle: TextStyle(fontSize: 13),
+            tabs: [
+              Tab(icon: Icon(Icons.dashboard_rounded, size: 16), text: 'Dashboard'),
+              Tab(icon: Icon(Icons.account_tree_rounded, size: 16), text: 'On-Chain'),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: l10n.logout,
-            onPressed: () {
-              context.read<AuthBloc>().add(const AuthLoggedOut());
-              context.go('/auth/sign-in');
-            },
-          ),
-        ],
+        ),
+        body: TabBarView(
+          children: [
+            _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? _buildError(l10n)
+                    : _buildContent(context, l10n),
+            const OnChainExplorer(),
+          ],
+        ),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? _buildError(l10n)
-              : _buildContent(context, l10n),
     );
   }
 
@@ -193,16 +233,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   color: Colors.white, size: context.r(26)),
             ),
             SizedBox(width: context.r(14)),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(l10n.adminSystemOverview,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: context.r(17),
-                      fontWeight: FontWeight.w700)),
-              SizedBox(height: context.r(2)),
-              Text(l10n.adminRealTimeData,
-                  style: TextStyle(color: Colors.white70, fontSize: context.r(12))),
-            ]),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l10n.issuerConsoleTitle,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: context.r(17),
+                        fontWeight: FontWeight.w700)),
+                SizedBox(height: context.r(2)),
+                Text(l10n.issuerConsoleSubtitle,
+                    style: TextStyle(color: Colors.white70, fontSize: context.r(12))),
+              ]),
+            ),
           ]),
         ),
         SizedBox(height: context.r(16)),
@@ -238,7 +280,84 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           SizedBox(height: context.r(16)),
         ],
 
-        // Stats grid
+        // ── SSI KPIs (primary) ────────────────────────────────────────────
+        _sectionLabel(context, l10n.issuerStatsSection,
+            icon: Icons.verified_user_rounded, color: AppColors.primary),
+        SizedBox(height: context.r(10)),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: context.r(14),
+          crossAxisSpacing: context.r(14),
+          childAspectRatio: 1.45,
+          children: [
+            _statCard(context, l10n.issuerStatsCredentialsIssued,
+                _issuerInt('credentialsIssued'),
+                Icons.workspace_premium_rounded, AppColors.primary),
+            _statCard(context, l10n.issuerStatsActiveDids,
+                _issuerInt('activeDids'),
+                Icons.fingerprint_rounded, AppColors.success),
+            _statCard(context, l10n.issuerStatsRevokedMonth,
+                _issuerInt('revokedThisMonth'),
+                Icons.block_rounded, AppColors.error),
+            _statCard(context, l10n.issuerStatsTrustedIssuers,
+                _issuerInt('trustedIssuers'),
+                Icons.verified_rounded, AppColors.info),
+          ],
+        ),
+        SizedBox(height: context.r(20)),
+
+        // Issuer quick actions
+        Row(children: [
+          Expanded(
+            child: _quickCard(
+              context,
+              icon: Icons.person_add_alt_1_rounded,
+              label: l10n.issuerActionEnroll,
+              color: AppColors.primary,
+              onTap: () => context.push('/app/admin/pending-accounts'),
+            ),
+          ),
+          SizedBox(width: context.r(12)),
+          Expanded(
+            child: _quickCard(
+              context,
+              icon: Icons.attach_money_rounded,
+              label: l10n.issuerActionIssueSalary,
+              color: AppColors.accent,
+              onTap: () => _showIssueSalaryVcSheet(context),
+            ),
+          ),
+        ]),
+        SizedBox(height: context.r(12)),
+        Row(children: [
+          Expanded(
+            child: _quickCard(
+              context,
+              icon: Icons.qr_code_scanner_rounded,
+              label: l10n.issuerActionVerifier,
+              color: AppColors.info,
+              onTap: () => context.push('/app/verifier'),
+            ),
+          ),
+          SizedBox(width: context.r(12)),
+          Expanded(
+            child: _quickCard(
+              context,
+              icon: Icons.people_alt_rounded,
+              label: l10n.ssiCredentialSubjects,
+              color: AppColors.primaryLight,
+              onTap: () => context.go('/app/chief'),
+            ),
+          ),
+        ]),
+        SizedBox(height: context.r(24)),
+
+        // ── HR KPIs (secondary) ───────────────────────────────────────────
+        _sectionLabel(context, l10n.issuerStatsHrSection,
+            icon: Icons.work_outline_rounded, color: AppColors.textSecondary),
+        SizedBox(height: context.r(10)),
         GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
@@ -257,58 +376,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Icons.pending_actions_rounded, AppColors.warning),
           ],
         ),
-        SizedBox(height: context.r(20)),
-
-        // Quick links row 1
-        Row(children: [
-          Expanded(
-            child: _quickCard(
-              context,
-              icon: Icons.people_alt_rounded,
-              label: l10n.adminManageStaff,
-              color: AppColors.primary,
-              onTap: () => context.go('/app/chief'),
-            ),
-          ),
-          SizedBox(width: context.r(12)),
-          Expanded(
-            child: _quickCard(
-              context,
-              icon: Icons.manage_accounts_rounded,
-              label: l10n.homeApproveAccounts,
-              color: AppColors.warning,
-              onTap: () => context.push('/app/admin/pending-accounts'),
-            ),
-          ),
-        ]),
-        SizedBox(height: context.r(12)),
-
-        // Quick links row 2
-        Row(children: [
-          Expanded(
-            child: _quickCard(
-              context,
-              icon: Icons.attach_money_rounded,
-              label: l10n.adminIssueSalaryVc,
-              color: AppColors.accent,
-              onTap: () => _showIssueSalaryVcSheet(context),
-            ),
-          ),
-          SizedBox(width: context.r(12)),
-          Expanded(
-            child: _quickCard(
-              context,
-              icon: Icons.qr_code_scanner_rounded,
-              label: l10n.adminVerifierScanner,
-              color: AppColors.info,
-              onTap: () => context.push('/app/verifier'),
-            ),
-          ),
-        ]),
         SizedBox(height: context.r(24)),
       ]),
     );
   }
+
+  Widget _sectionLabel(BuildContext context, String label,
+          {required IconData icon, required Color color}) =>
+      Row(children: [
+        Icon(icon, size: context.r(18), color: color),
+        SizedBox(width: context.r(8)),
+        Text(label,
+            style: TextStyle(
+                fontSize: context.r(13),
+                fontWeight: FontWeight.w700,
+                color: color,
+                letterSpacing: 0.4)),
+      ]);
 
   Widget _statCard(BuildContext context, String label, int value, IconData icon, Color color) =>
       Container(

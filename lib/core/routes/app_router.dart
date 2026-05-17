@@ -12,7 +12,13 @@ import 'package:identity_frontend/domain/usecases/company_usecase.dart';
 import 'package:identity_frontend/domain/usecases/directory_usecase.dart';
 import 'package:identity_frontend/domain/usecases/request_usecase.dart';
 import 'package:identity_frontend/presentation/features/admin/admin_dashboard_screen.dart';
+import 'package:identity_frontend/presentation/features/admin/audit_log_screen.dart';
+import 'package:identity_frontend/presentation/features/admin/issue_sd_jwt_screen.dart';
 import 'package:identity_frontend/presentation/features/attendance/attendance_history_screen.dart';
+import 'package:identity_frontend/presentation/features/contract/contract_sign_screen.dart';
+import 'package:identity_frontend/presentation/features/profile/gdpr_privacy_screen.dart';
+import 'package:identity_frontend/presentation/features/security/mfa_setup_screen.dart';
+import 'package:identity_frontend/presentation/features/security/sessions_screen.dart';
 import 'package:identity_frontend/presentation/features/attendance/attendance_screen.dart';
 import 'package:identity_frontend/presentation/features/attendance/timesheet_screen.dart';
 import 'package:identity_frontend/presentation/features/manager/manager_timesheet_screen.dart';
@@ -40,6 +46,7 @@ import 'package:identity_frontend/presentation/features/requests/request_list_sc
 import 'package:identity_frontend/presentation/features/splash/splash_screen.dart';
 import 'package:identity_frontend/presentation/features/wallet/wallet_screen.dart';
 import 'package:identity_frontend/presentation/features/verifier/verifier_scan_screen.dart';
+import 'package:identity_frontend/presentation/features/workplace/workplace_screen.dart';
 
 GoRouter? appRouter;
 
@@ -190,6 +197,68 @@ GoRouter createAppRouter(IAnalyticsService analytics) {
 
         // Verifier QR scanner (all roles)
         GoRoute(path: '/app/verifier', builder: (_, _) => const VerifierScanScreen()),
+
+        // Workplace hub — HRMS use-cases grouped under one entry
+        GoRoute(path: '/app/workplace', builder: (_, _) => const WorkplaceScreen()),
+
+        // Contract e-sign (Phase 1 / 4.7)
+        GoRoute(
+          path: '/app/contract/:id/sign',
+          builder: (context, state) {
+            final contractId = int.parse(state.pathParameters['id']!);
+            final extra = state.extra as Map<String, dynamic>?;
+            return ContractSignScreen(
+              contractId: contractId,
+              contractType: extra?['contractType'] as String?,
+              startDate: extra?['startDate'] as String?,
+              endDate: extra?['endDate'] as String?,
+            );
+          },
+        ),
+
+        // Issue SD-JWT (Admin / Chief)
+        GoRoute(
+          path: '/app/admin/issue-sd-jwt/:employeeId',
+          builder: (context, state) {
+            final employeeId = state.pathParameters['employeeId']!;
+            final extra = state.extra as Map<String, dynamic>?;
+            return IssueSdJwtScreen(
+              employeeId: employeeId,
+              employeeName: extra?['employeeName'] as String?,
+            );
+          },
+        ),
+
+        // Audit Log (Admin / Chief)
+        GoRoute(
+          path: '/app/admin/audit/:employeeId',
+          builder: (context, state) {
+            final employeeId = state.pathParameters['employeeId']!;
+            final extra = state.extra as Map<String, dynamic>?;
+            return AuditLogScreen(
+              employeeId: employeeId,
+              employeeName: extra?['employeeName'] as String?,
+            );
+          },
+        ),
+
+        // MFA Setup (Admin / Chief)
+        GoRoute(
+          path: '/app/security/mfa-setup',
+          builder: (_, _) => const MfaSetupScreen(),
+        ),
+
+        // Active Sessions
+        GoRoute(
+          path: '/app/security/sessions',
+          builder: (_, _) => const SessionsScreen(),
+        ),
+
+        // GDPR Privacy
+        GoRoute(
+          path: '/app/privacy',
+          builder: (_, _) => const GdprPrivacyScreen(),
+        ),
       ],
     ),
   ],
@@ -222,51 +291,45 @@ class _AppShellState extends State<_AppShell> {
   }
 
   List<_NavItem> _navItems(AppLocalizations l10n) {
-    final base = [
-      _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, l10n.navHome),
-      _NavItem('/app/attendance', Icons.fingerprint_rounded, Icons.fingerprint_rounded, l10n.navAttendance),
-      _NavItem('/app/requests', Icons.description_outlined, Icons.description_rounded, l10n.navRequests),
-      _NavItem('/app/directory', Icons.group_outlined, Icons.group_rounded, l10n.navDirectory),
-      _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, l10n.navWallet),
-      _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, l10n.navVerifier),
-      _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, l10n.navProfile),
-    ];
-
+    // SSI-first navigation. HRMS use-cases (attendance/requests/directory/...)
+    // are collapsed under /app/workplace to reposition the app as an SSI
+    // platform instead of an HRMS-with-blockchain.
     if (_role == 'MANAGER') {
       return [
-        _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, l10n.navHome),
-        _NavItem('/app/attendance', Icons.fingerprint_rounded, Icons.fingerprint_rounded, l10n.navAttendance),
-        _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, l10n.navApproveRequests),
-        _NavItem('/app/manager/timesheet', Icons.table_chart_outlined, Icons.table_chart_rounded, l10n.navTimesheet),
-        _NavItem('/app/directory', Icons.group_outlined, Icons.group_rounded, l10n.navDirectory),
         _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, l10n.navWallet),
         _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, l10n.navVerifier),
+        _NavItem('/app/workplace', Icons.work_outline_rounded, Icons.work_rounded, l10n.navWorkplace),
+        _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, l10n.navHome),
         _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, l10n.navProfile),
       ];
     }
 
     if (_role == 'CHIEF') {
       return [
-        _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, l10n.navHome),
-        _NavItem('/app/manager/requests', Icons.approval_outlined, Icons.approval_rounded, l10n.navApproveRequests),
-        _NavItem('/app/admin/pending-accounts', Icons.how_to_reg_outlined, Icons.how_to_reg_rounded, l10n.navApproveAccounts),
-        _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, l10n.navStaff),
         _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, l10n.navWallet),
         _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, l10n.navVerifier),
+        _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, l10n.ssiCredentialSubjects),
+        _NavItem('/app/workplace', Icons.work_outline_rounded, Icons.work_rounded, l10n.navWorkplace),
         _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, l10n.navProfile),
       ];
     }
 
     if (_role == 'ADMIN') {
       return [
-        _NavItem('/app/admin', Icons.admin_panel_settings_outlined, Icons.admin_panel_settings_rounded, l10n.navDashboard),
-        _NavItem('/app/chief', Icons.manage_accounts_outlined, Icons.manage_accounts_rounded, l10n.navStaff),
-        _NavItem('/app/ledger', Icons.account_tree_outlined, Icons.account_tree_rounded, l10n.navLedger),
+        _NavItem('/app/admin', Icons.workspace_premium_outlined, Icons.workspace_premium_rounded, l10n.navIssuer),
+        _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, l10n.navVerifier),
         _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, l10n.navProfile),
       ];
     }
 
-    return base;
+    // EMPLOYEE
+    return [
+      _NavItem('/app/wallet', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet_rounded, l10n.navWallet),
+      _NavItem('/app/verifier', Icons.qr_code_scanner_rounded, Icons.qr_code_scanner_rounded, l10n.navVerifier),
+      _NavItem('/app/workplace', Icons.work_outline_rounded, Icons.work_rounded, l10n.navWorkplace),
+      _NavItem('/app/home', Icons.home_outlined, Icons.home_rounded, l10n.navHome),
+      _NavItem('/app/profile', Icons.person_outline_rounded, Icons.person_rounded, l10n.navProfile),
+    ];
   }
 
   int _currentIndex(List<_NavItem> items, String loc) {

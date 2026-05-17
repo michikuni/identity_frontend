@@ -42,6 +42,12 @@ dependencies:
   # QR Code generation — export VC as QR
   qr_flutter: ^4.1.0
 
+  # Biometric authentication — protects private key access (Phase 1 / 4.5)
+  local_auth: ^2.3.0
+
+  # Offline cache — store VCs locally so Wallet works without network (Phase 3 / 6.4)
+  hive_flutter: ^1.1.0
+
   # UI
   flutter_svg: ^2.2.4
   mobile_scanner: ^7.2.0

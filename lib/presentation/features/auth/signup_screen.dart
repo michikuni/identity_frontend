@@ -206,9 +206,18 @@ class _SignUpViewState extends State<_SignUpView> {
         if (state.status == AuthStatus.signedUp) {
           context.go('/auth/onboarding');
         } else if (state.status == AuthStatus.failure) {
+          final errorMsg = state.errorMessage;
+          final String msg;
+          if (errorMsg == 'SERVER_ERROR') {
+            msg = l10n.authSignUpServerError;
+          } else if (errorMsg == null || errorMsg == 'SIGN_UP_FAILED') {
+            msg = l10n.authSignUpFailed;
+          } else {
+            msg = errorMsg;
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage ?? 'Sign up failed'),
+              content: Text(msg),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(

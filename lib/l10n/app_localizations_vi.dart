@@ -486,6 +486,103 @@ class AppLocalizationsVi extends AppLocalizations {
   String get navDashboard => 'Tổng quan';
 
   @override
+  String get navCredentials => 'Chứng chỉ';
+
+  @override
+  String get navIssuer => 'Issuer';
+
+  @override
+  String get navWorkplace => 'Workplace';
+
+  @override
+  String get workplaceTitle => 'Workplace';
+
+  @override
+  String get workplaceSubtitle => 'Các use case minh họa role Issuer (HRMS)';
+
+  @override
+  String get workplaceAttendance => 'Chấm công';
+
+  @override
+  String get workplaceRequests => 'Đơn từ';
+
+  @override
+  String get workplaceDirectory => 'Danh sách nhân viên';
+
+  @override
+  String get workplaceCompany => 'Thông tin công ty';
+
+  @override
+  String get workplacePayroll => 'Lương';
+
+  @override
+  String get workplaceContract => 'Hợp đồng';
+
+  @override
+  String get workplaceManagerRequests => 'Duyệt đơn';
+
+  @override
+  String get workplaceManagerTimesheet => 'Bảng công';
+
+  @override
+  String get issuerConsoleTitle => 'Issuer Console';
+
+  @override
+  String get issuerConsoleSubtitle =>
+      'Phát hành & quản lý Verifiable Credentials';
+
+  @override
+  String get issuerStatsCredentialsIssued => 'VC đã phát hành';
+
+  @override
+  String get issuerStatsActiveDids => 'DID đang hoạt động';
+
+  @override
+  String get issuerStatsRevokedMonth => 'VC bị thu hồi (tháng)';
+
+  @override
+  String get issuerStatsTrustedIssuers => 'Issuer được tin tưởng';
+
+  @override
+  String get issuerStatsSection => 'KPI SSI';
+
+  @override
+  String get issuerStatsHrSection => 'KPI vận hành (HR)';
+
+  @override
+  String get issuerActionEnroll => 'Enroll & cấp VC';
+
+  @override
+  String get issuerActionIssueSalary => 'Phát hành SalaryRangeVC';
+
+  @override
+  String get issuerActionIssueSkill => 'Phát hành SkillVC (SD-JWT)';
+
+  @override
+  String get issuerActionIssueEducation => 'Phát hành EducationVC (SD-JWT)';
+
+  @override
+  String get issuerActionRevoke => 'Thu hồi VC';
+
+  @override
+  String get issuerActionVerifier => 'Mở Verifier';
+
+  @override
+  String get ssiCredentialWallet => 'Ví Credential';
+
+  @override
+  String get ssiCredentialSubjects => 'Credential Subjects';
+
+  @override
+  String get ssiPresentCredential => 'Trình bày Credential';
+
+  @override
+  String get ssiVerifiableRecords => 'Sổ ghi Verifiable';
+
+  @override
+  String get ssiIdentityAttributes => 'Thuộc tính danh tính';
+
+  @override
   String get adminDashboardTitle => 'Bảng điều hành';
 
   @override
@@ -531,13 +628,13 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get adminIssueSalaryVcDesc =>
-      'Nhập Employee ID để phát hành SalaryRangeVC.\nYêu cầu nhân viên đã có payroll được gán.';
+      'Nhập email nhân viên để phát hành SalaryRangeVC.\nYêu cầu nhân viên đã có payroll được gán.';
 
   @override
-  String get adminEmployeeId => 'Mã nhân viên';
+  String get adminEmployeeId => 'Email nhân viên';
 
   @override
-  String get adminEmployeeIdHint => 'VD: 5';
+  String get adminEmployeeIdHint => 'VD: nguyen@congty.com';
 
   @override
   String get adminSalaryVcIssued => 'SalaryRangeVC đã được phát hành';
@@ -1139,7 +1236,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String get authSignInFailed => 'Đăng nhập thất bại. Kiểm tra lại thông tin.';
 
   @override
-  String get authSignUpFailed => 'Đăng ký thất bại';
+  String get authSignUpFailed => 'Đăng ký thất bại. Vui lòng thử lại.';
+
+  @override
+  String get authSignUpDuplicate =>
+      'Email hoặc số điện thoại này đã được đăng ký.';
+
+  @override
+  String get authSignUpServerError => 'Lỗi máy chủ. Vui lòng thử lại sau.';
 
   @override
   String get genderMale => 'Nam';
@@ -1541,10 +1645,20 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get walletCreateVcQr => 'Tạo VC QR';
+  String walletQrChars(int count) {
+    return '$count ký tự';
+  }
 
   @override
-  String get walletScanVpRequest => 'Quét QR VP Request';
+  String walletQrCharsShort(int count) {
+    return '$count ký tự (short token)';
+  }
+
+  @override
+  String get walletCreateVcQr => 'Xuất mã QR';
+
+  @override
+  String get walletScanVpRequest => 'Nhận yêu cầu';
 
   @override
   String get walletQrForVerifier => 'Cho Verifier quét để xác minh';
@@ -1609,10 +1723,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get verifierTitle => 'Verifier';
 
   @override
-  String get verifierVerifyVc => 'Xác minh VC';
+  String get verifierVerifyVc => 'Quét & Xác minh';
 
   @override
-  String get verifierRequestVp => 'Yêu cầu VP';
+  String get verifierRequestVp => 'Tạo Yêu cầu';
 
   @override
   String get verifierScanAgain => 'Quét lại';
@@ -1716,4 +1830,352 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get verifierConfirmShare => 'Xác nhận chia sẻ';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get done => 'Xong';
+
+  @override
+  String get copiedToClipboard => 'Đã sao chép vào clipboard';
+
+  @override
+  String get mfaSetupTitle => 'Thiết lập xác thực hai yếu tố';
+
+  @override
+  String get mfaScanQrInstruction => 'Quét QR này bằng ứng dụng Authenticator';
+
+  @override
+  String get mfaScanQrHint => 'Dùng Google Authenticator, Authy hoặc 1Password';
+
+  @override
+  String get mfaSecretCopied => 'Đã sao chép secret';
+
+  @override
+  String get mfaEnterCodeHint => 'Nhập mã 6 chữ số từ ứng dụng của bạn';
+
+  @override
+  String get mfaVerifyBtn => 'Xác minh & Bật MFA';
+
+  @override
+  String get mfaEnabled => 'Đã bật MFA!';
+
+  @override
+  String get mfaBackupCodesWarning =>
+      'Lưu các mã dự phòng này ngay bây giờ — chúng sẽ KHÔNG được hiển thị lại. Mỗi mã chỉ dùng được một lần.';
+
+  @override
+  String get mfaBackupCodesTitle => 'Mã dự phòng';
+
+  @override
+  String get mfaCopyAllCodes => 'Sao chép tất cả mã';
+
+  @override
+  String get mfaBackupCodesCopied => 'Đã sao chép mã dự phòng';
+
+  @override
+  String get mfaQrUnavailable => 'QR không khả dụng';
+
+  @override
+  String get mfaInvalidCode => 'Mã không hợp lệ. Thử lại.';
+
+  @override
+  String get gdprTitle => 'Quyền riêng tư & Dữ liệu';
+
+  @override
+  String get gdprDeleteTitle => 'Xóa dữ liệu của tôi';
+
+  @override
+  String get gdprDeleteWarning =>
+      'Thao tác này sẽ xóa vĩnh viễn tất cả dữ liệu cá nhân của bạn khỏi hệ thống.\n\n• Tất cả Verifiable Credentials sẽ bị thu hồi\n• DID của bạn sẽ bị hủy kích hoạt\n• Hồ sơ & tài khoản của bạn sẽ được ẩn danh\n\nMã băm kiểm toán on-chain không thể xóa (blockchain là bất biến, nhưng không chứa thông tin cá nhân).';
+
+  @override
+  String get gdprIUnderstandContinue => 'Tôi hiểu, Tiếp tục';
+
+  @override
+  String get gdprFinalConfirmTitle => 'Xác nhận cuối cùng';
+
+  @override
+  String get gdprTypeDeleteHint => 'Gõ DELETE để xác nhận:';
+
+  @override
+  String get gdprDeleteAllData => 'Xóa tất cả dữ liệu của tôi';
+
+  @override
+  String get gdprDataDeleted => 'Dữ liệu đã bị xóa';
+
+  @override
+  String get gdprDataDeletedMsg =>
+      'Tất cả dữ liệu cá nhân của bạn đã bị xóa. Bạn sẽ bị đăng xuất ngay bây giờ.';
+
+  @override
+  String get gdprDataRightsTitle => 'Quyền của bạn theo GDPR';
+
+  @override
+  String get gdprDataRightsBody =>
+      'Bạn có quyền truy cập tất cả dữ liệu cá nhân chúng tôi lưu giữ về bạn (Điều 20) và quyền yêu cầu xóa (Điều 17).';
+
+  @override
+  String get gdprExportTitle => 'Xuất dữ liệu của tôi';
+
+  @override
+  String get gdprExportSubtitle =>
+      'Tải xuống bản sao JSON đầy đủ của tất cả dữ liệu cá nhân của bạn.';
+
+  @override
+  String get gdprExportBtn => 'Xuất';
+
+  @override
+  String get gdprExportedData => 'Dữ liệu đã xuất';
+
+  @override
+  String get gdprDeleteCardSubtitle =>
+      'Xóa vĩnh viễn tất cả dữ liệu cá nhân, thu hồi tất cả chứng chỉ và hủy kích hoạt DID. Không thể hoàn tác.';
+
+  @override
+  String get gdprLegalNote =>
+      'Lưu ý: Các hồ sơ kiểm toán blockchain (chỉ là mã băm, không có thông tin cá nhân) không thể xóa vì chúng được ghi bất biến theo GDPR Recital 26 (dữ liệu ẩn danh nằm ngoài phạm vi GDPR).';
+
+  @override
+  String get sessionsTitle => 'Phiên đăng nhập hoạt động';
+
+  @override
+  String get sessionsLogoutDeviceTitle => 'Đăng xuất thiết bị';
+
+  @override
+  String get sessionsLogoutDeviceContent =>
+      'Thao tác này sẽ đăng xuất thiết bị đã chọn. Thiết bị sẽ cần đăng nhập lại.';
+
+  @override
+  String get sessionsLogoutBtn => 'Đăng xuất';
+
+  @override
+  String get sessionsLogoutAllTitle => 'Đăng xuất tất cả thiết bị khác';
+
+  @override
+  String get sessionsLogoutAllContent =>
+      'Tất cả các thiết bị khác sẽ bị đăng xuất ngay lập tức.';
+
+  @override
+  String get sessionsLogoutAllBtn => 'Đăng xuất tất cả';
+
+  @override
+  String sessionsFailed(String error) {
+    return 'Thất bại: $error';
+  }
+
+  @override
+  String get sessionsNoActive => 'Không có phiên đăng nhập nào';
+
+  @override
+  String get sessionsThisDevice => 'Thiết bị này';
+
+  @override
+  String sessionsLastSeen(String time) {
+    return 'Lần cuối thấy: $time';
+  }
+
+  @override
+  String contractSignTitle(String id) {
+    return 'Hợp đồng #$id';
+  }
+
+  @override
+  String get contractOnChainSignatures => 'Chữ ký on-chain';
+
+  @override
+  String get contractSignatureAnchored => 'Chữ ký đã được neo trên Fabric!';
+
+  @override
+  String get contractDetails => 'Chi tiết hợp đồng';
+
+  @override
+  String get contractContractId => 'Mã hợp đồng';
+
+  @override
+  String get contractOpenEnded => 'Không xác định thời hạn';
+
+  @override
+  String get contractSignBiometric => 'Ký bằng sinh trắc học';
+
+  @override
+  String get contractSignWaiting => 'Chờ xác thực sinh trắc học…';
+
+  @override
+  String get contractSignSigning => 'Đang ký…';
+
+  @override
+  String get contractSignAnchoring => 'Đang neo trên Fabric…';
+
+  @override
+  String get contractExplainer =>
+      'Chữ ký ECDSA P-256 của bạn được neo trên Hyperledger Fabric. Mã băm SHA-256 của hợp đồng được ghi bất biến — bất kỳ sửa đổi nào trong tương lai sẽ làm mất hiệu lực bằng chứng on-chain.';
+
+  @override
+  String get contractBiometricCancelled => 'Đã hủy xác thực sinh trắc học.';
+
+  @override
+  String get contractWalletNotInit =>
+      'Ví chưa được khởi tạo. Vui lòng hoàn tất onboarding trước.';
+
+  @override
+  String contractBackendError(String error) {
+    return 'Lỗi backend: $error';
+  }
+
+  @override
+  String get contractSignedAt => 'Đã ký:';
+
+  @override
+  String get contractDocHash => 'Mã băm:';
+
+  @override
+  String get auditLogTitle => 'Nhật ký kiểm toán';
+
+  @override
+  String get auditNoRecords => 'Không tìm thấy hồ sơ kiểm toán';
+
+  @override
+  String auditUpdatedBy(String name) {
+    return 'Bởi: $name';
+  }
+
+  @override
+  String get sdJwtIssueTitle => 'Phát hành SD-JWT Credential';
+
+  @override
+  String get sdJwtSkillTab => 'Kỹ năng';
+
+  @override
+  String get sdJwtEducationTab => 'Học vấn';
+
+  @override
+  String get sdJwtAddSkill => 'Thêm kỹ năng';
+
+  @override
+  String get sdJwtIssued => 'SD-JWT đã được phát hành!';
+
+  @override
+  String get sdJwtIssuedMsg => 'Credential đã được lưu vào hồ sơ nhân viên.';
+
+  @override
+  String get sdJwtIssueAnother => 'Phát hành thêm';
+
+  @override
+  String get sdJwtSkillBannerTitle => 'Skill Credential (SD-JWT)';
+
+  @override
+  String get sdJwtSkillBannerSubtitle =>
+      'Mỗi kỹ năng là một selective-disclosure claim riêng biệt. Người dùng quyết định tiết lộ kỹ năng nào cho từng Verifier.';
+
+  @override
+  String get sdJwtEducBannerTitle => 'Education Credential (SD-JWT)';
+
+  @override
+  String get sdJwtEducBannerSubtitle =>
+      'Mỗi trường (bằng cấp, chuyên ngành, GPA…) là một disclosure riêng biệt. Người dùng có thể chia sẻ chỉ những gì cần thiết.';
+
+  @override
+  String get sdJwtIssueSkillBtn => 'Phát hành Skill Credential';
+
+  @override
+  String get sdJwtIssueEducBtn => 'Phát hành Education Credential';
+
+  @override
+  String get sdJwtSkillNameHint => 'Tên kỹ năng';
+
+  @override
+  String get themeTitle => 'Giao diện';
+
+  @override
+  String get themeLight => 'Sáng';
+
+  @override
+  String get themeDark => 'Tối';
+
+  @override
+  String get themeSystem => 'Mặc định hệ thống';
+
+  @override
+  String get walletSdJwtBadge => 'SD-JWT';
+
+  @override
+  String get walletZeroKnowledge => 'Zero-Knowledge';
+
+  @override
+  String get walletPresentSelective => 'Present với Selective Disclosure';
+
+  @override
+  String get walletBiometricLock => 'Khóa ứng dụng bằng sinh trắc học';
+
+  @override
+  String get walletBiometricLockOnSubtitle =>
+      'Cần sinh trắc học để truy cập ví';
+
+  @override
+  String get walletBiometricLockOffSubtitle =>
+      'Nhấn để bật khóa vân tay / khuôn mặt';
+
+  @override
+  String walletSelectiveClaims(int count) {
+    return '$count selective-disclosure claim(s)';
+  }
+
+  @override
+  String get disclosureRequired => 'Bắt buộc';
+
+  @override
+  String get disclosureSignBiometric => 'Ký bằng sinh trắc học';
+
+  @override
+  String get disclosureSigningBiometric => 'Đang ký bằng sinh trắc học…';
+
+  @override
+  String disclosureShareTitle(String credentialType) {
+    return 'Chia sẻ $credentialType';
+  }
+
+  @override
+  String disclosureClaimsRequested(int count) {
+    return '$count claim(s) được yêu cầu';
+  }
+
+  @override
+  String get disclosureInfoBanner =>
+      'Các claim không được chọn sẽ KHÔNG hiển thị với Verifier. Chữ ký vẫn hợp lệ.';
+
+  @override
+  String get disclosureVerifierWants => 'Claim mà Verifier muốn xem';
+
+  @override
+  String get disclosureOptional => 'Tùy chọn — bạn có thể chia sẻ thêm';
+
+  @override
+  String get disclosurePrivacyNote =>
+      'Zero-Knowledge: Verifier không thể phát hiện rằng có các claim bị ẩn. Credential đầy đủ của bạn vẫn riêng tư.';
+
+  @override
+  String get disclosureBiometricCancelled => 'Đã hủy xác thực sinh trắc học.';
+
+  @override
+  String get vcCredentialRevoked => 'Chứng chỉ đã bị thu hồi';
+
+  @override
+  String get vcSelectiveDisclosedClaims => 'Thông tin được tiết lộ có chọn lọc';
+
+  @override
+  String get vcNoFields => 'Không có thông tin nào';
+
+  @override
+  String get vcFieldIssued => 'Ngày phát hành';
+
+  @override
+  String get vcFieldExpires => 'Ngày hết hạn';
+
+  @override
+  String get vcFieldId => 'Mã chứng chỉ';
+
+  @override
+  String get sdJwtSelectiveSubtitle => 'SD-JWT · Tiết lộ có chọn lọc';
 }

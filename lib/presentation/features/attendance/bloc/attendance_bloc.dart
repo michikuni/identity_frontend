@@ -27,7 +27,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       final today = await _useCase.getToday();
       emit(state.copyWith(status: AttendanceStatus.success, today: today));
     } catch (e) {
-      emit(state.copyWith(status: AttendanceStatus.success, today: null));
+      emit(state.copyWith(status: AttendanceStatus.failure, errorMessage: e.toString()));
     }
   }
 

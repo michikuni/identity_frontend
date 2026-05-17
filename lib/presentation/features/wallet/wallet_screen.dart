@@ -8,7 +8,9 @@ import 'package:identity_frontend/core/qr/vc_qr_payload_codec.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
+import 'package:identity_frontend/core/security/biometric_service.dart';
 import 'package:identity_frontend/core/wallet/vc_schemas.dart';
+import 'package:identity_frontend/presentation/features/wallet/disclosure_picker_screen.dart';
 import 'package:identity_frontend/core/wallet/vp_builder.dart';
 import 'package:identity_frontend/core/wallet/wallet_service.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -35,10 +37,26 @@ class _WalletScreenState extends State<WalletScreen> {
   String? _promotionVc;
   Map<String, dynamic>? _promotionVcParsed;
 
+  // SD-JWT credentials (Phase 1 / 4.2)
+  String? _skillSdJwt;
+  String? _educationSdJwt;
+
+  // Status badge cache: vcId → 'ACTIVE' | 'REVOKED' | 'UNKNOWN'
+  final Map<String, String> _statusCache = {};
+
+  // Biometric lock toggle
+  bool _biometricLockEnabled = false;
+
   @override
   void initState() {
     super.initState();
     _load();
+    _loadBiometricSetting();
+  }
+
+  Future<void> _loadBiometricSetting() async {
+    final enabled = await BiometricService.isBiometricLockEnabled();
+    if (mounted) setState(() => _biometricLockEnabled = enabled);
   }
 
   Future<String?> _resolveEmployeeNumericId() async {
@@ -112,6 +130,8 @@ class _WalletScreenState extends State<WalletScreen> {
         } else {
           _parsePromotionVc(_promotionVc!);
         }
+
+        await _fetchSdJwts(employeeId);
       }
     } catch (_) {
     } finally {
@@ -219,6 +239,63 @@ class _WalletScreenState extends State<WalletScreen> {
     } catch (_) {}
   }
 
+  // ── SD-JWT fetch (Phase 1 / 4.2) ────────────────────────────────────────────
+
+  Future<void> _fetchSdJwts(String employeeId) async {
+    await Future.wait([
+      _tryFetchSkillSdJwt(employeeId),
+      _tryFetchEducationSdJwt(employeeId),
+    ]);
+  }
+
+  Future<void> _tryFetchSkillSdJwt(String employeeId) async {
+    try {
+      final res = await ApiClient.instance.get(ApiConstants.sdJwtGetSkill(employeeId));
+      final jwt = res.data['data']?['sdJwt'] as String?;
+      if (jwt != null && jwt.isNotEmpty) {
+        setState(() => _skillSdJwt = jwt);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _tryFetchEducationSdJwt(String employeeId) async {
+    try {
+      final res = await ApiClient.instance.get(ApiConstants.sdJwtGetEducation(employeeId));
+      final jwt = res.data['data']?['sdJwt'] as String?;
+      if (jwt != null && jwt.isNotEmpty) {
+        setState(() => _educationSdJwt = jwt);
+      }
+    } catch (_) {}
+  }
+
+  // ── Status List badge (Phase 1 / 4.1) ────────────────────────────────────────
+
+  /// Returns 'ACTIVE', 'REVOKED', or 'UNKNOWN'.
+  Future<String> _fetchStatusBadge(Map<String, dynamic> vc) async {
+    try {
+      final cs = vc['credentialStatus'] as Map<String, dynamic>?;
+      if (cs == null || cs['type'] != 'StatusList2021Entry') return 'UNKNOWN';
+      final listCredUrl = cs['statusListCredential'] as String? ?? '';
+      final listId = listCredUrl.split('/').last;
+      final index = cs['statusListIndex']?.toString() ?? '';
+      if (listId.isEmpty || index.isEmpty) return 'UNKNOWN';
+
+      final cacheKey = '$listId#$index';
+      if (_statusCache.containsKey(cacheKey)) return _statusCache[cacheKey]!;
+
+      final res = await ApiClient.instance.get(
+        ApiConstants.statusListEntry(listId),
+        queryParameters: {'index': index},
+      );
+      final revoked = res.data['revoked'] == true;
+      final status = revoked ? 'REVOKED' : 'ACTIVE';
+      _statusCache[cacheKey] = status;
+      return status;
+    } catch (_) {
+      return 'UNKNOWN';
+    }
+  }
+
   List<Widget> _employmentRows(Map<String, dynamic> vc) => _credentialRows(
     vc,
     kVcSchemas['EmploymentCredential']?.fields ?? const [],
@@ -252,21 +329,21 @@ class _WalletScreenState extends State<WalletScreen> {
     }
 
     for (final field in preferredFields) {
-      add(field, subject[field]);
+      add(humanizeFieldKey(field), subject[field]);
     }
     for (final entry in subject.entries) {
       if (entry.key == 'id' || preferredFields.contains(entry.key)) continue;
-      add(entry.key, entry.value);
+      add(humanizeFieldKey(entry.key), entry.value);
     }
-    add('Issued', vc['issuanceDate']);
-    add('Expires', vc['expirationDate']);
-    add('VC ID', vc['id']);
+    add(AppLocalizations.of(context)!.vcFieldIssued, vc['issuanceDate']);
+    add(AppLocalizations.of(context)!.vcFieldExpires, vc['expirationDate']);
+    add(AppLocalizations.of(context)!.vcFieldId, vc['id']);
 
     if (entries.isEmpty) {
-      return const [
+      return [
         Text(
-          'No credential fields available',
-          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          AppLocalizations.of(context)!.vcNoFields,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
       ];
     }
@@ -354,10 +431,11 @@ class _WalletScreenState extends State<WalletScreen> {
                       vc: _vcParsed!,
                       vcJson: _employmentVc!,
                       vcType: 'EmploymentCredential',
-                      title: 'Employment Credential',
+                      title: humanizeVcType('EmploymentCredential'),
                       icon: Icons.verified_rounded,
                       color: AppColors.primary,
                       detailRows: _employmentRows(_vcParsed!),
+                      fetchStatus: _fetchStatusBadge,
                       onCreateVcQr: () => _showCreateVcQrDialog(
                         context,
                         _employmentVc!,
@@ -385,10 +463,11 @@ class _WalletScreenState extends State<WalletScreen> {
                       vc: _salaryRangeVcParsed!,
                       vcJson: _salaryRangeVc!,
                       vcType: 'SalaryRangeCredential',
-                      title: 'Salary Range Credential',
+                      title: humanizeVcType('SalaryRangeCredential'),
                       icon: Icons.attach_money_rounded,
                       color: AppColors.accent,
                       detailRows: _salaryRows(_salaryRangeVcParsed!),
+                      fetchStatus: _fetchStatusBadge,
                       onCreateVcQr: () => _showCreateVcQrDialog(
                         context,
                         _salaryRangeVc!,
@@ -409,10 +488,11 @@ class _WalletScreenState extends State<WalletScreen> {
                       vc: _promotionVcParsed!,
                       vcJson: _promotionVc!,
                       vcType: 'PromotionCredential',
-                      title: 'Promotion Credential',
+                      title: humanizeVcType('PromotionCredential'),
                       icon: Icons.trending_up_rounded,
                       color: AppColors.info,
                       detailRows: _promotionRows(_promotionVcParsed!),
+                      fetchStatus: _fetchStatusBadge,
                       onCreateVcQr: () => _showCreateVcQrDialog(
                         context,
                         _promotionVc!,
@@ -433,10 +513,11 @@ class _WalletScreenState extends State<WalletScreen> {
                       vc: _terminationVcParsed!,
                       vcJson: _terminationVc!,
                       vcType: 'TerminationCredential',
-                      title: 'Termination Credential',
+                      title: humanizeVcType('TerminationCredential'),
                       icon: Icons.cancel_rounded,
                       color: AppColors.error,
                       detailRows: _terminationRows(_terminationVcParsed!),
+                      fetchStatus: _fetchStatusBadge,
                       onCreateVcQr: () => _showCreateVcQrDialog(
                         context,
                         _terminationVc!,
@@ -450,6 +531,48 @@ class _WalletScreenState extends State<WalletScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
+
+                  // ── Skill SD-JWT Card (Phase 1 / 4.2) ────────────────────
+                  if (_skillSdJwt != null) ...[
+                    _SdJwtCard(
+                      sdJwt: _skillSdJwt!,
+                      credentialType: 'SkillCredential',
+                      title: humanizeVcType('SkillCredential'),
+                      subtitle: AppLocalizations.of(context)!.sdJwtSelectiveSubtitle,
+                      icon: Icons.psychology_outlined,
+                      color: const Color(0xFF7C3AED),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // ── Education SD-JWT Card (Phase 1 / 4.2) ────────────────
+                  if (_educationSdJwt != null) ...[
+                    _SdJwtCard(
+                      sdJwt: _educationSdJwt!,
+                      credentialType: 'EducationCredential',
+                      title: humanizeVcType('EducationCredential'),
+                      subtitle: AppLocalizations.of(context)!.sdJwtSelectiveSubtitle,
+                      icon: Icons.school_outlined,
+                      color: const Color(0xFF0891B2),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // ── Biometric Lock Toggle ────────────────────────────────
+                  _BiometricLockTile(
+                    enabled: _biometricLockEnabled,
+                    onChanged: (v) async {
+                      if (v) {
+                        final ok = await BiometricService.authenticateNow(
+                          reason: 'Confirm to enable App Lock',
+                        );
+                        if (!ok) return;
+                      }
+                      await BiometricService.setBiometricLockEnabled(v);
+                      setState(() => _biometricLockEnabled = v);
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
                   // ── Public Key Card ──────────────────────────────────────
                   if (_publicKeyJwk != null)
@@ -760,8 +883,8 @@ class _WalletScreenState extends State<WalletScreen> {
               const SizedBox(height: 6),
               Text(
                 isShortToken
-                    ? '${effectiveQrData.length} ký tự (short token)'
-                    : '${effectiveQrData.length} ký tự',
+                    ? AppLocalizations.of(context)!.walletQrCharsShort(effectiveQrData.length)
+                    : AppLocalizations.of(context)!.walletQrChars(effectiveQrData.length),
                 style: const TextStyle(fontSize: 10, color: AppColors.inactive),
               ),
               const SizedBox(height: 16),
@@ -919,6 +1042,8 @@ class _VCCard extends StatelessWidget {
   final List<Widget> detailRows;
   final VoidCallback onCreateVcQr;
   final VoidCallback onScanVpRequest;
+  final Future<String> Function(Map<String, dynamic>)? fetchStatus;
+
   const _VCCard({
     required this.vc,
     required this.vcJson,
@@ -929,6 +1054,7 @@ class _VCCard extends StatelessWidget {
     required this.detailRows,
     required this.onCreateVcQr,
     required this.onScanVpRequest,
+    this.fetchStatus,
   });
 
   @override
@@ -953,6 +1079,10 @@ class _VCCard extends StatelessWidget {
             badgeColor: isExpired ? AppColors.error : AppColors.success,
           ),
           const SizedBox(height: 12),
+          if (fetchStatus != null) ...[
+            _StatusBadge(vc: vc, fetchStatus: fetchStatus!),
+            const SizedBox(height: 10),
+          ],
           ...detailRows,
           const SizedBox(height: 14),
           Row(
@@ -1538,6 +1668,218 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── _StatusBadge ───────────────────────────────────────────────────────────────
+
+class _StatusBadge extends StatefulWidget {
+  final Map<String, dynamic> vc;
+  final Future<String> Function(Map<String, dynamic>) fetchStatus;
+
+  const _StatusBadge({required this.vc, required this.fetchStatus});
+
+  @override
+  State<_StatusBadge> createState() => _StatusBadgeState();
+}
+
+class _StatusBadgeState extends State<_StatusBadge> {
+  String _status = 'LOADING';
+
+  @override
+  void initState() {
+    super.initState();
+    widget.fetchStatus(widget.vc).then((s) {
+      if (mounted) setState(() => _status = s);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color) = switch (_status) {
+      'ACTIVE'  => ('● ACTIVE',  const Color(0xFF16A34A)),
+      'REVOKED' => ('✕ REVOKED', AppColors.error),
+      'LOADING' => ('…',         AppColors.textSecondary),
+      _         => ('UNKNOWN',   AppColors.textSecondary),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+      ),
+    );
+  }
+}
+
+// ── _SdJwtCard ─────────────────────────────────────────────────────────────────
+
+class _SdJwtCard extends StatelessWidget {
+  final String sdJwt;
+  final String credentialType;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+
+  const _SdJwtCard({
+    required this.sdJwt,
+    required this.credentialType,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Parse to show claim count
+    int claimCount = 0;
+    try {
+      final parts = sdJwt.split('~');
+      claimCount = parts.skip(1).where((s) => s.isNotEmpty).length;
+    } catch (_) {}
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [BoxShadow(color: AppColors.shadowLight, blurRadius: 8, offset: Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color, color.withValues(alpha: 0.7)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, color: Colors.white, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+                      Text(subtitle,
+                          style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8), fontSize: 11)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(AppLocalizations.of(context)!.walletSdJwtBadge,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ),
+          // Body
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.lock_outline, size: 14, color: color),
+                    const SizedBox(width: 6),
+                    Text(AppLocalizations.of(context)!.walletSelectiveClaims(claimCount),
+                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    const Spacer(),
+                    Icon(Icons.visibility_off_outlined, size: 14, color: AppColors.textSecondary),
+                    const SizedBox(width: 4),
+                    Text(AppLocalizations.of(context)!.walletZeroKnowledge,
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => DisclosurePickerScreen(
+                        sdJwt: sdJwt,
+                        credentialType: credentialType,
+                      ),
+                    ));
+                  },
+                  icon: Icon(Icons.share_outlined, size: 16, color: color),
+                  label: Text(AppLocalizations.of(context)!.walletPresentSelective,
+                      style: TextStyle(fontSize: 13, color: color)),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: color.withValues(alpha: 0.4)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── _BiometricLockTile ─────────────────────────────────────────────────────────
+
+class _BiometricLockTile extends StatelessWidget {
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  const _BiometricLockTile({required this.enabled, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: SwitchListTile(
+        value: enabled,
+        onChanged: onChanged,
+        secondary: Icon(
+          enabled ? Icons.fingerprint : Icons.lock_open_outlined,
+          color: enabled ? AppColors.primary : AppColors.textSecondary,
+        ),
+        title: Text(AppLocalizations.of(context)!.walletBiometricLock,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        subtitle: Text(
+          enabled
+              ? AppLocalizations.of(context)!.walletBiometricLockOnSubtitle
+              : AppLocalizations.of(context)!.walletBiometricLockOffSubtitle,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
+        activeThumbColor: AppColors.primary,
+        activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }

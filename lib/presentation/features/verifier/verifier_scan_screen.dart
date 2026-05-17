@@ -324,7 +324,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
                                         SizedBox(
                                           width: 120,
                                           child: Text(
-                                            e.key,
+                                            humanizeFieldKey(e.key),
                                             style: const TextStyle(
                                               fontSize: 12,
                                               color: AppColors.textSecondary,
@@ -498,7 +498,7 @@ class _VerifierScanScreenState extends State<VerifierScanScreen>
                 CheckboxListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  title: Text(field, style: const TextStyle(fontSize: 13)),
+                  title: Text(humanizeFieldKey(field), style: const TextStyle(fontSize: 13)),
                   value: selected.contains(field),
                   onChanged: groupDisabled
                       ? null
@@ -657,15 +657,25 @@ class _VerifyResult {
   final String reason;
   final Map<String, dynamic>? subject;
   final List<dynamic>? vcType;
-  const _VerifyResult({required this.valid, required this.reason, this.subject, this.vcType});
+  final Map<String, dynamic>? disclosedClaims; // SD-JWT only
+
+  const _VerifyResult({
+    required this.valid,
+    required this.reason,
+    this.subject,
+    this.vcType,
+    this.disclosedClaims,
+  });
+
+  bool get isRevoked => !valid && reason.toLowerCase().contains('revoked');
+  bool get isSdJwt => disclosedClaims != null;
 
   String get credentialLabel {
-    if (vcType == null) return 'Verifiable Credential';
-    if (vcType!.contains('PromotionCredential')) return 'Promotion Credential';
-    if (vcType!.contains('TerminationCredential')) return 'Termination Credential';
-    if (vcType!.contains('SalaryRangeCredential')) return 'Salary Range Credential';
-    if (vcType!.contains('EmploymentCredential')) return 'Employment Credential';
-    return 'Verifiable Credential';
+    if (vcType == null) return humanizeVcType(null);
+    for (final t in ['PromotionCredential', 'TerminationCredential', 'SalaryRangeCredential', 'EmploymentCredential']) {
+      if (vcType!.contains(t)) return humanizeVcType(t);
+    }
+    return humanizeVcType(null);
   }
 }
 
@@ -676,11 +686,27 @@ class _VerifyResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = result.valid ? AppColors.success : AppColors.error;
-    final bgColor = result.valid ? AppColors.successLight : AppColors.errorLight;
-    final icon = result.valid ? Icons.verified_rounded : Icons.cancel_rounded;
+    final color = result.valid
+        ? AppColors.success
+        : result.isRevoked
+            ? const Color(0xFFB91C1C)
+            : AppColors.error;
+    final bgColor = result.valid
+        ? AppColors.successLight
+        : result.isRevoked
+            ? const Color(0xFFFEF2F2)
+            : AppColors.errorLight;
+    final icon = result.valid
+        ? Icons.verified_rounded
+        : result.isRevoked
+            ? Icons.block_rounded
+            : Icons.cancel_rounded;
     final l10n = AppLocalizations.of(context)!;
-    final label = result.valid ? l10n.verifierResultValid : l10n.verifierResultInvalid;
+    final label = result.valid
+        ? l10n.verifierResultValid
+        : result.isRevoked
+            ? l10n.vcCredentialRevoked
+            : l10n.verifierResultInvalid;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -720,8 +746,37 @@ class _VerifyResultCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
+          // SD-JWT disclosed claims section
+          if (result.isSdJwt && result.disclosedClaims != null && result.disclosedClaims!.isNotEmpty) ...[
+            _SectionCard(
+              title: AppLocalizations.of(context)!.vcSelectiveDisclosedClaims,
+              child: Column(
+                children: result.disclosedClaims!.entries.map((e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.visibility_outlined, size: 14, color: AppColors.success),
+                      const SizedBox(width: 6),
+                      SizedBox(
+                        width: 110,
+                        child: Text(humanizeFieldKey(e.key),
+                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                      ),
+                      Expanded(
+                        child: Text(e.value.toString(),
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                      ),
+                    ],
+                  ),
+                )).toList(),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+
           // Disclosed subject fields
-          if (result.subject != null && result.subject!.isNotEmpty) ...[
+          if (!result.isSdJwt && result.subject != null && result.subject!.isNotEmpty) ...[
             _SectionCard(
               title: AppLocalizations.of(context)!.verifierDisclosedInfo,
               child: Column(
@@ -734,7 +789,7 @@ class _VerifyResultCard extends StatelessWidget {
                             children: [
                               SizedBox(
                                 width: 120,
-                                child: Text(e.key,
+                                child: Text(humanizeFieldKey(e.key),
                                     style: const TextStyle(
                                         fontSize: 12,
                                         color: AppColors.textSecondary,
@@ -851,7 +906,7 @@ class _PollStatusCard extends StatelessWidget {
                       SizedBox(
                         width: 130,
                         child: Text(
-                          e.key,
+                          humanizeFieldKey(e.key),
                           style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary),

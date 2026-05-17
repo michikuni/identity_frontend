@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:identity_frontend/l10n/l10n.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/di/injection.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
@@ -153,7 +154,7 @@ class _AddressPickerState extends State<_AddressPicker> {
           const SizedBox(height: 6),
           // Province
           _buildDropdown<_Province>(
-            hint: 'Tỉnh / Thành phố',
+            hint: context.l10n.onboardingProvince,
             value: _selectedProvince,
             items: _provinces,
             loading: _loadingProvinces,
@@ -170,7 +171,7 @@ class _AddressPickerState extends State<_AddressPicker> {
           const SizedBox(height: 8),
           // District
           _buildDropdown<_District>(
-            hint: 'Quận / Huyện',
+            hint: context.l10n.onboardingDistrict,
             value: _selectedDistrict,
             items: _districts,
             loading: _loadingDistricts,
@@ -188,7 +189,7 @@ class _AddressPickerState extends State<_AddressPicker> {
           const SizedBox(height: 8),
           // Ward
           _buildDropdown<_Ward>(
-            hint: 'Phường / Xã',
+            hint: context.l10n.onboardingWard,
             value: _selectedWard,
             items: _wards,
             loading: _loadingWards,
@@ -262,20 +263,22 @@ class _AddressPickerState extends State<_AddressPicker> {
 
 class ProfileOnboardingScreen extends StatelessWidget {
   final CccdData? cccdData;
-  const ProfileOnboardingScreen({super.key, this.cccdData});
+  final VoidCallback? onSuccess;
+  const ProfileOnboardingScreen({super.key, this.cccdData, this.onSuccess});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ProfileBloc(profileUseCase: sl()),
-      child: _ProfileOnboardingView(cccdData: cccdData),
+      child: _ProfileOnboardingView(cccdData: cccdData, onSuccess: onSuccess),
     );
   }
 }
 
 class _ProfileOnboardingView extends StatefulWidget {
   final CccdData? cccdData;
-  const _ProfileOnboardingView({this.cccdData});
+  final VoidCallback? onSuccess;
+  const _ProfileOnboardingView({this.cccdData, this.onSuccess});
 
   @override
   State<_ProfileOnboardingView> createState() => _ProfileOnboardingViewState();
@@ -448,7 +451,7 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
           context.go('/app/home');
         } else if (state.status == ProfileStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(state.errorMessage ?? 'Có lỗi xảy ra'),
+            content: Text(state.errorMessage ?? context.l10n.onboardingGenericError),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -475,66 +478,66 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                     child: const Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 32),
                   ),
                   const SizedBox(height: 16),
-                  Text('Thông tin cá nhân', style: Theme.of(context).textTheme.headlineMedium),
+                  Text(context.l10n.onboardingPersonalTitle, style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 4),
-                  const Text('Hoàn tất hồ sơ để quản trị viên duyệt tài khoản',
-                      style: TextStyle(color: AppColors.textSecondary)),
+                  Text(context.l10n.onboardingPersonalSubtitle,
+                      style: const TextStyle(color: AppColors.textSecondary)),
                   const SizedBox(height: 20),
                   _StepIndicator(current: 2, total: 2),
                   const SizedBox(height: 28),
 
                   // ── Personal ─────────────────────────────────────────
-                  _sectionHeader('Thông tin cá nhân', Icons.person_outline_rounded),
+                  _sectionHeader(context.l10n.onboardingPersonalTitle, Icons.person_outline_rounded),
                   AppInput(
-                    label: 'Họ và tên *',
+                    label: context.l10n.onboardingFullNameLabel,
                     hint: 'Nguyễn Văn A',
                     controller: _nameCtrl,
                     readOnly: _cccdFilled,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập họ tên' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? context.l10n.onboardingValidateFullName : null,
                     prefixIcon: const Icon(Icons.badge_outlined, size: 20, color: AppColors.inactive),
                     suffixIcon: _cccdFilled ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive) : null,
                   ),
                   const SizedBox(height: 12),
-                  _dropdown('Giới tính *', _gender, ['MALE', 'FEMALE', 'OTHER'],
+                  _dropdown(context.l10n.onboardingGenderLabel, _gender, ['MALE', 'FEMALE', 'OTHER'],
                       _genderLabel, _cccdFilled ? null : (v) => setState(() => _gender = v!)),
                   const SizedBox(height: 12),
                   _DatePickerField(
-                    label: 'Ngày sinh *',
+                    label: context.l10n.onboardingDobLabel,
                     selectedDate: _selectedDob,
                     locked: _cccdFilled,
                     onDateSelected: (date) => setState(() => _selectedDob = date),
-                    validator: (_) => _selectedDob == null ? 'Vui lòng chọn ngày sinh' : null,
+                    validator: (_) => _selectedDob == null ? context.l10n.onboardingValidateDob : null,
                   ),
                   const SizedBox(height: 24),
 
                   // ── Identity ─────────────────────────────────────────
-                  _sectionHeader('Giấy tờ tùy thân', Icons.badge_outlined),
-                  _dropdown('Loại giấy tờ *', _identityType, ['CCCD', 'CMND', 'PASSPORT'],
+                  _sectionHeader(context.l10n.onboardingIdentityDocSection, Icons.badge_outlined),
+                  _dropdown(context.l10n.onboardingIdentityDocTypeLabel, _identityType, ['CCCD', 'CMND', 'PASSPORT'],
                       (v) => v, _cccdFilled ? null : (v) => setState(() => _identityType = v!)),
                   const SizedBox(height: 12),
                   AppInput(
-                    label: 'Số giấy tờ *',
+                    label: context.l10n.onboardingIdentityDocNumberLabel,
                     hint: '0123456789',
                     controller: _identityNumberCtrl,
                     keyboardType: TextInputType.number,
                     readOnly: _cccdFilled,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập số giấy tờ' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? context.l10n.onboardingValidateDocNumber : null,
                     prefixIcon: const Icon(Icons.numbers_rounded, size: 20, color: AppColors.inactive),
                     suffixIcon: _cccdFilled ? const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.inactive) : null,
                   ),
                   const SizedBox(height: 12),
                   // Năm cấp – chọn qua dialog
                   _YearPickerFormField(
-                    label: 'Năm cấp *',
+                    label: context.l10n.onboardingIssueYearLabel,
                     selectedYear: _identityIssueYear,
                     locked: _cccdFilled && _identityIssueYear != null,
                     onTap: _pickIssueYear,
-                    validator: (_) => _identityIssueYear == null ? 'Vui lòng chọn năm cấp' : null,
+                    validator: (_) => _identityIssueYear == null ? context.l10n.onboardingValidateIssueYear : null,
                   ),
                   const SizedBox(height: 12),
                   // Nơi cấp – dropdown 3 lựa chọn
                   _dropdown(
-                    'Nơi cấp *',
+                    context.l10n.onboardingIssuePlaceLabel,
                     _identityIssuePlace.isEmpty ? _issuePlaceOptions.first : _identityIssuePlace,
                     _issuePlaceOptions,
                     (v) => v,
@@ -543,25 +546,25 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                   const SizedBox(height: 24),
 
                   // ── Emergency ────────────────────────────────────────
-                  _sectionHeader('Liên hệ khẩn cấp', Icons.emergency_outlined),
+                  _sectionHeader(context.l10n.onboardingEmergencySection, Icons.emergency_outlined),
                   AppInput(
-                    label: 'Họ tên *',
-                    hint: 'Nguyễn Thị B',
+                    label: context.l10n.onboardingFullNameLabel,
+                    hint: context.l10n.onboardingEmergencyFullNameHint,
                     controller: _emergencyNameCtrl,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập họ tên' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? context.l10n.onboardingValidateFullName : null,
                     prefixIcon: const Icon(Icons.person_outline_rounded, size: 20, color: AppColors.inactive),
                   ),
                   const SizedBox(height: 12),
                   AppInput(
-                    label: 'Số điện thoại *',
+                    label: context.l10n.onboardingEmergencyPhoneLabel,
                     hint: '0987654321',
                     controller: _emergencyPhoneCtrl,
                     keyboardType: TextInputType.phone,
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Vui lòng nhập số điện thoại';
+                      if (v == null || v.trim().isEmpty) return context.l10n.onboardingValidatePhone;
                       final phone = v.trim();
                       if (!RegExp(r'^(0|\+84)[0-9]{9}$').hasMatch(phone)) {
-                        return 'Số điện thoại không hợp lệ';
+                        return context.l10n.onboardingValidatePhoneFormat;
                       }
                       return null;
                     },
@@ -570,7 +573,7 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                   const SizedBox(height: 12),
                   // Mối quan hệ – dropdown
                   _dropdown(
-                    'Mối quan hệ *',
+                    context.l10n.onboardingEmergencyRelLabel,
                     _emergencyRelationship,
                     _relationshipOptions,
                     (v) => v,
@@ -579,22 +582,22 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                   const SizedBox(height: 24),
 
                   // ── Residence ────────────────────────────────────────
-                  _sectionHeader('Cư trú & Sức khỏe', Icons.home_outlined),
+                  _sectionHeader(context.l10n.onboardingResidenceHealthSection, Icons.home_outlined),
                   _AddressPicker(
-                    label: 'Địa chỉ thường trú *',
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng chọn địa chỉ thường trú' : null,
+                    label: context.l10n.onboardingPermanentAddressLabel,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? context.l10n.onboardingValidatePermanentAddress : null,
                     onChanged: (addr) => _permanentAddress = addr,
                   ),
                   const SizedBox(height: 16),
                   _AddressPicker(
-                    label: 'Địa chỉ hiện tại *',
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng chọn địa chỉ hiện tại' : null,
+                    label: context.l10n.onboardingCurrentAddressLabel,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? context.l10n.onboardingValidateCurrentAddress : null,
                     onChanged: (addr) => _nowAddress = addr,
                   ),
                   const SizedBox(height: 12),
                   // Tình trạng sức khỏe – dropdown
                   _dropdown(
-                    'Tình trạng sức khỏe *',
+                    context.l10n.onboardingHealthStatusLabel,
                     _health,
                     _healthOptions,
                     (v) => v,
@@ -603,7 +606,7 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                   const SizedBox(height: 12),
                   // Tình trạng hôn nhân – dropdown
                   _dropdown(
-                    'Tình trạng hôn nhân *',
+                    context.l10n.onboardingMaritalStatusLabel,
                     _married,
                     _marriedOptions,
                     _marriedLabel,
@@ -612,10 +615,10 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                   const SizedBox(height: 24),
 
                   // ── Education ────────────────────────────────────────
-                  _sectionHeader('Học vấn & Kỹ năng', Icons.school_outlined),
+                  _sectionHeader(context.l10n.onboardingEducationSkillsSection, Icons.school_outlined),
                   // Trình độ học vấn – dropdown
                   _dropdown(
-                    'Trình độ học vấn *',
+                    context.l10n.onboardingEducationLevelLabel,
                     _educationLevel,
                     _educationOptions,
                     (v) => v,
@@ -623,33 +626,33 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                   ),
                   const SizedBox(height: 12),
                   AppInput(
-                    label: 'Chuyên ngành *',
-                    hint: 'VD: Công nghệ thông tin',
+                    label: context.l10n.onboardingMajorLabel,
+                    hint: context.l10n.onboardingMajorHint,
                     controller: _majorCtrl,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập chuyên ngành' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? context.l10n.onboardingValidateMajor : null,
                     prefixIcon: const Icon(Icons.book_outlined, size: 20, color: AppColors.inactive),
                   ),
                   const SizedBox(height: 12),
                   AppInput(
-                    label: 'Số năm kinh nghiệm *',
-                    hint: 'VD: 3',
+                    label: context.l10n.onboardingExpYearsLabel,
+                    hint: context.l10n.onboardingExpYearsHint,
                     controller: _expYearsCtrl,
                     keyboardType: TextInputType.number,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập số năm kinh nghiệm' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? context.l10n.onboardingValidateExpYears : null,
                     prefixIcon: const Icon(Icons.work_history_outlined, size: 20, color: AppColors.inactive),
                   ),
                   const SizedBox(height: 12),
                   AppInput(
-                    label: 'Kỹ năng *',
-                    hint: 'VD: Flutter, Kotlin, Spring Boot (cách nhau bởi dấu phẩy)',
+                    label: context.l10n.onboardingSkillsLabel,
+                    hint: context.l10n.onboardingSkillsHint,
                     controller: _skillsCtrl,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập ít nhất 1 kỹ năng' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? context.l10n.onboardingValidateSkills : null,
                     prefixIcon: const Icon(Icons.psychology_outlined, size: 20, color: AppColors.inactive),
                   ),
                   const SizedBox(height: 12),
                   AppInput(
-                    label: 'Chứng chỉ (tùy chọn)',
-                    hint: 'VD: AWS, PMP (cách nhau bởi dấu phẩy)',
+                    label: context.l10n.onboardingCertificateLabel,
+                    hint: context.l10n.onboardingCertificateHint,
                     controller: _certCtrl,
                     prefixIcon: const Icon(Icons.card_membership_outlined, size: 20, color: AppColors.inactive),
                   ),
@@ -657,7 +660,7 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
 
                   BlocBuilder<ProfileBloc, ProfileState>(
                     builder: (context, state) => PrimaryButton(
-                      title: 'Hoàn tất đăng ký',
+                      title: context.l10n.onboardingCompleteBtn,
                       isLoading: state.status == ProfileStatus.loading,
                       onPressed: _submit,
                       icon: Icons.check_circle_outline_rounded,
@@ -666,8 +669,8 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: () => context.go('/app/home'),
-                    child: const Text('Bỏ qua, hoàn thành sau',
-                        style: TextStyle(color: AppColors.textSecondary)),
+                    child: Text(context.l10n.onboardingSkip,
+                        style: const TextStyle(color: AppColors.textSecondary)),
                   ),
                 ],
               ),
@@ -703,19 +706,19 @@ class _ProfileOnboardingViewState extends State<_ProfileOnboardingView> {
       ]);
 
   String _genderLabel(String v) => switch (v) {
-        'MALE' => 'Nam',
-        'FEMALE' => 'Nữ',
-        _ => 'Khác',
+        'MALE' => context.l10n.genderMale,
+        'FEMALE' => context.l10n.genderFemale,
+        _ => context.l10n.genderOther,
       };
 
   String _marriedLabel(String v) => switch (v) {
-        'MARRIED' => 'Đã kết hôn',
-        'DIVORCED' => 'Đã ly hôn',
-        'WIDOWED' => 'Góa',
-        'SEPARATED' => 'Ly thân',
-        'ENGAGED' => 'Đính hôn',
-        'REMARRIED' => 'Tái hôn',
-        _ => 'Độc thân',
+        'MARRIED' => context.l10n.marriedMarried,
+        'DIVORCED' => context.l10n.marriedDivorced,
+        'WIDOWED' => context.l10n.marriedWidowed,
+        'SEPARATED' => context.l10n.marriedSeparated,
+        'ENGAGED' => context.l10n.marriedEngaged,
+        'REMARRIED' => context.l10n.marriedRemarried,
+        _ => context.l10n.marriedSingle,
       };
 }
 
@@ -761,7 +764,7 @@ class _YearPickerFormField extends StatelessWidget {
                 const Icon(Icons.calendar_today_outlined, size: 20, color: AppColors.inactive),
                 const SizedBox(width: 10),
                 Text(
-                  selectedYear != null ? '$selectedYear' : 'Chọn năm cấp',
+                  selectedYear != null ? '$selectedYear' : context.l10n.onboardingSelectYear,
                   style: TextStyle(
                     fontSize: 15,
                     color: selectedYear == null ? AppColors.inactive : AppColors.textPrimary,
@@ -830,7 +833,7 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
         widget.lastYear - widget.firstYear + 1, (i) => widget.lastYear - i);
 
     return AlertDialog(
-      title: const Text('Chọn năm cấp'),
+      title: Text(context.l10n.onboardingSelectYear),
       contentPadding: const EdgeInsets.symmetric(vertical: 8),
       content: SizedBox(
         width: 200,
@@ -863,10 +866,10 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy')),
+            child: Text(context.l10n.cancel)),
         TextButton(
             onPressed: () => Navigator.pop(context, _selectedYear),
-            child: const Text('Xác nhận')),
+            child: Text(context.l10n.confirm)),
       ],
     );
   }
@@ -889,8 +892,8 @@ class _DatePickerField extends StatelessWidget {
     this.locked = false,
   });
 
-  String get _displayText => selectedDate == null
-      ? 'Chọn ngày sinh'
+  String _displayText(BuildContext context) => selectedDate == null
+      ? context.l10n.onboardingSelectDob
       : '${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}';
 
   Future<void> _pickDate(BuildContext context) async {
@@ -931,7 +934,7 @@ class _DatePickerField extends StatelessWidget {
                 const Icon(Icons.cake_outlined, size: 20, color: AppColors.inactive),
                 const SizedBox(width: 10),
                 Text(
-                  _displayText,
+                  _displayText(context),
                   style: TextStyle(
                     fontSize: 15,
                     color: selectedDate == null ? AppColors.inactive : AppColors.textPrimary,

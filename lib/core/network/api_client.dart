@@ -88,9 +88,15 @@ class ApiException implements Exception {
       case DioExceptionType.badResponse:
         final code = error.response?.statusCode;
         final data = error.response?.data;
-        final msg =
-            data is Map ? (data['message'] ?? 'Server error') : 'Server error';
-        return ApiException(message: msg.toString(), statusCode: code);
+        String msg;
+        if (data is Map) {
+          msg = (data['message'] ?? data['error'] ?? _messageForStatus(code)).toString();
+        } else if (data is String && data.isNotEmpty && !data.trimLeft().startsWith('<')) {
+          msg = data;
+        } else {
+          msg = _messageForStatus(code);
+        }
+        return ApiException(message: msg, statusCode: code);
       default:
         return ApiException(
             message: error.message ?? 'Unknown error occurred.',
@@ -100,4 +106,20 @@ class ApiException implements Exception {
 
   @override
   String toString() => message;
+}
+
+String _messageForStatus(int? code) {
+  switch (code) {
+    case 400: return 'Invalid request. Please check your input.';
+    case 401: return 'Session expired. Please sign in again.';
+    case 403: return 'You do not have permission to perform this action.';
+    case 404: return 'The requested resource was not found.';
+    case 409: return 'Conflict — this action cannot be completed due to existing data.';
+    case 422: return 'Unprocessable request. Please check your input.';
+    case 429: return 'Too many requests. Please wait a moment and try again.';
+    case 500: return 'Server error. Please try again later.';
+    case 502: return 'Service temporarily unavailable. Please try again later.';
+    case 503: return 'Service temporarily unavailable. Please try again later.';
+    default:  return code != null ? 'Request failed (HTTP $code).' : 'Server error.';
+  }
 }

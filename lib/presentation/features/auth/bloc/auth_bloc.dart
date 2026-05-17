@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/di/injection.dart';
+import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/firebase/repositories/i_analytics_service.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/domain/entities/auth_entity.dart';
@@ -69,7 +70,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(state.copyWith(status: AuthStatus.signedUp, auth: auth));
     } catch (e) {
-      emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()));
+      final code = e is ApiException
+          ? switch (e.statusCode) {
+              409 => e.message,
+              500 => 'SERVER_ERROR',
+              _ => 'SIGN_UP_FAILED',
+            }
+          : 'SIGN_UP_FAILED';
+      emit(state.copyWith(status: AuthStatus.failure, errorMessage: code));
     }
   }
 

@@ -486,6 +486,103 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navDashboard => 'Dashboard';
 
   @override
+  String get navCredentials => 'Credentials';
+
+  @override
+  String get navIssuer => 'Issuer';
+
+  @override
+  String get navWorkplace => 'Workplace';
+
+  @override
+  String get workplaceTitle => 'Workplace';
+
+  @override
+  String get workplaceSubtitle =>
+      'Use-cases illustrating the Issuer role (HRMS)';
+
+  @override
+  String get workplaceAttendance => 'Attendance';
+
+  @override
+  String get workplaceRequests => 'Requests';
+
+  @override
+  String get workplaceDirectory => 'Employee Directory';
+
+  @override
+  String get workplaceCompany => 'Company Info';
+
+  @override
+  String get workplacePayroll => 'Payroll';
+
+  @override
+  String get workplaceContract => 'Contract';
+
+  @override
+  String get workplaceManagerRequests => 'Approvals';
+
+  @override
+  String get workplaceManagerTimesheet => 'Timesheet';
+
+  @override
+  String get issuerConsoleTitle => 'Issuer Console';
+
+  @override
+  String get issuerConsoleSubtitle => 'Issue & manage Verifiable Credentials';
+
+  @override
+  String get issuerStatsCredentialsIssued => 'Credentials Issued';
+
+  @override
+  String get issuerStatsActiveDids => 'Active DIDs';
+
+  @override
+  String get issuerStatsRevokedMonth => 'Revoked this month';
+
+  @override
+  String get issuerStatsTrustedIssuers => 'Trusted Issuers';
+
+  @override
+  String get issuerStatsSection => 'SSI KPIs';
+
+  @override
+  String get issuerStatsHrSection => 'Operations KPIs (HR)';
+
+  @override
+  String get issuerActionEnroll => 'Enroll & Issue Credential';
+
+  @override
+  String get issuerActionIssueSalary => 'Issue SalaryRange VC';
+
+  @override
+  String get issuerActionIssueSkill => 'Issue Skill VC (SD-JWT)';
+
+  @override
+  String get issuerActionIssueEducation => 'Issue Education VC (SD-JWT)';
+
+  @override
+  String get issuerActionRevoke => 'Revoke Credentials';
+
+  @override
+  String get issuerActionVerifier => 'Open Verifier';
+
+  @override
+  String get ssiCredentialWallet => 'Credential Wallet';
+
+  @override
+  String get ssiCredentialSubjects => 'Credential Subjects';
+
+  @override
+  String get ssiPresentCredential => 'Present Credential';
+
+  @override
+  String get ssiVerifiableRecords => 'Verifiable Records';
+
+  @override
+  String get ssiIdentityAttributes => 'Identity Attributes';
+
+  @override
   String get adminDashboardTitle => 'Control Panel';
 
   @override
@@ -531,13 +628,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminIssueSalaryVcDesc =>
-      'Enter Employee ID to issue SalaryRangeVC.\nEmployee must have a payroll assigned.';
+      'Enter the employee\'s email to issue SalaryRangeVC.\nEmployee must have a payroll assigned.';
 
   @override
-  String get adminEmployeeId => 'Employee ID';
+  String get adminEmployeeId => 'Employee Email';
 
   @override
-  String get adminEmployeeIdHint => 'e.g. 5';
+  String get adminEmployeeIdHint => 'e.g. john@company.com';
 
   @override
   String get adminSalaryVcIssued => 'SalaryRangeVC has been issued';
@@ -1139,7 +1236,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sign in failed. Please check your credentials.';
 
   @override
-  String get authSignUpFailed => 'Sign up failed';
+  String get authSignUpFailed => 'Sign up failed. Please try again.';
+
+  @override
+  String get authSignUpDuplicate =>
+      'This email or phone number is already registered.';
+
+  @override
+  String get authSignUpServerError => 'Server error. Please try again later.';
 
   @override
   String get genderMale => 'Male';
@@ -1542,10 +1646,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get walletCreateVcQr => 'Create VC QR';
+  String walletQrChars(int count) {
+    return '$count chars';
+  }
 
   @override
-  String get walletScanVpRequest => 'Scan VP Request QR';
+  String walletQrCharsShort(int count) {
+    return '$count chars (short token)';
+  }
+
+  @override
+  String get walletCreateVcQr => 'Export QR';
+
+  @override
+  String get walletScanVpRequest => 'Receive Request';
 
   @override
   String get walletQrForVerifier => 'Show QR to Verifier to verify';
@@ -1610,10 +1724,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifierTitle => 'Verifier';
 
   @override
-  String get verifierVerifyVc => 'Verify VC';
+  String get verifierVerifyVc => 'Scan & Verify';
 
   @override
-  String get verifierRequestVp => 'Request VP';
+  String get verifierRequestVp => 'Create Request';
 
   @override
   String get verifierScanAgain => 'Scan Again';
@@ -1719,4 +1833,354 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verifierConfirmShare => 'Confirm Share';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get mfaSetupTitle => 'Set Up Two-Factor Auth';
+
+  @override
+  String get mfaScanQrInstruction => 'Scan this QR with your Authenticator app';
+
+  @override
+  String get mfaScanQrHint => 'Use Google Authenticator, Authy, or 1Password';
+
+  @override
+  String get mfaSecretCopied => 'Secret copied';
+
+  @override
+  String get mfaEnterCodeHint => 'Enter the 6-digit code from your app';
+
+  @override
+  String get mfaVerifyBtn => 'Verify & Enable MFA';
+
+  @override
+  String get mfaEnabled => 'MFA Enabled!';
+
+  @override
+  String get mfaBackupCodesWarning =>
+      'Save these backup codes now — they will NOT be shown again. Each code can only be used once.';
+
+  @override
+  String get mfaBackupCodesTitle => 'Backup Codes';
+
+  @override
+  String get mfaCopyAllCodes => 'Copy All Codes';
+
+  @override
+  String get mfaBackupCodesCopied => 'Backup codes copied';
+
+  @override
+  String get mfaQrUnavailable => 'QR unavailable';
+
+  @override
+  String get mfaInvalidCode => 'Invalid code. Try again.';
+
+  @override
+  String get gdprTitle => 'Privacy & Data';
+
+  @override
+  String get gdprDeleteTitle => 'Delete My Data';
+
+  @override
+  String get gdprDeleteWarning =>
+      'This will permanently erase all your personal data from our systems.\n\n• All Verifiable Credentials will be revoked\n• Your DID will be deactivated\n• Your profile & account will be anonymised\n\nOn-chain audit hashes cannot be removed (blockchain is immutable, but they contain no PII).';
+
+  @override
+  String get gdprIUnderstandContinue => 'I Understand, Continue';
+
+  @override
+  String get gdprFinalConfirmTitle => 'Final Confirmation';
+
+  @override
+  String get gdprTypeDeleteHint => 'Type DELETE to confirm:';
+
+  @override
+  String get gdprDeleteAllData => 'Delete All My Data';
+
+  @override
+  String get gdprDataDeleted => 'Data Deleted';
+
+  @override
+  String get gdprDataDeletedMsg =>
+      'All your personal data has been erased. You will be logged out now.';
+
+  @override
+  String get gdprDataRightsTitle => 'Your Data Rights (GDPR)';
+
+  @override
+  String get gdprDataRightsBody =>
+      'You have the right to access all personal data we hold about you (Art. 20) and the right to have it erased (Art. 17).';
+
+  @override
+  String get gdprExportTitle => 'Export My Data';
+
+  @override
+  String get gdprExportSubtitle =>
+      'Download a complete JSON copy of all your personal data.';
+
+  @override
+  String get gdprExportBtn => 'Export';
+
+  @override
+  String get gdprExportedData => 'Exported Data';
+
+  @override
+  String get gdprDeleteCardSubtitle =>
+      'Permanently erase all personal data, revoke all credentials, and deactivate your DID. This action cannot be undone.';
+
+  @override
+  String get gdprLegalNote =>
+      'Note: Blockchain audit records (hashes only, no PII) cannot be removed as they are immutably recorded per GDPR Recital 26 (anonymised data is outside the scope of GDPR).';
+
+  @override
+  String get sessionsTitle => 'Active Sessions';
+
+  @override
+  String get sessionsLogoutDeviceTitle => 'Logout Device';
+
+  @override
+  String get sessionsLogoutDeviceContent =>
+      'This will sign out the selected device. It will need to log in again.';
+
+  @override
+  String get sessionsLogoutBtn => 'Logout';
+
+  @override
+  String get sessionsLogoutAllTitle => 'Logout All Other Devices';
+
+  @override
+  String get sessionsLogoutAllContent =>
+      'All other devices will be signed out immediately.';
+
+  @override
+  String get sessionsLogoutAllBtn => 'Logout All';
+
+  @override
+  String sessionsFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get sessionsNoActive => 'No active sessions';
+
+  @override
+  String get sessionsThisDevice => 'This device';
+
+  @override
+  String sessionsLastSeen(String time) {
+    return 'Last seen: $time';
+  }
+
+  @override
+  String contractSignTitle(String id) {
+    return 'Contract #$id';
+  }
+
+  @override
+  String get contractOnChainSignatures => 'On-chain Signatures';
+
+  @override
+  String get contractSignatureAnchored => 'Signature anchored on Fabric!';
+
+  @override
+  String get contractDetails => 'Contract Details';
+
+  @override
+  String get contractContractId => 'Contract ID';
+
+  @override
+  String get contractOpenEnded => 'Open-ended';
+
+  @override
+  String get contractSignBiometric => 'Sign with Biometric';
+
+  @override
+  String get contractSignWaiting => 'Waiting for biometric…';
+
+  @override
+  String get contractSignSigning => 'Signing…';
+
+  @override
+  String get contractSignAnchoring => 'Anchoring on Fabric…';
+
+  @override
+  String get contractExplainer =>
+      'Your ECDSA P-256 signature is anchored on Hyperledger Fabric. The SHA-256 hash of the contract is immutably recorded — any future modification will invalidate the on-chain proof.';
+
+  @override
+  String get contractBiometricCancelled =>
+      'Biometric authentication cancelled.';
+
+  @override
+  String get contractWalletNotInit =>
+      'Wallet not initialized. Please complete onboarding first.';
+
+  @override
+  String contractBackendError(String error) {
+    return 'Backend error: $error';
+  }
+
+  @override
+  String get contractSignedAt => 'Signed:';
+
+  @override
+  String get contractDocHash => 'Hash:';
+
+  @override
+  String get auditLogTitle => 'Audit Log';
+
+  @override
+  String get auditNoRecords => 'No audit records found';
+
+  @override
+  String auditUpdatedBy(String name) {
+    return 'By: $name';
+  }
+
+  @override
+  String get sdJwtIssueTitle => 'Issue SD-JWT Credential';
+
+  @override
+  String get sdJwtSkillTab => 'Skill';
+
+  @override
+  String get sdJwtEducationTab => 'Education';
+
+  @override
+  String get sdJwtAddSkill => 'Add Skill';
+
+  @override
+  String get sdJwtIssued => 'SD-JWT Issued!';
+
+  @override
+  String get sdJwtIssuedMsg => 'Credential stored on employee profile.';
+
+  @override
+  String get sdJwtIssueAnother => 'Issue Another';
+
+  @override
+  String get sdJwtSkillBannerTitle => 'Skill Credential (SD-JWT)';
+
+  @override
+  String get sdJwtSkillBannerSubtitle =>
+      'Each skill is a separate selective-disclosure claim. The holder decides which skills to reveal per Verifier request.';
+
+  @override
+  String get sdJwtEducBannerTitle => 'Education Credential (SD-JWT)';
+
+  @override
+  String get sdJwtEducBannerSubtitle =>
+      'Each field (degree, major, GPA…) is a separate disclosure. The holder can share only what’s needed.';
+
+  @override
+  String get sdJwtIssueSkillBtn => 'Issue Skill Credential';
+
+  @override
+  String get sdJwtIssueEducBtn => 'Issue Education Credential';
+
+  @override
+  String get sdJwtSkillNameHint => 'Skill name';
+
+  @override
+  String get themeTitle => 'Appearance';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeSystem => 'System default';
+
+  @override
+  String get walletSdJwtBadge => 'SD-JWT';
+
+  @override
+  String get walletZeroKnowledge => 'Zero-Knowledge';
+
+  @override
+  String get walletPresentSelective => 'Present with Selective Disclosure';
+
+  @override
+  String get walletBiometricLock => 'Biometric App Lock';
+
+  @override
+  String get walletBiometricLockOnSubtitle =>
+      'Biometric required to access wallet';
+
+  @override
+  String get walletBiometricLockOffSubtitle =>
+      'Tap to enable fingerprint / face lock';
+
+  @override
+  String walletSelectiveClaims(int count) {
+    return '$count selective-disclosure claim(s)';
+  }
+
+  @override
+  String get disclosureRequired => 'Required';
+
+  @override
+  String get disclosureSignBiometric => 'Sign with Biometric';
+
+  @override
+  String get disclosureSigningBiometric => 'Signing with biometric…';
+
+  @override
+  String disclosureShareTitle(String credentialType) {
+    return 'Share $credentialType';
+  }
+
+  @override
+  String disclosureClaimsRequested(int count) {
+    return '$count claim(s) requested';
+  }
+
+  @override
+  String get disclosureInfoBanner =>
+      'Unchecked claims will NOT be visible to the Verifier. The signature remains valid regardless.';
+
+  @override
+  String get disclosureVerifierWants => 'Claims the Verifier wants to see';
+
+  @override
+  String get disclosureOptional => 'Optional — you may share more';
+
+  @override
+  String get disclosurePrivacyNote =>
+      'Zero-Knowledge: The Verifier cannot detect that hidden claims exist. Your full credential stays private.';
+
+  @override
+  String get disclosureBiometricCancelled =>
+      'Biometric authentication cancelled.';
+
+  @override
+  String get vcCredentialRevoked => 'Credential Revoked';
+
+  @override
+  String get vcSelectiveDisclosedClaims => 'Selectively Disclosed Claims';
+
+  @override
+  String get vcNoFields => 'No credential fields available';
+
+  @override
+  String get vcFieldIssued => 'Issued';
+
+  @override
+  String get vcFieldExpires => 'Expires';
+
+  @override
+  String get vcFieldId => 'Credential ID';
+
+  @override
+  String get sdJwtSelectiveSubtitle => 'SD-JWT · Selective Disclosure';
 }

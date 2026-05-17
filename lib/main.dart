@@ -7,6 +7,8 @@ import 'package:identity_frontend/core/firebase/repositories/i_crashlytics_servi
 import 'package:identity_frontend/core/locale/locale_cubit.dart';
 import 'package:identity_frontend/core/routes/app_router.dart';
 import 'package:identity_frontend/core/themes/app_theme.dart';
+import 'package:identity_frontend/core/cache/vc_cache_service.dart';
+import 'package:identity_frontend/core/themes/theme_cubit.dart';
 import 'package:identity_frontend/domain/usecases/auth/sign_in_usecase.dart';
 import 'package:identity_frontend/domain/usecases/auth/sign_up_usecase.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
@@ -25,27 +27,35 @@ void main() async {
     statusBarIconBrightness: Brightness.dark,
   ));
 
+  // Hive offline VC cache — must init before configureDependencies()
+  await VcCacheService.init();
+
   // Firebase init + DI nằm trong configureDependencies()
   await configureDependencies();
 
   final localeCubit = LocaleCubit();
   await localeCubit.load();
 
+  final themeCubit = ThemeCubit();
+  await themeCubit.load();
+
   // runZonedGuarded bắt async errors trong zone của runApp
   sl<ICrashlyticsService>().runWithCrashReporting(() {
-    runApp(TrustIdApp(localeCubit: localeCubit));
+    runApp(TrustIdApp(localeCubit: localeCubit, themeCubit: themeCubit));
   });
 }
 
 class TrustIdApp extends StatelessWidget {
   final LocaleCubit localeCubit;
-  const TrustIdApp({super.key, required this.localeCubit});
+  final ThemeCubit themeCubit;
+  const TrustIdApp({super.key, required this.localeCubit, required this.themeCubit});
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         BlocProvider<LocaleCubit>.value(value: localeCubit),
+        BlocProvider<ThemeCubit>.value(value: themeCubit),
         BlocProvider<AuthBloc>(
           create: (_) => AuthBloc(
             signInUseCase: sl<SignInUseCase>(),
@@ -54,14 +64,18 @@ class TrustIdApp extends StatelessWidget {
         ),
       ],
       child: BlocBuilder<LocaleCubit, Locale>(
-        builder: (context, locale) => MaterialApp.router(
-          title: 'TrustID',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          routerConfig: createAppRouter(sl<IAnalyticsService>()),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: locale,
+        builder: (context, locale) => BlocBuilder<ThemeCubit, ThemeMode>(
+          builder: (context, themeMode) => MaterialApp.router(
+            title: 'TrustID',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeMode,
+            routerConfig: createAppRouter(sl<IAnalyticsService>()),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: locale,
+          ),
         ),
       ),
     );

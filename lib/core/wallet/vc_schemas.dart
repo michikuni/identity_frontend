@@ -6,7 +6,7 @@
 ///   - Verifier Mode B (render danh sách field theo nhóm VC)
 class VcSchema {
   final String type;       // EmploymentCredential | SalaryRangeCredential | PromotionCredential | TerminationCredential
-  final String label;      // Hiển thị UI
+  final String label;      // Hiển thị UI (tiếng Việt)
   final List<String> fields;
   const VcSchema({required this.type, required this.label, required this.fields});
 }
@@ -14,22 +14,22 @@ class VcSchema {
 const Map<String, VcSchema> kVcSchemas = {
   'EmploymentCredential': VcSchema(
     type: 'EmploymentCredential',
-    label: 'Employment Credential',
+    label: 'Chứng chỉ Nhân viên',
     fields: ['department', 'position', 'employmentStatus', 'startDate'],
   ),
   'SalaryRangeCredential': VcSchema(
     type: 'SalaryRangeCredential',
-    label: 'Salary Range Credential',
+    label: 'Chứng chỉ Mức lương',
     fields: ['salaryBand', 'currency', 'position', 'department', 'issuedAt'],
   ),
   'PromotionCredential': VcSchema(
     type: 'PromotionCredential',
-    label: 'Promotion Credential',
+    label: 'Chứng chỉ Thăng chức',
     fields: ['department', 'oldPosition', 'newPosition', 'promotionDate', 'promotedBy'],
   ),
   'TerminationCredential': VcSchema(
     type: 'TerminationCredential',
-    label: 'Termination Credential',
+    label: 'Chứng chỉ Nghỉ việc',
     fields: [
       'department',
       'position',
@@ -40,6 +40,49 @@ const Map<String, VcSchema> kVcSchemas = {
     ],
   ),
 };
+
+/// Nhãn tiếng Việt cho từng field key của credential subject.
+const Map<String, String> kFieldLabelsVi = {
+  'department': 'Phòng ban',
+  'position': 'Chức vụ',
+  'employmentStatus': 'Trạng thái công việc',
+  'startDate': 'Ngày bắt đầu',
+  'salaryBand': 'Mức lương',
+  'currency': 'Đơn vị tiền tệ',
+  'issuedAt': 'Ngày cấp',
+  'oldPosition': 'Chức vụ cũ',
+  'newPosition': 'Chức vụ mới',
+  'promotionDate': 'Ngày thăng chức',
+  'promotedBy': 'Thăng chức bởi',
+  'terminationDate': 'Ngày nghỉ việc',
+  'terminationReason': 'Lý do nghỉ việc',
+  'revokedBy': 'Thu hồi bởi',
+  'id': 'Mã định danh (DID)',
+  // SD-JWT skill / education fields
+  'skillName': 'Tên kỹ năng',
+  'proficiencyLevel': 'Cấp độ',
+  'degree': 'Bằng cấp',
+  'major': 'Chuyên ngành',
+  'institution': 'Trường / Tổ chức',
+  'graduationYear': 'Năm tốt nghiệp',
+  'gpa': 'GPA',
+};
+
+/// Trả về nhãn tiếng Việt cho một field key. Nếu không có trong map, trả về key gốc.
+String humanizeFieldKey(String key) => kFieldLabelsVi[key] ?? key;
+
+/// Trả về tên tiếng Việt cho một VC type.
+String humanizeVcType(String? type) {
+  switch (type) {
+    case 'EmploymentCredential': return 'Chứng chỉ Nhân viên';
+    case 'SalaryRangeCredential': return 'Chứng chỉ Mức lương';
+    case 'PromotionCredential': return 'Chứng chỉ Thăng chức';
+    case 'TerminationCredential': return 'Chứng chỉ Nghỉ việc';
+    case 'SkillCredential': return 'Chứng chỉ Kỹ năng';
+    case 'EducationCredential': return 'Chứng chỉ Học vấn';
+    default: return 'Chứng chỉ số';
+  }
+}
 
 /// Tra ngược vcType từ một field (lấy VC đầu tiên có chứa field đó).
 /// Dùng khi Verifier vừa tick field, cần biết VC type để ràng buộc.

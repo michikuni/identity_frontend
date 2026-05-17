@@ -1046,6 +1046,198 @@ abstract class AppLocalizations {
   /// **'Dashboard'**
   String get navDashboard;
 
+  /// No description provided for @navCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Credentials'**
+  String get navCredentials;
+
+  /// No description provided for @navIssuer.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuer'**
+  String get navIssuer;
+
+  /// No description provided for @navWorkplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Workplace'**
+  String get navWorkplace;
+
+  /// No description provided for @workplaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workplace'**
+  String get workplaceTitle;
+
+  /// No description provided for @workplaceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use-cases illustrating the Issuer role (HRMS)'**
+  String get workplaceSubtitle;
+
+  /// No description provided for @workplaceAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get workplaceAttendance;
+
+  /// No description provided for @workplaceRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests'**
+  String get workplaceRequests;
+
+  /// No description provided for @workplaceDirectory.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee Directory'**
+  String get workplaceDirectory;
+
+  /// No description provided for @workplaceCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company Info'**
+  String get workplaceCompany;
+
+  /// No description provided for @workplacePayroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll'**
+  String get workplacePayroll;
+
+  /// No description provided for @workplaceContract.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract'**
+  String get workplaceContract;
+
+  /// No description provided for @workplaceManagerRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Approvals'**
+  String get workplaceManagerRequests;
+
+  /// No description provided for @workplaceManagerTimesheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Timesheet'**
+  String get workplaceManagerTimesheet;
+
+  /// No description provided for @issuerConsoleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuer Console'**
+  String get issuerConsoleTitle;
+
+  /// No description provided for @issuerConsoleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue & manage Verifiable Credentials'**
+  String get issuerConsoleSubtitle;
+
+  /// No description provided for @issuerStatsCredentialsIssued.
+  ///
+  /// In en, this message translates to:
+  /// **'Credentials Issued'**
+  String get issuerStatsCredentialsIssued;
+
+  /// No description provided for @issuerStatsActiveDids.
+  ///
+  /// In en, this message translates to:
+  /// **'Active DIDs'**
+  String get issuerStatsActiveDids;
+
+  /// No description provided for @issuerStatsRevokedMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoked this month'**
+  String get issuerStatsRevokedMonth;
+
+  /// No description provided for @issuerStatsTrustedIssuers.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted Issuers'**
+  String get issuerStatsTrustedIssuers;
+
+  /// No description provided for @issuerStatsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'SSI KPIs'**
+  String get issuerStatsSection;
+
+  /// No description provided for @issuerStatsHrSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations KPIs (HR)'**
+  String get issuerStatsHrSection;
+
+  /// No description provided for @issuerActionEnroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Enroll & Issue Credential'**
+  String get issuerActionEnroll;
+
+  /// No description provided for @issuerActionIssueSalary.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue SalaryRange VC'**
+  String get issuerActionIssueSalary;
+
+  /// No description provided for @issuerActionIssueSkill.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Skill VC (SD-JWT)'**
+  String get issuerActionIssueSkill;
+
+  /// No description provided for @issuerActionIssueEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Education VC (SD-JWT)'**
+  String get issuerActionIssueEducation;
+
+  /// No description provided for @issuerActionRevoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke Credentials'**
+  String get issuerActionRevoke;
+
+  /// No description provided for @issuerActionVerifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Verifier'**
+  String get issuerActionVerifier;
+
+  /// No description provided for @ssiCredentialWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Credential Wallet'**
+  String get ssiCredentialWallet;
+
+  /// No description provided for @ssiCredentialSubjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Credential Subjects'**
+  String get ssiCredentialSubjects;
+
+  /// No description provided for @ssiPresentCredential.
+  ///
+  /// In en, this message translates to:
+  /// **'Present Credential'**
+  String get ssiPresentCredential;
+
+  /// No description provided for @ssiVerifiableRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifiable Records'**
+  String get ssiVerifiableRecords;
+
+  /// No description provided for @ssiIdentityAttributes.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity Attributes'**
+  String get ssiIdentityAttributes;
+
   /// No description provided for @adminDashboardTitle.
   ///
   /// In en, this message translates to:
@@ -1133,19 +1325,19 @@ abstract class AppLocalizations {
   /// No description provided for @adminIssueSalaryVcDesc.
   ///
   /// In en, this message translates to:
-  /// **'Enter Employee ID to issue SalaryRangeVC.\nEmployee must have a payroll assigned.'**
+  /// **'Enter the employee\'s email to issue SalaryRangeVC.\nEmployee must have a payroll assigned.'**
   String get adminIssueSalaryVcDesc;
 
   /// No description provided for @adminEmployeeId.
   ///
   /// In en, this message translates to:
-  /// **'Employee ID'**
+  /// **'Employee Email'**
   String get adminEmployeeId;
 
   /// No description provided for @adminEmployeeIdHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g. 5'**
+  /// **'e.g. john@company.com'**
   String get adminEmployeeIdHint;
 
   /// No description provided for @adminSalaryVcIssued.
@@ -2309,8 +2501,20 @@ abstract class AppLocalizations {
   /// No description provided for @authSignUpFailed.
   ///
   /// In en, this message translates to:
-  /// **'Sign up failed'**
+  /// **'Sign up failed. Please try again.'**
   String get authSignUpFailed;
+
+  /// No description provided for @authSignUpDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'This email or phone number is already registered.'**
+  String get authSignUpDuplicate;
+
+  /// No description provided for @authSignUpServerError.
+  ///
+  /// In en, this message translates to:
+  /// **'Server error. Please try again later.'**
+  String get authSignUpServerError;
 
   /// No description provided for @genderMale.
   ///
@@ -3068,16 +3272,28 @@ abstract class AppLocalizations {
   /// **'Cannot create VP session: {error}'**
   String walletVpSessionFailed(String error);
 
+  /// No description provided for @walletQrChars.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} chars'**
+  String walletQrChars(int count);
+
+  /// No description provided for @walletQrCharsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} chars (short token)'**
+  String walletQrCharsShort(int count);
+
   /// No description provided for @walletCreateVcQr.
   ///
   /// In en, this message translates to:
-  /// **'Create VC QR'**
+  /// **'Export QR'**
   String get walletCreateVcQr;
 
   /// No description provided for @walletScanVpRequest.
   ///
   /// In en, this message translates to:
-  /// **'Scan VP Request QR'**
+  /// **'Receive Request'**
   String get walletScanVpRequest;
 
   /// No description provided for @walletQrForVerifier.
@@ -3197,13 +3413,13 @@ abstract class AppLocalizations {
   /// No description provided for @verifierVerifyVc.
   ///
   /// In en, this message translates to:
-  /// **'Verify VC'**
+  /// **'Scan & Verify'**
   String get verifierVerifyVc;
 
   /// No description provided for @verifierRequestVp.
   ///
   /// In en, this message translates to:
-  /// **'Request VP'**
+  /// **'Create Request'**
   String get verifierRequestVp;
 
   /// No description provided for @verifierScanAgain.
@@ -3391,6 +3607,636 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm Share'**
   String get verifierConfirmShare;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
+  /// No description provided for @mfaSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Up Two-Factor Auth'**
+  String get mfaSetupTitle;
+
+  /// No description provided for @mfaScanQrInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan this QR with your Authenticator app'**
+  String get mfaScanQrInstruction;
+
+  /// No description provided for @mfaScanQrHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Google Authenticator, Authy, or 1Password'**
+  String get mfaScanQrHint;
+
+  /// No description provided for @mfaSecretCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Secret copied'**
+  String get mfaSecretCopied;
+
+  /// No description provided for @mfaEnterCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code from your app'**
+  String get mfaEnterCodeHint;
+
+  /// No description provided for @mfaVerifyBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify & Enable MFA'**
+  String get mfaVerifyBtn;
+
+  /// No description provided for @mfaEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'MFA Enabled!'**
+  String get mfaEnabled;
+
+  /// No description provided for @mfaBackupCodesWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Save these backup codes now — they will NOT be shown again. Each code can only be used once.'**
+  String get mfaBackupCodesWarning;
+
+  /// No description provided for @mfaBackupCodesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Codes'**
+  String get mfaBackupCodesTitle;
+
+  /// No description provided for @mfaCopyAllCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy All Codes'**
+  String get mfaCopyAllCodes;
+
+  /// No description provided for @mfaBackupCodesCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup codes copied'**
+  String get mfaBackupCodesCopied;
+
+  /// No description provided for @mfaQrUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'QR unavailable'**
+  String get mfaQrUnavailable;
+
+  /// No description provided for @mfaInvalidCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid code. Try again.'**
+  String get mfaInvalidCode;
+
+  /// No description provided for @gdprTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy & Data'**
+  String get gdprTitle;
+
+  /// No description provided for @gdprDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete My Data'**
+  String get gdprDeleteTitle;
+
+  /// No description provided for @gdprDeleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently erase all your personal data from our systems.\n\n• All Verifiable Credentials will be revoked\n• Your DID will be deactivated\n• Your profile & account will be anonymised\n\nOn-chain audit hashes cannot be removed (blockchain is immutable, but they contain no PII).'**
+  String get gdprDeleteWarning;
+
+  /// No description provided for @gdprIUnderstandContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'I Understand, Continue'**
+  String get gdprIUnderstandContinue;
+
+  /// No description provided for @gdprFinalConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Confirmation'**
+  String get gdprFinalConfirmTitle;
+
+  /// No description provided for @gdprTypeDeleteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE to confirm:'**
+  String get gdprTypeDeleteHint;
+
+  /// No description provided for @gdprDeleteAllData.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete All My Data'**
+  String get gdprDeleteAllData;
+
+  /// No description provided for @gdprDataDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Deleted'**
+  String get gdprDataDeleted;
+
+  /// No description provided for @gdprDataDeletedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'All your personal data has been erased. You will be logged out now.'**
+  String get gdprDataDeletedMsg;
+
+  /// No description provided for @gdprDataRightsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Data Rights (GDPR)'**
+  String get gdprDataRightsTitle;
+
+  /// No description provided for @gdprDataRightsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have the right to access all personal data we hold about you (Art. 20) and the right to have it erased (Art. 17).'**
+  String get gdprDataRightsBody;
+
+  /// No description provided for @gdprExportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export My Data'**
+  String get gdprExportTitle;
+
+  /// No description provided for @gdprExportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download a complete JSON copy of all your personal data.'**
+  String get gdprExportSubtitle;
+
+  /// No description provided for @gdprExportBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get gdprExportBtn;
+
+  /// No description provided for @gdprExportedData.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported Data'**
+  String get gdprExportedData;
+
+  /// No description provided for @gdprDeleteCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently erase all personal data, revoke all credentials, and deactivate your DID. This action cannot be undone.'**
+  String get gdprDeleteCardSubtitle;
+
+  /// No description provided for @gdprLegalNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: Blockchain audit records (hashes only, no PII) cannot be removed as they are immutably recorded per GDPR Recital 26 (anonymised data is outside the scope of GDPR).'**
+  String get gdprLegalNote;
+
+  /// No description provided for @sessionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Sessions'**
+  String get sessionsTitle;
+
+  /// No description provided for @sessionsLogoutDeviceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout Device'**
+  String get sessionsLogoutDeviceTitle;
+
+  /// No description provided for @sessionsLogoutDeviceContent.
+  ///
+  /// In en, this message translates to:
+  /// **'This will sign out the selected device. It will need to log in again.'**
+  String get sessionsLogoutDeviceContent;
+
+  /// No description provided for @sessionsLogoutBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get sessionsLogoutBtn;
+
+  /// No description provided for @sessionsLogoutAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout All Other Devices'**
+  String get sessionsLogoutAllTitle;
+
+  /// No description provided for @sessionsLogoutAllContent.
+  ///
+  /// In en, this message translates to:
+  /// **'All other devices will be signed out immediately.'**
+  String get sessionsLogoutAllContent;
+
+  /// No description provided for @sessionsLogoutAllBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout All'**
+  String get sessionsLogoutAllBtn;
+
+  /// No description provided for @sessionsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String sessionsFailed(String error);
+
+  /// No description provided for @sessionsNoActive.
+  ///
+  /// In en, this message translates to:
+  /// **'No active sessions'**
+  String get sessionsNoActive;
+
+  /// No description provided for @sessionsThisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get sessionsThisDevice;
+
+  /// No description provided for @sessionsLastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen: {time}'**
+  String sessionsLastSeen(String time);
+
+  /// No description provided for @contractSignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract #{id}'**
+  String contractSignTitle(String id);
+
+  /// No description provided for @contractOnChainSignatures.
+  ///
+  /// In en, this message translates to:
+  /// **'On-chain Signatures'**
+  String get contractOnChainSignatures;
+
+  /// No description provided for @contractSignatureAnchored.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature anchored on Fabric!'**
+  String get contractSignatureAnchored;
+
+  /// No description provided for @contractDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract Details'**
+  String get contractDetails;
+
+  /// No description provided for @contractContractId.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract ID'**
+  String get contractContractId;
+
+  /// No description provided for @contractOpenEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-ended'**
+  String get contractOpenEnded;
+
+  /// No description provided for @contractSignBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign with Biometric'**
+  String get contractSignBiometric;
+
+  /// No description provided for @contractSignWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for biometric…'**
+  String get contractSignWaiting;
+
+  /// No description provided for @contractSignSigning.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing…'**
+  String get contractSignSigning;
+
+  /// No description provided for @contractSignAnchoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Anchoring on Fabric…'**
+  String get contractSignAnchoring;
+
+  /// No description provided for @contractExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'Your ECDSA P-256 signature is anchored on Hyperledger Fabric. The SHA-256 hash of the contract is immutably recorded — any future modification will invalidate the on-chain proof.'**
+  String get contractExplainer;
+
+  /// No description provided for @contractBiometricCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication cancelled.'**
+  String get contractBiometricCancelled;
+
+  /// No description provided for @contractWalletNotInit.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet not initialized. Please complete onboarding first.'**
+  String get contractWalletNotInit;
+
+  /// No description provided for @contractBackendError.
+  ///
+  /// In en, this message translates to:
+  /// **'Backend error: {error}'**
+  String contractBackendError(String error);
+
+  /// No description provided for @contractSignedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed:'**
+  String get contractSignedAt;
+
+  /// No description provided for @contractDocHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Hash:'**
+  String get contractDocHash;
+
+  /// No description provided for @auditLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit Log'**
+  String get auditLogTitle;
+
+  /// No description provided for @auditNoRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No audit records found'**
+  String get auditNoRecords;
+
+  /// No description provided for @auditUpdatedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'By: {name}'**
+  String auditUpdatedBy(String name);
+
+  /// No description provided for @sdJwtIssueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue SD-JWT Credential'**
+  String get sdJwtIssueTitle;
+
+  /// No description provided for @sdJwtSkillTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill'**
+  String get sdJwtSkillTab;
+
+  /// No description provided for @sdJwtEducationTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get sdJwtEducationTab;
+
+  /// No description provided for @sdJwtAddSkill.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Skill'**
+  String get sdJwtAddSkill;
+
+  /// No description provided for @sdJwtIssued.
+  ///
+  /// In en, this message translates to:
+  /// **'SD-JWT Issued!'**
+  String get sdJwtIssued;
+
+  /// No description provided for @sdJwtIssuedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Credential stored on employee profile.'**
+  String get sdJwtIssuedMsg;
+
+  /// No description provided for @sdJwtIssueAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Another'**
+  String get sdJwtIssueAnother;
+
+  /// No description provided for @sdJwtSkillBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill Credential (SD-JWT)'**
+  String get sdJwtSkillBannerTitle;
+
+  /// No description provided for @sdJwtSkillBannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Each skill is a separate selective-disclosure claim. The holder decides which skills to reveal per Verifier request.'**
+  String get sdJwtSkillBannerSubtitle;
+
+  /// No description provided for @sdJwtEducBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Education Credential (SD-JWT)'**
+  String get sdJwtEducBannerTitle;
+
+  /// No description provided for @sdJwtEducBannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Each field (degree, major, GPA…) is a separate disclosure. The holder can share only what’s needed.'**
+  String get sdJwtEducBannerSubtitle;
+
+  /// No description provided for @sdJwtIssueSkillBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Skill Credential'**
+  String get sdJwtIssueSkillBtn;
+
+  /// No description provided for @sdJwtIssueEducBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Education Credential'**
+  String get sdJwtIssueEducBtn;
+
+  /// No description provided for @sdJwtSkillNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill name'**
+  String get sdJwtSkillNameHint;
+
+  /// No description provided for @themeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get themeTitle;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get themeSystem;
+
+  /// No description provided for @walletSdJwtBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'SD-JWT'**
+  String get walletSdJwtBadge;
+
+  /// No description provided for @walletZeroKnowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero-Knowledge'**
+  String get walletZeroKnowledge;
+
+  /// No description provided for @walletPresentSelective.
+  ///
+  /// In en, this message translates to:
+  /// **'Present with Selective Disclosure'**
+  String get walletPresentSelective;
+
+  /// No description provided for @walletBiometricLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric App Lock'**
+  String get walletBiometricLock;
+
+  /// No description provided for @walletBiometricLockOnSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric required to access wallet'**
+  String get walletBiometricLockOnSubtitle;
+
+  /// No description provided for @walletBiometricLockOffSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to enable fingerprint / face lock'**
+  String get walletBiometricLockOffSubtitle;
+
+  /// No description provided for @walletSelectiveClaims.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selective-disclosure claim(s)'**
+  String walletSelectiveClaims(int count);
+
+  /// No description provided for @disclosureRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get disclosureRequired;
+
+  /// No description provided for @disclosureSignBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign with Biometric'**
+  String get disclosureSignBiometric;
+
+  /// No description provided for @disclosureSigningBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing with biometric…'**
+  String get disclosureSigningBiometric;
+
+  /// No description provided for @disclosureShareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share {credentialType}'**
+  String disclosureShareTitle(String credentialType);
+
+  /// No description provided for @disclosureClaimsRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} claim(s) requested'**
+  String disclosureClaimsRequested(int count);
+
+  /// No description provided for @disclosureInfoBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Unchecked claims will NOT be visible to the Verifier. The signature remains valid regardless.'**
+  String get disclosureInfoBanner;
+
+  /// No description provided for @disclosureVerifierWants.
+  ///
+  /// In en, this message translates to:
+  /// **'Claims the Verifier wants to see'**
+  String get disclosureVerifierWants;
+
+  /// No description provided for @disclosureOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional — you may share more'**
+  String get disclosureOptional;
+
+  /// No description provided for @disclosurePrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero-Knowledge: The Verifier cannot detect that hidden claims exist. Your full credential stays private.'**
+  String get disclosurePrivacyNote;
+
+  /// No description provided for @disclosureBiometricCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication cancelled.'**
+  String get disclosureBiometricCancelled;
+
+  /// No description provided for @vcCredentialRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Credential Revoked'**
+  String get vcCredentialRevoked;
+
+  /// No description provided for @vcSelectiveDisclosedClaims.
+  ///
+  /// In en, this message translates to:
+  /// **'Selectively Disclosed Claims'**
+  String get vcSelectiveDisclosedClaims;
+
+  /// No description provided for @vcNoFields.
+  ///
+  /// In en, this message translates to:
+  /// **'No credential fields available'**
+  String get vcNoFields;
+
+  /// No description provided for @vcFieldIssued.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get vcFieldIssued;
+
+  /// No description provided for @vcFieldExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires'**
+  String get vcFieldExpires;
+
+  /// No description provided for @vcFieldId.
+  ///
+  /// In en, this message translates to:
+  /// **'Credential ID'**
+  String get vcFieldId;
+
+  /// No description provided for @sdJwtSelectiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SD-JWT · Selective Disclosure'**
+  String get sdJwtSelectiveSubtitle;
 }
 
 class _AppLocalizationsDelegate

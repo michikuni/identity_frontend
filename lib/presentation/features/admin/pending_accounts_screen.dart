@@ -32,7 +32,14 @@ class _PendingAccountsScreenState extends State<PendingAccountsScreen> {
         _accounts = data.cast<Map<String, dynamic>>();
         _loading = false;
       });
-    } catch (_) {
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.adminLoadFailed),
+          backgroundColor: const Color(0xFFE53935),
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
       setState(() => _loading = false);
     }
   }

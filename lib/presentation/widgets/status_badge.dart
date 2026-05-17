@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/l10n/l10n.dart';
 
 enum BadgeType { success, warning, error, info, neutral }
 
@@ -107,7 +108,7 @@ class ErrorStateWidget extends StatelessWidget {
               TextButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                label: Text(context.l10n.retry),
               ),
             ],
           ],

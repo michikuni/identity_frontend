@@ -1,11 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
+import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
+import 'package:identity_frontend/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:identity_frontend/presentation/widgets/app_input.dart';
 
 class ChiefScreen extends StatefulWidget {
@@ -20,6 +23,7 @@ class _ChiefScreenState extends State<ChiefScreen> {
   bool _loading = true;
   String _search = '';
   String _filterRole = 'ALL';
+  String? _currentUserId;
 
   List<(String, String)> _filters(AppLocalizations l10n) => [
     ('ALL', l10n.chiefFilterAll),
@@ -33,6 +37,9 @@ class _ChiefScreenState extends State<ChiefScreen> {
   @override
   void initState() {
     super.initState();
+    SecureStorage.getUserId().then((id) {
+      if (mounted) setState(() => _currentUserId = id);
+    });
     _load();
   }
 
@@ -99,6 +106,14 @@ class _ChiefScreenState extends State<ChiefScreen> {
             onPressed: () => context.push('/app/admin/pending-accounts').then((_) => _load()),
           ),
           IconButton(icon: const Icon(Icons.refresh_rounded), onPressed: _load),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: l10n.logout,
+            onPressed: () {
+              context.read<AuthBloc>().add(const AuthLoggedOut());
+              context.go('/auth/sign-in');
+            },
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -127,6 +142,7 @@ class _ChiefScreenState extends State<ChiefScreen> {
                           itemBuilder: (_, i) => _EmployeeCard(
                             emp: _filtered[i],
                             onChanged: _load,
+                            currentUserId: _currentUserId,
                           ),
                         ),
                       ),
@@ -263,7 +279,8 @@ class _ChiefScreenState extends State<ChiefScreen> {
 class _EmployeeCard extends StatelessWidget {
   final Map<String, dynamic> emp;
   final VoidCallback onChanged;
-  const _EmployeeCard({required this.emp, required this.onChanged});
+  final String? currentUserId;
+  const _EmployeeCard({required this.emp, required this.onChanged, this.currentUserId});
 
   @override
   Widget build(BuildContext context) {
@@ -320,6 +337,7 @@ class _EmployeeCard extends StatelessWidget {
             onSelected: (v) => _onAction(context, v),
             itemBuilder: (_) {
               final l10n = AppLocalizations.of(context)!;
+              final isSelf = emp['id']?.toString() == currentUserId;
               return [
                 PopupMenuItem(value: 'ADMIN', child: Text(l10n.chiefPromoteAdmin)),
                 PopupMenuItem(value: 'CHIEF', child: Text(l10n.chiefPromoteChief)),
@@ -332,11 +350,13 @@ class _EmployeeCard extends StatelessWidget {
                 PopupMenuItem(value: 'payroll', child: Text(l10n.chiefCreatePayroll)),
                 const PopupMenuDivider(),
                 PopupMenuItem(value: 'salary_vc', child: Text(l10n.chiefIssueSalaryVc)),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'terminate',
-                  child: Text(l10n.chiefTerminateContract, style: const TextStyle(color: AppColors.error)),
-                ),
+                if (!isSelf) ...[
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'terminate',
+                    child: Text(l10n.chiefTerminateContract, style: const TextStyle(color: AppColors.error)),
+                  ),
+                ],
               ];
             },
           )
@@ -1048,6 +1068,127 @@ class _ContractSheetState extends State<_ContractSheet> {
 
 // ── Payroll Sheet ─────────────────────────────────────────────────────────────
 
+class _BankItem {
+  final String name;
+  final String shortName;
+  final String code;
+  const _BankItem({required this.name, required this.shortName, required this.code});
+}
+
+class _BankSearchSheet extends StatefulWidget {
+  final List<_BankItem> banks;
+  final _BankItem? selected;
+  final void Function(_BankItem) onSelect;
+  const _BankSearchSheet({required this.banks, required this.selected, required this.onSelect});
+  @override
+  State<_BankSearchSheet> createState() => _BankSearchSheetState();
+}
+
+class _BankSearchSheetState extends State<_BankSearchSheet> {
+  final _searchCtrl = TextEditingController();
+  late List<_BankItem> _filtered;
+
+  @override
+  void initState() {
+    super.initState();
+    _filtered = widget.banks;
+    _searchCtrl.addListener(_onSearch);
+  }
+
+  void _onSearch() {
+    final q = _searchCtrl.text.toLowerCase();
+    setState(() {
+      _filtered = q.isEmpty
+          ? widget.banks
+          : widget.banks
+              .where((b) =>
+                  b.shortName.toLowerCase().contains(q) ||
+                  b.name.toLowerCase().contains(q) ||
+                  b.code.toLowerCase().contains(q))
+              .toList();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.72,
+        child: Column(children: [
+          Container(
+            margin: const EdgeInsets.only(top: 12, bottom: 4),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2)),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Chọn ngân hàng',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: TextField(
+              controller: _searchCtrl,
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'Tìm kiếm ngân hàng...',
+                prefixIcon: Icon(Icons.search),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _filtered.length,
+              itemBuilder: (ctx, i) {
+                final bank = _filtered[i];
+                final isSelected = widget.selected?.code == bank.code;
+                return ListTile(
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.network(
+                      'https://api.vietqr.io/img/${bank.code}.png',
+                      width: 36,
+                      height: 36,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, e, st) =>
+                          const Icon(Icons.account_balance_outlined, size: 28),
+                    ),
+                  ),
+                  title: Text(bank.shortName,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 14)),
+                  subtitle: Text(bank.name,
+                      style: const TextStyle(fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  trailing: isSelected
+                      ? const Icon(Icons.check, color: AppColors.primary)
+                      : null,
+                  onTap: () => widget.onSelect(bank),
+                );
+              },
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
 class _PayrollSheet extends StatefulWidget {
   final String employeeId;
   final VoidCallback onSaved;
@@ -1073,10 +1214,67 @@ class _PayrollSheetState extends State<_PayrollSheet> {
   final _bankBranchCtrl = TextEditingController();
   DateTime? _payDay;
 
+  List<_BankItem> _banks = [];
+  _BankItem? _selectedBank;
+  bool _loadingBanks = true;
+
   @override
   void initState() {
     super.initState();
     _loadExisting();
+    _loadBanks();
+  }
+
+  Future<void> _loadBanks() async {
+    try {
+      final res = await Dio().get('https://api.vietqr.io/v2/banks');
+      final list = res.data['data'] as List<dynamic>;
+      if (!mounted) return;
+      setState(() {
+        _banks = list
+            .map((b) => _BankItem(
+                  name: b['name'] as String? ?? '',
+                  shortName: b['shortName'] as String? ?? '',
+                  code: b['code'] as String? ?? '',
+                ))
+            .toList();
+        _loadingBanks = false;
+        _matchExistingBank();
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loadingBanks = false);
+    }
+  }
+
+  void _matchExistingBank() {
+    final text = _bankNameCtrl.text.trim().toLowerCase();
+    if (text.isEmpty || _banks.isEmpty) return;
+    try {
+      _selectedBank = _banks.firstWhere((b) =>
+          b.shortName.toLowerCase() == text ||
+          b.name.toLowerCase() == text ||
+          b.code.toLowerCase() == text);
+    } catch (_) {}
+  }
+
+  void _showBankPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _BankSearchSheet(
+        banks: _banks,
+        selected: _selectedBank,
+        onSelect: (bank) {
+          setState(() {
+            _selectedBank = bank;
+            _bankNameCtrl.text = bank.shortName;
+          });
+          Navigator.pop(context);
+        },
+      ),
+    );
   }
 
   Future<void> _loadExisting() async {
@@ -1296,7 +1494,19 @@ class _PayrollSheetState extends State<_PayrollSheet> {
                     label: l10n.chiefPayrollBankName,
                     hint: 'VD: Vietcombank',
                     controller: _bankNameCtrl,
+                    readOnly: true,
+                    onTap: () => _showBankPicker(context),
                     prefixIcon: Icon(Icons.account_balance_outlined, size: context.r(20), color: AppColors.inactive),
+                    suffixIcon: _loadingBanks
+                        ? Padding(
+                            padding: EdgeInsets.all(context.r(12)),
+                            child: SizedBox(
+                              width: context.r(16),
+                              height: context.r(16),
+                              child: const CircularProgressIndicator(strokeWidth: 2, color: AppColors.inactive),
+                            ),
+                          )
+                        : Icon(Icons.keyboard_arrow_down_rounded, size: context.r(20), color: AppColors.inactive),
                   ),
                   SizedBox(height: context.r(10)),
                   AppInput(
