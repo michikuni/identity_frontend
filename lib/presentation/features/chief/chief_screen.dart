@@ -6,6 +6,7 @@ import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/presentation/features/auth/bloc/auth_bloc.dart';
@@ -448,8 +449,11 @@ class _EmployeeCard extends StatelessWidget {
           ),
         );
         if (confirm != true || !context.mounted) return;
-        await ApiClient.instance
-            .put(ApiConstants.adminIssueSalaryVC(id));
+        final email = emp['email']?.toString() ?? '';
+        await ApiClient.instance.put(
+          '/admin/employees/issue-salary-vc',
+          queryParameters: {'email': email},
+        );
 
       } else {
         // Role change — ask for new position to trigger PromotionVC correctly
@@ -890,7 +894,7 @@ class _ContractSheetState extends State<_ContractSheet> {
 
   String _fmtDate(DateTime? dt, AppLocalizations l10n) {
     if (dt == null) return l10n.chiefPickDate;
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    return formatDateOf(dt);
   }
 
   Future<void> _submit() async {
@@ -1316,7 +1320,7 @@ class _PayrollSheetState extends State<_PayrollSheet> {
 
   String _fmtDate(DateTime? dt, AppLocalizations l10n) {
     if (dt == null) return l10n.chiefPickDate;
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    return formatDateOf(dt);
   }
 
   Future<void> _submit() async {

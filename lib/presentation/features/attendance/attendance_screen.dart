@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/attendance_entity.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
@@ -314,13 +315,10 @@ class AttendanceScreen extends StatelessWidget {
       l10n.weekdayFullFri,
       l10n.weekdayFullSat,
     ];
-    return '${days[now.weekday % 7]}, ${now.day}/${now.month}/${now.year}';
+    return '${days[now.weekday % 7]}, ${formatDateOf(now)}';
   }
 
-  String _currentTime() {
-    final now = DateTime.now();
-    return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
-  }
+  String _currentTime() => formatTimeOf(DateTime.now());
 
   String _formatTime(String raw) {
     try {

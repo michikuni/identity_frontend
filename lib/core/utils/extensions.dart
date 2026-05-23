@@ -37,7 +37,10 @@ extension StringX on String {
 
 extension DateTimeX on DateTime {
   String toDisplayDate() {
-    return '$day/$month/$year';
+    final d = day.toString().padLeft(2, '0');
+    final m = month.toString().padLeft(2, '0');
+    final y = year.toString().padLeft(4, '0');
+    return '$d-$m-$y';
   }
 
   String toIso() => toIso8601String();

@@ -92,3 +92,14 @@ String? findVcTypeByField(String field) {
   }
   return null;
 }
+
+/// Chuyển giá trị enum salaryBand thành nhãn tiếng Việt thân thiện.
+String humanizeSalaryBandValue(String band) {
+  switch (band.toUpperCase()) {
+    case 'ENTRY': return 'Mức khởi điểm';
+    case 'MID': return 'Mức trung cấp';
+    case 'SENIOR': return 'Mức cao cấp';
+    case 'EXECUTIVE': return 'Mức điều hành';
+    default: return band;
+  }
+}

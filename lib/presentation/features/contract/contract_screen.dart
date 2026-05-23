@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/di/injection.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
 import 'package:identity_frontend/domain/entities/contract_entity.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/presentation/features/contract/bloc/contract_bloc.dart';
@@ -142,7 +143,7 @@ class _ContractView extends StatelessWidget {
 
   String _fmtDate(DateTime? dt) {
     if (dt == null) return '—';
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    return formatDateOf(dt);
   }
 }
 

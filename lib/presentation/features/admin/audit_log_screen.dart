@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
 import 'package:identity_frontend/l10n/l10n.dart';
 
 /// Audit Log Screen — timeline of on-chain record history for an employee.
@@ -222,20 +223,12 @@ class _TimelineEntry extends StatelessWidget {
   IconData get _icon =>
       _actionIcons[entry['action']?.toString().toUpperCase()] ?? Icons.circle_outlined;
 
-  String _formatDate(String? iso) {
-    if (iso == null) return '';
-    final dt = DateTime.tryParse(iso);
-    if (dt == null) return iso;
-    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
-        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final action = entry['action']?.toString() ?? 'UNKNOWN';
     final recordType = entry['recordType']?.toString() ?? '';
     final updatedBy = entry['updatedBy']?.toString() ?? '';
-    final timestamp = _formatDate(entry['timestamp']?.toString());
+    final timestamp = formatDateTime(entry['timestamp']?.toString());
     final keyFields = entry['keyFields']?.toString();
 
     return IntrinsicHeight(

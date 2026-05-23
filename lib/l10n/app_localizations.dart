@@ -1055,7 +1055,7 @@ abstract class AppLocalizations {
   /// No description provided for @navIssuer.
   ///
   /// In en, this message translates to:
-  /// **'Issuer'**
+  /// **'Credentials'**
   String get navIssuer;
 
   /// No description provided for @navWorkplace.
@@ -1127,13 +1127,13 @@ abstract class AppLocalizations {
   /// No description provided for @issuerConsoleTitle.
   ///
   /// In en, this message translates to:
-  /// **'Issuer Console'**
+  /// **'Credential Management'**
   String get issuerConsoleTitle;
 
   /// No description provided for @issuerConsoleSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Issue & manage Verifiable Credentials'**
+  /// **'Issue and manage digital credentials'**
   String get issuerConsoleSubtitle;
 
   /// No description provided for @issuerStatsCredentialsIssued.
@@ -1145,7 +1145,7 @@ abstract class AppLocalizations {
   /// No description provided for @issuerStatsActiveDids.
   ///
   /// In en, this message translates to:
-  /// **'Active DIDs'**
+  /// **'Verified Accounts'**
   String get issuerStatsActiveDids;
 
   /// No description provided for @issuerStatsRevokedMonth.
@@ -1157,31 +1157,31 @@ abstract class AppLocalizations {
   /// No description provided for @issuerStatsTrustedIssuers.
   ///
   /// In en, this message translates to:
-  /// **'Trusted Issuers'**
+  /// **'Trusted Organizations'**
   String get issuerStatsTrustedIssuers;
 
   /// No description provided for @issuerStatsSection.
   ///
   /// In en, this message translates to:
-  /// **'SSI KPIs'**
+  /// **'Credential Overview'**
   String get issuerStatsSection;
 
   /// No description provided for @issuerStatsHrSection.
   ///
   /// In en, this message translates to:
-  /// **'Operations KPIs (HR)'**
+  /// **'HR Overview'**
   String get issuerStatsHrSection;
 
   /// No description provided for @issuerActionEnroll.
   ///
   /// In en, this message translates to:
-  /// **'Enroll & Issue Credential'**
+  /// **'Approve & Issue Credential'**
   String get issuerActionEnroll;
 
   /// No description provided for @issuerActionIssueSalary.
   ///
   /// In en, this message translates to:
-  /// **'Issue SalaryRange VC'**
+  /// **'Issue Salary Certificate'**
   String get issuerActionIssueSalary;
 
   /// No description provided for @issuerActionIssueSkill.
@@ -1205,7 +1205,7 @@ abstract class AppLocalizations {
   /// No description provided for @issuerActionVerifier.
   ///
   /// In en, this message translates to:
-  /// **'Open Verifier'**
+  /// **'Open Verification Screen'**
   String get issuerActionVerifier;
 
   /// No description provided for @ssiCredentialWallet.
@@ -1217,7 +1217,7 @@ abstract class AppLocalizations {
   /// No description provided for @ssiCredentialSubjects.
   ///
   /// In en, this message translates to:
-  /// **'Credential Subjects'**
+  /// **'Employee Management'**
   String get ssiCredentialSubjects;
 
   /// No description provided for @ssiPresentCredential.
@@ -2705,7 +2705,7 @@ abstract class AppLocalizations {
   /// No description provided for @chiefIssueSalaryVc.
   ///
   /// In en, this message translates to:
-  /// **'Issue Salary VC'**
+  /// **'Issue Salary Certificate'**
   String get chiefIssueSalaryVc;
 
   /// No description provided for @chiefTerminateContract.
@@ -3137,13 +3137,13 @@ abstract class AppLocalizations {
   /// No description provided for @chiefIssueSalaryVcTitle.
   ///
   /// In en, this message translates to:
-  /// **'Issue Salary Range VC'**
+  /// **'Issue Salary Certificate'**
   String get chiefIssueSalaryVcTitle;
 
   /// No description provided for @chiefIssueSalaryVcContent.
   ///
   /// In en, this message translates to:
-  /// **'Issue SalaryRangeVC for {name}?\n\nEmployee must have a payroll assigned.'**
+  /// **'Issue salary certificate for {name}?\n\nEmployee must have a payroll record assigned.'**
   String chiefIssueSalaryVcContent(String name);
 
   /// No description provided for @walletTitle.
@@ -3203,13 +3203,13 @@ abstract class AppLocalizations {
   /// No description provided for @walletVerifierScanTitle.
   ///
   /// In en, this message translates to:
-  /// **'Scan VP Request QR'**
+  /// **'Receive Verification Request'**
   String get walletVerifierScanTitle;
 
   /// No description provided for @walletVerifierScanSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Point camera at QR on Verifier screen\n(tab \"Create VP Request\")'**
+  /// **'Point camera at QR from the verifier to share your information'**
   String get walletVerifierScanSubtitle;
 
   /// No description provided for @walletShareInfo.
@@ -3407,7 +3407,7 @@ abstract class AppLocalizations {
   /// No description provided for @verifierTitle.
   ///
   /// In en, this message translates to:
-  /// **'Verifier'**
+  /// **'Identity Verification'**
   String get verifierTitle;
 
   /// No description provided for @verifierVerifyVc.
@@ -3431,13 +3431,13 @@ abstract class AppLocalizations {
   /// No description provided for @verifierScanInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Point camera at QR Code on employee\'s app'**
+  /// **'Point camera at employee\'s QR code'**
   String get verifierScanInstruction;
 
   /// No description provided for @verifierScanDescription.
   ///
   /// In en, this message translates to:
-  /// **'Accepts 2 QR types:\n• QR from \"Export QR\" button — verify VC directly\n• QR from \"Present VP\" button — verify VP Token signed by Employee'**
+  /// **'Accepts 2 QR types:\n• QR from \"Export QR\" — verify credential directly\n• QR from \"Receive Request\" — verify via sharing request flow'**
   String get verifierScanDescription;
 
   /// No description provided for @verifierHowItWorks.
@@ -3449,25 +3449,25 @@ abstract class AppLocalizations {
   /// No description provided for @verifierHowItWorksSteps.
   ///
   /// In en, this message translates to:
-  /// **'1. Select information you want Employee to provide\n2. Tap \"Create VP Request QR\" → QR is generated\n3. Have Employee scan this QR with their app\n4. Employee reviews and sends Verifiable Presentation\n5. Tap \"Check Result\" to view the shared information'**
+  /// **'1. Select information you want the employee to provide\n2. Tap \"Create QR Code\" → QR is generated\n3. Have employee scan this QR code with their app\n4. Employee reviews and confirms sharing\n5. Tap \"Check Result\" to view the shared information'**
   String get verifierHowItWorksSteps;
 
   /// No description provided for @verifierSelectAtLeastOne.
   ///
   /// In en, this message translates to:
-  /// **'Please select at least 1 field in 1 VC'**
+  /// **'Please select at least 1 field'**
   String get verifierSelectAtLeastOne;
 
   /// No description provided for @verifierCreateQrBtn.
   ///
   /// In en, this message translates to:
-  /// **'Step 2 — Create QR for Employee to scan'**
+  /// **'Step 2 — Create QR code for employee to scan'**
   String get verifierCreateQrBtn;
 
   /// No description provided for @verifierQrTitle.
   ///
   /// In en, this message translates to:
-  /// **'Step 3 — Have Employee scan this QR'**
+  /// **'Step 3 — Have employee scan this QR code'**
   String get verifierQrTitle;
 
   /// No description provided for @verifierCheckResult.
@@ -3491,19 +3491,19 @@ abstract class AppLocalizations {
   /// No description provided for @verifierPollPending.
   ///
   /// In en, this message translates to:
-  /// **'Waiting for Employee to scan QR and send VP...'**
+  /// **'Waiting for employee to scan QR and confirm sharing...'**
   String get verifierPollPending;
 
   /// No description provided for @verifierPollAccepted.
   ///
   /// In en, this message translates to:
-  /// **'Employee sent VP — Verified successfully'**
+  /// **'Employee confirmed — Information verified'**
   String get verifierPollAccepted;
 
   /// No description provided for @verifierPollRejected.
   ///
   /// In en, this message translates to:
-  /// **'VP invalid or rejected'**
+  /// **'Information not confirmed or invalid'**
   String get verifierPollRejected;
 
   /// No description provided for @verifierPollStillPending.
@@ -3539,7 +3539,7 @@ abstract class AppLocalizations {
   /// No description provided for @verifierVpRejectedTitle.
   ///
   /// In en, this message translates to:
-  /// **'VP Rejected'**
+  /// **'Not Confirmed'**
   String get verifierVpRejectedTitle;
 
   /// No description provided for @verifierVpSharedTitle.
@@ -3551,13 +3551,13 @@ abstract class AppLocalizations {
   /// No description provided for @verifierVpInvalidDefault.
   ///
   /// In en, this message translates to:
-  /// **'VP invalid or rejected'**
+  /// **'Information invalid or not confirmed'**
   String get verifierVpInvalidDefault;
 
   /// No description provided for @verifierEmployeeConfirmedNoFields.
   ///
   /// In en, this message translates to:
-  /// **'Employee confirmed but no fields were shared.'**
+  /// **'Employee confirmed but no information was shared.'**
   String get verifierEmployeeConfirmedNoFields;
 
   /// No description provided for @verifierEmployeeSharedInfo.
@@ -4237,6 +4237,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SD-JWT · Selective Disclosure'**
   String get sdJwtSelectiveSubtitle;
+
+  /// No description provided for @walletDidCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital Identity'**
+  String get walletDidCardTitle;
+
+  /// No description provided for @walletDidLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Identifier'**
+  String get walletDidLabel;
+
+  /// No description provided for @walletControllerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Controller'**
+  String get walletControllerLabel;
+
+  /// No description provided for @walletIssuedAtLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued at'**
+  String get walletIssuedAtLabel;
+
+  /// No description provided for @walletPublicKeyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Key'**
+  String get walletPublicKeyTitle;
+
+  /// No description provided for @adminTabDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get adminTabDashboard;
+
+  /// No description provided for @adminTabOnChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Blockchain'**
+  String get adminTabOnChain;
+
+  /// No description provided for @walletQrSelectFieldsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select information to share'**
+  String get walletQrSelectFieldsTitle;
+
+  /// No description provided for @auditRecordCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} on-chain records'**
+  String auditRecordCount(int count);
+
+  /// No description provided for @auditEmployeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee: {id}'**
+  String auditEmployeeLabel(String id);
+
+  /// No description provided for @auditKeyFields.
+  ///
+  /// In en, this message translates to:
+  /// **'KEY FIELDS'**
+  String get auditKeyFields;
+
+  /// No description provided for @auditDataHash.
+  ///
+  /// In en, this message translates to:
+  /// **'DATA HASH'**
+  String get auditDataHash;
+
+  /// No description provided for @auditNoTypeRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No {type} records on-chain'**
+  String auditNoTypeRecords(String type);
+
+  /// No description provided for @auditSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by employee ID or updater...'**
+  String get auditSearchHint;
+
+  /// No description provided for @auditFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get auditFilterAll;
+
+  /// No description provided for @auditFilterProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get auditFilterProfile;
+
+  /// No description provided for @auditFilterContract.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract'**
+  String get auditFilterContract;
+
+  /// No description provided for @auditFilterPayroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll'**
+  String get auditFilterPayroll;
+
+  /// No description provided for @auditFilterAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get auditFilterAttendance;
+
+  /// No description provided for @auditFilterDid.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get auditFilterDid;
+
+  /// No description provided for @auditFilterStatusList.
+  ///
+  /// In en, this message translates to:
+  /// **'VC Status'**
+  String get auditFilterStatusList;
+
+  /// No description provided for @auditFilterContractSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'Signatures'**
+  String get auditFilterContractSignature;
+
+  /// No description provided for @auditFilterCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get auditFilterCompany;
+
+  /// No description provided for @walletQrScanWrongCredential.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong credential type. The request needs {requested} but this card is {current}.'**
+  String walletQrScanWrongCredential(String requested, String current);
+
+  /// No description provided for @walletQrInvalidMissingStateNonce.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR: missing session info'**
+  String get walletQrInvalidMissingStateNonce;
+
+  /// No description provided for @biometricUnlockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate to open your identity wallet'**
+  String get biometricUnlockReason;
+
+  /// No description provided for @biometricEnableReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm to enable App Lock'**
+  String get biometricEnableReason;
+
+  /// No description provided for @biometricSignReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate to sign'**
+  String get biometricSignReason;
+
+  /// No description provided for @biometricLockedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet is locked. Authenticate to continue.'**
+  String get biometricLockedHint;
+
+  /// No description provided for @biometricUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get biometricUnlock;
 }
 
 class _AppLocalizationsDelegate

@@ -155,15 +155,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               },
             ),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             indicatorColor: Colors.white,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white60,
-            labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            unselectedLabelStyle: TextStyle(fontSize: 13),
+            labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            unselectedLabelStyle: const TextStyle(fontSize: 13),
             tabs: [
-              Tab(icon: Icon(Icons.dashboard_rounded, size: 16), text: 'Dashboard'),
-              Tab(icon: Icon(Icons.account_tree_rounded, size: 16), text: 'On-Chain'),
+              Tab(icon: const Icon(Icons.dashboard_rounded, size: 16), text: l10n.adminTabDashboard),
+              Tab(icon: const Icon(Icons.account_tree_rounded, size: 16), text: l10n.adminTabOnChain),
             ],
           ),
         ),

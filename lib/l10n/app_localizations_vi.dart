@@ -489,7 +489,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get navCredentials => 'Chứng chỉ';
 
   @override
-  String get navIssuer => 'Issuer';
+  String get navIssuer => 'Chứng chỉ số';
 
   @override
   String get navWorkplace => 'Workplace';
@@ -525,35 +525,34 @@ class AppLocalizationsVi extends AppLocalizations {
   String get workplaceManagerTimesheet => 'Bảng công';
 
   @override
-  String get issuerConsoleTitle => 'Issuer Console';
+  String get issuerConsoleTitle => 'Quản lý Chứng chỉ';
 
   @override
-  String get issuerConsoleSubtitle =>
-      'Phát hành & quản lý Verifiable Credentials';
+  String get issuerConsoleSubtitle => 'Phát hành và quản lý chứng chỉ số';
 
   @override
-  String get issuerStatsCredentialsIssued => 'VC đã phát hành';
+  String get issuerStatsCredentialsIssued => 'Chứng chỉ đã cấp';
 
   @override
-  String get issuerStatsActiveDids => 'DID đang hoạt động';
+  String get issuerStatsActiveDids => 'Tài khoản đã xác minh';
 
   @override
-  String get issuerStatsRevokedMonth => 'VC bị thu hồi (tháng)';
+  String get issuerStatsRevokedMonth => 'Chứng chỉ thu hồi (tháng)';
 
   @override
-  String get issuerStatsTrustedIssuers => 'Issuer được tin tưởng';
+  String get issuerStatsTrustedIssuers => 'Tổ chức phát hành uy tín';
 
   @override
-  String get issuerStatsSection => 'KPI SSI';
+  String get issuerStatsSection => 'Tổng quan chứng chỉ số';
 
   @override
-  String get issuerStatsHrSection => 'KPI vận hành (HR)';
+  String get issuerStatsHrSection => 'Tổng quan nhân sự';
 
   @override
-  String get issuerActionEnroll => 'Enroll & cấp VC';
+  String get issuerActionEnroll => 'Duyệt & cấp chứng chỉ';
 
   @override
-  String get issuerActionIssueSalary => 'Phát hành SalaryRangeVC';
+  String get issuerActionIssueSalary => 'Cấp chứng chỉ mức lương';
 
   @override
   String get issuerActionIssueSkill => 'Phát hành SkillVC (SD-JWT)';
@@ -565,13 +564,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get issuerActionRevoke => 'Thu hồi VC';
 
   @override
-  String get issuerActionVerifier => 'Mở Verifier';
+  String get issuerActionVerifier => 'Mở màn xác minh';
 
   @override
-  String get ssiCredentialWallet => 'Ví Credential';
+  String get ssiCredentialWallet => 'Ví chứng chỉ';
 
   @override
-  String get ssiCredentialSubjects => 'Credential Subjects';
+  String get ssiCredentialSubjects => 'Quản lý nhân viên';
 
   @override
   String get ssiPresentCredential => 'Trình bày Credential';
@@ -1341,7 +1340,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chiefCreatePayroll => 'Tạo / Cập nhật Lương';
 
   @override
-  String get chiefIssueSalaryVc => 'Cấp Salary VC';
+  String get chiefIssueSalaryVc => 'Cấp chứng chỉ mức lương';
 
   @override
   String get chiefTerminateContract => 'Chấm dứt hợp đồng';
@@ -1563,11 +1562,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chiefAssignSuccess => 'Đã phân công manager thành công';
 
   @override
-  String get chiefIssueSalaryVcTitle => 'Cấp Salary Range VC';
+  String get chiefIssueSalaryVcTitle => 'Cấp chứng chỉ dải mức lương';
 
   @override
   String chiefIssueSalaryVcContent(String name) {
-    return 'Cấp Verifiable Credential về mức lương cho $name?';
+    return 'Cấp chứng chỉ mức lương cho $name?';
   }
 
   @override
@@ -1601,11 +1600,11 @@ class AppLocalizationsVi extends AppLocalizations {
       'Employment VC chưa được cấp — sẽ tự động xuất hiện sau khi Admin duyệt tài khoản.';
 
   @override
-  String get walletVerifierScanTitle => 'Quét VP Request QR';
+  String get walletVerifierScanTitle => 'Nhận yêu cầu xác minh';
 
   @override
   String get walletVerifierScanSubtitle =>
-      'Hướng camera vào QR trên màn Verifier\n(tab \"Tạo VP Request\")';
+      'Hướng camera vào mã QR từ bên xác minh để chia sẻ thông tin của bạn';
 
   @override
   String get walletShareInfo => 'Chọn thông tin chia sẻ';
@@ -1720,40 +1719,39 @@ class AppLocalizationsVi extends AppLocalizations {
   String get cccdManualInput => 'Nhập thông tin thủ công';
 
   @override
-  String get verifierTitle => 'Verifier';
+  String get verifierTitle => 'Xác minh danh tính';
 
   @override
   String get verifierVerifyVc => 'Quét & Xác minh';
 
   @override
-  String get verifierRequestVp => 'Tạo Yêu cầu';
+  String get verifierRequestVp => 'Tạo yêu cầu';
 
   @override
   String get verifierScanAgain => 'Quét lại';
 
   @override
-  String get verifierScanInstruction =>
-      'Hướng camera vào QR Code trên app của Employee';
+  String get verifierScanInstruction => 'Hướng camera vào mã QR của nhân viên';
 
   @override
   String get verifierScanDescription =>
-      'Chấp nhận 2 loại QR:\n• QR từ nút \"Xuất QR\" — xác minh VC trực tiếp\n• QR từ nút \"Present VP\" — xác minh VP Token đã được Employee ký';
+      'Chấp nhận 2 loại mã QR:\n• QR từ nút \"Xuất mã QR\" — xác minh chứng chỉ trực tiếp\n• QR từ nút \"Nhận yêu cầu\" — xác minh qua luồng yêu cầu chia sẻ';
 
   @override
   String get verifierHowItWorks => 'Cách hoạt động';
 
   @override
   String get verifierHowItWorksSteps =>
-      '1. Chọn thông tin bạn muốn Employee cung cấp\n2. Nhấn \"Tạo VP Request QR\" → QR được tạo\n3. Cho Employee quét QR này bằng app của họ\n4. Employee xem xét và gửi Verifiable Presentation\n5. Nhấn \"Kiểm tra kết quả\" để xem thông tin Employee đã chia sẻ';
+      '1. Chọn thông tin bạn muốn nhân viên cung cấp\n2. Nhấn \"Tạo mã QR\" → mã QR được tạo\n3. Cho nhân viên quét mã QR này bằng ứng dụng của họ\n4. Nhân viên xem xét và xác nhận chia sẻ\n5. Nhấn \"Kiểm tra kết quả\" để xem thông tin nhân viên đã chia sẻ';
 
   @override
-  String get verifierSelectAtLeastOne => 'Hãy chọn ít nhất 1 trường ở 1 VC';
+  String get verifierSelectAtLeastOne => 'Hãy chọn ít nhất 1 trường thông tin';
 
   @override
-  String get verifierCreateQrBtn => 'Bước 2 — Tạo QR cho Employee quét';
+  String get verifierCreateQrBtn => 'Bước 2 — Tạo mã QR cho nhân viên quét';
 
   @override
-  String get verifierQrTitle => 'Bước 3 — Cho Employee quét QR này';
+  String get verifierQrTitle => 'Bước 3 — Cho nhân viên quét mã QR này';
 
   @override
   String get verifierCheckResult => 'Bước 5 — Kiểm tra kết quả';
@@ -1767,20 +1765,22 @@ class AppLocalizationsVi extends AppLocalizations {
   String get verifierPollIdle => 'Chưa có yêu cầu nào';
 
   @override
-  String get verifierPollPending => 'Chờ Employee quét QR và gửi VP...';
+  String get verifierPollPending =>
+      'Chờ nhân viên quét mã QR và xác nhận chia sẻ...';
 
   @override
-  String get verifierPollAccepted => 'Employee đã gửi VP — Đã xác minh hợp lệ';
+  String get verifierPollAccepted => 'Nhân viên đã xác nhận — Thông tin hợp lệ';
 
   @override
-  String get verifierPollRejected => 'VP không hợp lệ hoặc bị từ chối';
+  String get verifierPollRejected =>
+      'Thông tin không được xác nhận hoặc không hợp lệ';
 
   @override
   String get verifierPollStillPending =>
-      'Employee chưa quét QR hoặc chưa xác nhận chia sẻ';
+      'Nhân viên chưa quét mã QR hoặc chưa xác nhận chia sẻ';
 
   @override
-  String get verifierSharedInfo => 'Thông tin Employee đã chia sẻ';
+  String get verifierSharedInfo => 'Thông tin nhân viên đã chia sẻ';
 
   @override
   String get verifierResultValid => 'HỢP LỆ';
@@ -1789,24 +1789,25 @@ class AppLocalizationsVi extends AppLocalizations {
   String get verifierResultInvalid => 'KHÔNG HỢP LỆ';
 
   @override
-  String get verifierDisclosedInfo => 'Thông tin được tiết lộ';
+  String get verifierDisclosedInfo => 'Thông tin được chia sẻ';
 
   @override
-  String get verifierVpRejectedTitle => 'VP bị từ chối';
+  String get verifierVpRejectedTitle => 'Thông tin không được xác nhận';
 
   @override
   String get verifierVpSharedTitle => 'Thông tin được chia sẻ';
 
   @override
-  String get verifierVpInvalidDefault => 'VP không hợp lệ hoặc bị từ chối';
+  String get verifierVpInvalidDefault =>
+      'Thông tin không hợp lệ hoặc bị từ chối';
 
   @override
   String get verifierEmployeeConfirmedNoFields =>
-      'Employee đã xác nhận nhưng không có trường nào được chia sẻ.';
+      'Nhân viên đã xác nhận nhưng không có thông tin nào được chia sẻ.';
 
   @override
   String get verifierEmployeeSharedInfo =>
-      'Employee đã xác nhận và chia sẻ các thông tin sau:';
+      'Nhân viên đã xác nhận và chia sẻ các thông tin sau:';
 
   @override
   String get verifierClose => 'Đóng';
@@ -2178,4 +2179,104 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sdJwtSelectiveSubtitle => 'SD-JWT · Tiết lộ có chọn lọc';
+
+  @override
+  String get walletDidCardTitle => 'Danh tính số';
+
+  @override
+  String get walletDidLabel => 'Mã định danh';
+
+  @override
+  String get walletControllerLabel => 'Người quản lý';
+
+  @override
+  String get walletIssuedAtLabel => 'Ngày cấp';
+
+  @override
+  String get walletPublicKeyTitle => 'Khóa công khai';
+
+  @override
+  String get adminTabDashboard => 'Tổng quan';
+
+  @override
+  String get adminTabOnChain => 'Blockchain';
+
+  @override
+  String get walletQrSelectFieldsTitle => 'Chọn thông tin muốn chia sẻ';
+
+  @override
+  String auditRecordCount(int count) {
+    return '$count bản ghi blockchain';
+  }
+
+  @override
+  String auditEmployeeLabel(String id) {
+    return 'Nhân viên: $id';
+  }
+
+  @override
+  String get auditKeyFields => 'CÁC TRƯỜNG CHÍNH';
+
+  @override
+  String get auditDataHash => 'MÃ BĂM DỮ LIỆU';
+
+  @override
+  String auditNoTypeRecords(String type) {
+    return 'Không có bản ghi $type trên blockchain';
+  }
+
+  @override
+  String get auditSearchHint => 'Tìm theo mã nhân viên hoặc người cập nhật...';
+
+  @override
+  String get auditFilterAll => 'Tất cả';
+
+  @override
+  String get auditFilterProfile => 'Hồ sơ';
+
+  @override
+  String get auditFilterContract => 'Hợp đồng';
+
+  @override
+  String get auditFilterPayroll => 'Lương';
+
+  @override
+  String get auditFilterAttendance => 'Chấm công';
+
+  @override
+  String get auditFilterDid => 'Danh tính số';
+
+  @override
+  String get auditFilterStatusList => 'Trạng thái VC';
+
+  @override
+  String get auditFilterContractSignature => 'Chữ ký HĐ';
+
+  @override
+  String get auditFilterCompany => 'Công ty';
+
+  @override
+  String walletQrScanWrongCredential(String requested, String current) {
+    return 'Sai loại chứng chỉ. Yêu cầu này cần $requested nhưng thẻ này là $current.';
+  }
+
+  @override
+  String get walletQrInvalidMissingStateNonce =>
+      'Mã QR không hợp lệ: thiếu thông tin phiên';
+
+  @override
+  String get biometricUnlockReason => 'Xác thực để mở ví danh tính';
+
+  @override
+  String get biometricEnableReason => 'Xác nhận để bật khóa ứng dụng';
+
+  @override
+  String get biometricSignReason => 'Xác thực để ký';
+
+  @override
+  String get biometricLockedHint =>
+      'Ví đang được khóa bằng sinh trắc học. Xác thực để tiếp tục.';
+
+  @override
+  String get biometricUnlock => 'Mở khóa';
 }

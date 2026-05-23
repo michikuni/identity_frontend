@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
+import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/l10n/l10n.dart';
 
 /// On-Chain Explorer — shows the current state of ALL records on the
@@ -28,12 +30,22 @@ class _OnChainExplorerState extends State<OnChainExplorer> {
     'PROFILE',
     'CONTRACT',
     'PAYROLL',
-    'ATTENDANCE',
-    'DID',
-    'STATUS_LIST',
-    'CONTRACT_SIGNATURE',
-    'COMPANY',
   ];
+
+  String _recordTypeLabel(AppLocalizations l10n, String type) {
+    switch (type) {
+      case 'ALL': return l10n.auditFilterAll;
+      case 'PROFILE': return l10n.auditFilterProfile;
+      case 'CONTRACT': return l10n.auditFilterContract;
+      case 'PAYROLL': return l10n.auditFilterPayroll;
+      case 'ATTENDANCE': return l10n.auditFilterAttendance;
+      case 'DID': return l10n.auditFilterDid;
+      case 'STATUS_LIST': return l10n.auditFilterStatusList;
+      case 'CONTRACT_SIGNATURE': return l10n.auditFilterContractSignature;
+      case 'COMPANY': return l10n.auditFilterCompany;
+      default: return type;
+    }
+  }
 
   static const _actionColors = {
     'CREATE':   Color(0xFF2563EB),
@@ -110,7 +122,7 @@ class _OnChainExplorerState extends State<OnChainExplorer> {
                 const Icon(Icons.link_rounded, size: 14, color: AppColors.textSecondary),
                 const SizedBox(width: 4),
                 Text(
-                  '${_filtered.length} records on-chain',
+                  context.l10n.auditRecordCount(_filtered.length),
                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
                 const Spacer(),
@@ -121,7 +133,7 @@ class _OnChainExplorerState extends State<OnChainExplorer> {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   icon: const Icon(Icons.refresh_rounded, size: 14),
-                  label: const Text('Refresh', style: TextStyle(fontSize: 12)),
+                  label: Text(context.l10n.adminRefresh, style: const TextStyle(fontSize: 12)),
                   onPressed: _load,
                 ),
               ],
@@ -148,7 +160,7 @@ class _OnChainExplorerState extends State<OnChainExplorer> {
         controller: _searchCtrl,
         style: const TextStyle(fontSize: 13),
         decoration: InputDecoration(
-          hintText: 'Search by employee ID or user...',
+          hintText: context.l10n.auditSearchHint,
           hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           prefixIcon: const Icon(Icons.search_rounded, size: 18),
           suffixIcon: _searchCtrl.text.isNotEmpty
@@ -174,6 +186,7 @@ class _OnChainExplorerState extends State<OnChainExplorer> {
   }
 
   Widget _buildFilterBar() {
+    final l10n = context.l10n;
     return Container(
       height: 40,
       color: AppColors.surface,
@@ -202,7 +215,7 @@ class _OnChainExplorerState extends State<OnChainExplorer> {
               ),
               alignment: Alignment.center,
               child: Text(
-                type,
+                _recordTypeLabel(l10n, type),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
@@ -248,6 +261,7 @@ class _OnChainExplorerState extends State<OnChainExplorer> {
   }
 
   Widget _buildEmpty() {
+    final l10n = context.l10n;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -256,8 +270,8 @@ class _OnChainExplorerState extends State<OnChainExplorer> {
           const SizedBox(height: 12),
           Text(
             _filterType == 'ALL'
-                ? context.l10n.auditNoRecords
-                : 'No $_filterType records on-chain',
+                ? l10n.auditNoRecords
+                : l10n.auditNoTypeRecords(_recordTypeLabel(l10n, _filterType)),
             style: const TextStyle(color: AppColors.textSecondary),
           ),
         ],
@@ -294,23 +308,30 @@ class _OnChainRecordCardState extends State<_OnChainRecordCard> {
     return widget.actionIcons[action] ?? Icons.circle_outlined;
   }
 
-  String _formatDate(String? iso) {
-    if (iso == null) return '';
-    final dt = DateTime.tryParse(iso);
-    if (dt == null) return iso;
-    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
-        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  String _humanRecordType(AppLocalizations l10n, String type) {
+    switch (type) {
+      case 'PROFILE': return l10n.auditFilterProfile;
+      case 'CONTRACT': return l10n.auditFilterContract;
+      case 'PAYROLL': return l10n.auditFilterPayroll;
+      case 'ATTENDANCE': return l10n.auditFilterAttendance;
+      case 'DID': return l10n.auditFilterDid;
+      case 'STATUS_LIST': return l10n.auditFilterStatusList;
+      case 'CONTRACT_SIGNATURE': return l10n.auditFilterContractSignature;
+      case 'COMPANY': return l10n.auditFilterCompany;
+      default: return type;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final r = widget.record;
     final action = r['action']?.toString() ?? 'UNKNOWN';
     final recordType = r['recordType']?.toString() ?? '';
     final employeeId = r['employeeId']?.toString() ?? '';
     final status = r['status']?.toString() ?? '';
     final updatedBy = r['updatedBy']?.toString() ?? '';
-    final timestamp = _formatDate(r['timestamp']?.toString());
+    final timestamp = formatDateTime(r['timestamp']?.toString());
     final keyFields = r['keyFields']?.toString();
     final dataHash = r['dataHash']?.toString();
 
@@ -354,7 +375,7 @@ class _OnChainRecordCardState extends State<_OnChainRecordCard> {
                           fontSize: 9, fontWeight: FontWeight.w700, color: _color)),
                 ),
                 const SizedBox(width: 6),
-                Text(recordType,
+                Text(_humanRecordType(l10n, recordType),
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                 const Spacer(),
                 // Status chip
@@ -391,7 +412,7 @@ class _OnChainRecordCardState extends State<_OnChainRecordCard> {
                 children: [
                   const Icon(Icons.badge_outlined, size: 12, color: AppColors.textSecondary),
                   const SizedBox(width: 4),
-                  Text('Employee: $employeeId',
+                  Text(context.l10n.auditEmployeeLabel(employeeId),
                       style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
                 ],
               ),
@@ -402,7 +423,7 @@ class _OnChainRecordCardState extends State<_OnChainRecordCard> {
               Text(timestamp,
                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
             if (updatedBy.isNotEmpty)
-              Text('By: $updatedBy',
+              Text(context.l10n.auditUpdatedBy(updatedBy),
                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
 
             // Expanded details
@@ -411,8 +432,8 @@ class _OnChainRecordCardState extends State<_OnChainRecordCard> {
               const Divider(height: 1),
               const SizedBox(height: 8),
               if (keyFields != null && keyFields.isNotEmpty) ...[
-                const Text('Key Fields',
-                    style: TextStyle(
+                Text(context.l10n.auditKeyFields,
+                    style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textSecondary,
@@ -434,8 +455,8 @@ class _OnChainRecordCardState extends State<_OnChainRecordCard> {
                 const SizedBox(height: 8),
               ],
               if (dataHash != null && dataHash.isNotEmpty) ...[
-                const Text('Data Hash',
-                    style: TextStyle(
+                Text(context.l10n.auditDataHash,
+                    style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textSecondary,

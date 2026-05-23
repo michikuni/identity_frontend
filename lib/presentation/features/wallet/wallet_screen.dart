@@ -7,6 +7,7 @@ import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/qr/vc_qr_payload_codec.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/core/security/biometric_service.dart';
 import 'package:identity_frontend/core/wallet/vc_schemas.dart';
@@ -47,16 +48,44 @@ class _WalletScreenState extends State<WalletScreen> {
   // Biometric lock toggle
   bool _biometricLockEnabled = false;
 
+  // True while the wallet is locked behind biometric — hides VC content
+  // until the user authenticates.
+  bool _biometricLocked = false;
+
   @override
   void initState() {
     super.initState();
-    _load();
-    _loadBiometricSetting();
+    _bootstrap();
   }
 
-  Future<void> _loadBiometricSetting() async {
+  /// Load preferences first, then either prompt for biometric (lock enabled)
+  /// or load the wallet contents directly.
+  Future<void> _bootstrap() async {
     final enabled = await BiometricService.isBiometricLockEnabled();
-    if (mounted) setState(() => _biometricLockEnabled = enabled);
+    if (!mounted) return;
+    setState(() {
+      _biometricLockEnabled = enabled;
+      _biometricLocked = enabled;
+    });
+    if (enabled) {
+      await _promptUnlock();
+    } else {
+      await _load();
+    }
+  }
+
+  /// Asks the OS for biometric auth. On success unlocks the wallet and
+  /// fetches data; on failure leaves the lock overlay visible so the user
+  /// can retry.
+  Future<void> _promptUnlock() async {
+    final ok = await BiometricService.authenticateNow(
+      reason: AppLocalizations.of(context)!.biometricUnlockReason,
+    );
+    if (!mounted) return;
+    if (ok) {
+      setState(() => _biometricLocked = false);
+      await _load();
+    }
   }
 
   Future<String?> _resolveEmployeeNumericId() async {
@@ -329,14 +358,23 @@ class _WalletScreenState extends State<WalletScreen> {
     }
 
     for (final field in preferredFields) {
-      add(humanizeFieldKey(field), subject[field]);
+      final raw = subject[field];
+      if (field == 'salaryBand') {
+        add(humanizeFieldKey(field), humanizeSalaryBandValue(raw?.toString() ?? ''));
+      } else {
+        add(humanizeFieldKey(field), raw);
+      }
     }
     for (final entry in subject.entries) {
       if (entry.key == 'id' || preferredFields.contains(entry.key)) continue;
-      add(humanizeFieldKey(entry.key), entry.value);
+      if (entry.key == 'salaryBand') {
+        add(humanizeFieldKey(entry.key), humanizeSalaryBandValue(entry.value?.toString() ?? ''));
+      } else {
+        add(humanizeFieldKey(entry.key), entry.value);
+      }
     }
-    add(AppLocalizations.of(context)!.vcFieldIssued, vc['issuanceDate']);
-    add(AppLocalizations.of(context)!.vcFieldExpires, vc['expirationDate']);
+    add(AppLocalizations.of(context)!.vcFieldIssued, formatDateTime(vc['issuanceDate']?.toString()));
+    add(AppLocalizations.of(context)!.vcFieldExpires, formatDateTime(vc['expirationDate']?.toString()));
     add(AppLocalizations.of(context)!.vcFieldId, vc['id']);
 
     if (entries.isEmpty) {
@@ -385,12 +423,14 @@ class _WalletScreenState extends State<WalletScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: _load,
+            onPressed: _biometricLocked ? null : _load,
             tooltip: AppLocalizations.of(context)!.walletRefresh,
           ),
         ],
       ),
-      body: _loading
+      body: _biometricLocked
+          ? _LockedOverlay(onUnlock: _promptUnlock)
+          : _loading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -564,11 +604,12 @@ class _WalletScreenState extends State<WalletScreen> {
                     onChanged: (v) async {
                       if (v) {
                         final ok = await BiometricService.authenticateNow(
-                          reason: 'Confirm to enable App Lock',
+                          reason: AppLocalizations.of(context)!.biometricEnableReason,
                         );
                         if (!ok) return;
                       }
                       await BiometricService.setBiometricLockEnabled(v);
+                      if (!mounted) return;
                       setState(() => _biometricLockEnabled = v);
                     },
                   ),
@@ -793,7 +834,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 (field) => CheckboxListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  title: Text(field, style: const TextStyle(fontSize: 13)),
+                  title: Text(humanizeFieldKey(field), style: const TextStyle(fontSize: 13)),
                   value: selected.contains(field),
                   onChanged: (value) => setLocal(() {
                     if (value == true) {
@@ -960,9 +1001,9 @@ class _WalletHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'DID Wallet',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.walletTitle,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -998,6 +1039,7 @@ class _DIDCard extends StatelessWidget {
     final createdAt = doc['createdAt'] as String? ?? '';
     final isActive = status == 'ACTIVE';
 
+    final l10n = AppLocalizations.of(context)!;
     return _Card(
       borderColor: isActive
           ? AppColors.success.withValues(alpha: 0.4)
@@ -1008,20 +1050,18 @@ class _DIDCard extends StatelessWidget {
           _CardHeader(
             icon: Icons.fingerprint_rounded,
             iconColor: isActive ? AppColors.success : AppColors.error,
-            title: 'Decentralized Identifier',
+            title: l10n.walletDidCardTitle,
             badge: status,
             badgeColor: isActive ? AppColors.success : AppColors.error,
           ),
           const SizedBox(height: 12),
-          _InfoRow(label: 'DID', value: did, copyable: true),
+          _InfoRow(label: l10n.walletDidLabel, value: did, copyable: true),
           const SizedBox(height: 6),
-          _InfoRow(label: 'Controller', value: controller),
+          _InfoRow(label: l10n.walletControllerLabel, value: controller),
           const SizedBox(height: 6),
           _InfoRow(
-            label: 'Issued at',
-            value: createdAt.length >= 19
-                ? createdAt.substring(0, 19).replaceAll('T', ' ')
-                : '-',
+            label: l10n.walletIssuedAtLabel,
+            value: formatDateTime(createdAt).isNotEmpty ? formatDateTime(createdAt) : '-',
           ),
         ],
       ),
@@ -1095,6 +1135,7 @@ class _VCCard extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: color,
                     side: BorderSide(color: color),
+                    minimumSize: const Size.fromHeight(44),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -1109,6 +1150,7 @@ class _VCCard extends StatelessWidget {
                   onPressed: onScanVpRequest,
                   style: FilledButton.styleFrom(
                     backgroundColor: color,
+                    minimumSize: const Size.fromHeight(44),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -1160,6 +1202,63 @@ class _PendingCard extends StatelessWidget {
   }
 }
 
+class _LockedOverlay extends StatelessWidget {
+  final VoidCallback onUnlock;
+  const _LockedOverlay({required this.onUnlock});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.fingerprint,
+                size: 44,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              l10n.walletBiometricLock,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.biometricLockedHint,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: onUnlock,
+              icon: const Icon(Icons.lock_open_rounded, size: 18),
+              label: Text(l10n.biometricUnlock),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                minimumSize: const Size(180, 48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _PublicKeyCard extends StatelessWidget {
   final String jwk;
   const _PublicKeyCard({required this.jwk});
@@ -1178,7 +1277,7 @@ class _PublicKeyCard extends StatelessWidget {
           _CardHeader(
             icon: Icons.key_rounded,
             iconColor: AppColors.primary,
-            title: 'Public Key (JWK)',
+            title: AppLocalizations.of(context)!.walletPublicKeyTitle,
             trailing: IconButton(
               icon: const Icon(
                 Icons.copy_rounded,
@@ -1406,9 +1505,13 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
     if (requestedVcType != null && requestedVcType != widget.vcType) {
       _scanning = false;
       _ctrl.stop().ignore();
+      if (!mounted) return;
       setState(
-        () => _errorMsg =
-            'Wrong credential type. Request needs $requestedVcType, this card is ${widget.vcType}.',
+        () => _errorMsg = AppLocalizations.of(context)!
+            .walletQrScanWrongCredential(
+              humanizeVcType(requestedVcType),
+              humanizeVcType(widget.vcType),
+            ),
       );
       return;
     }
@@ -1419,7 +1522,8 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
     final state = authReq['state'] as String?;
     final nonce = authReq['nonce'] as String?;
     if (state == null || nonce == null) {
-      setState(() => _errorMsg = 'QR không hợp lệ: thiếu state/nonce');
+      if (!mounted) return;
+      setState(() => _errorMsg = AppLocalizations.of(context)!.walletQrInvalidMissingStateNonce);
       return;
     }
 
@@ -1538,7 +1642,7 @@ class _VpRequestScanDialogState extends State<_VpRequestScanDialog> {
                     const Icon(Icons.circle, size: 6, color: AppColors.primary),
                     const SizedBox(width: 8),
                     Text(
-                      f,
+                      humanizeFieldKey(f),
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,

@@ -5,6 +5,7 @@ import 'package:identity_frontend/core/di/injection.dart';
 import 'package:identity_frontend/core/locale/locale_cubit.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/core/utils/label_helpers.dart';
 import 'package:identity_frontend/domain/entities/employee_entity.dart';
@@ -367,7 +368,7 @@ class _HomeViewState extends State<_HomeView> {
                   _detailRow(
                     context,
                     l10n.homeJoinedDate,
-                    '${emp.createdAt!.day}/${emp.createdAt!.month}/${emp.createdAt!.year}',
+                    formatDateOf(emp.createdAt!),
                   ),
                 if (emp.note != null && emp.note!.isNotEmpty)
                   _detailRow(

@@ -489,7 +489,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navCredentials => 'Credentials';
 
   @override
-  String get navIssuer => 'Issuer';
+  String get navIssuer => 'Credentials';
 
   @override
   String get navWorkplace => 'Workplace';
@@ -526,34 +526,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workplaceManagerTimesheet => 'Timesheet';
 
   @override
-  String get issuerConsoleTitle => 'Issuer Console';
+  String get issuerConsoleTitle => 'Credential Management';
 
   @override
-  String get issuerConsoleSubtitle => 'Issue & manage Verifiable Credentials';
+  String get issuerConsoleSubtitle => 'Issue and manage digital credentials';
 
   @override
   String get issuerStatsCredentialsIssued => 'Credentials Issued';
 
   @override
-  String get issuerStatsActiveDids => 'Active DIDs';
+  String get issuerStatsActiveDids => 'Verified Accounts';
 
   @override
   String get issuerStatsRevokedMonth => 'Revoked this month';
 
   @override
-  String get issuerStatsTrustedIssuers => 'Trusted Issuers';
+  String get issuerStatsTrustedIssuers => 'Trusted Organizations';
 
   @override
-  String get issuerStatsSection => 'SSI KPIs';
+  String get issuerStatsSection => 'Credential Overview';
 
   @override
-  String get issuerStatsHrSection => 'Operations KPIs (HR)';
+  String get issuerStatsHrSection => 'HR Overview';
 
   @override
-  String get issuerActionEnroll => 'Enroll & Issue Credential';
+  String get issuerActionEnroll => 'Approve & Issue Credential';
 
   @override
-  String get issuerActionIssueSalary => 'Issue SalaryRange VC';
+  String get issuerActionIssueSalary => 'Issue Salary Certificate';
 
   @override
   String get issuerActionIssueSkill => 'Issue Skill VC (SD-JWT)';
@@ -565,13 +565,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get issuerActionRevoke => 'Revoke Credentials';
 
   @override
-  String get issuerActionVerifier => 'Open Verifier';
+  String get issuerActionVerifier => 'Open Verification Screen';
 
   @override
   String get ssiCredentialWallet => 'Credential Wallet';
 
   @override
-  String get ssiCredentialSubjects => 'Credential Subjects';
+  String get ssiCredentialSubjects => 'Employee Management';
 
   @override
   String get ssiPresentCredential => 'Present Credential';
@@ -1341,7 +1341,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chiefCreatePayroll => 'Create / Update Payroll';
 
   @override
-  String get chiefIssueSalaryVc => 'Issue Salary VC';
+  String get chiefIssueSalaryVc => 'Issue Salary Certificate';
 
   @override
   String get chiefTerminateContract => 'Terminate Contract';
@@ -1563,11 +1563,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chiefAssignSuccess => 'Manager assigned successfully';
 
   @override
-  String get chiefIssueSalaryVcTitle => 'Issue Salary Range VC';
+  String get chiefIssueSalaryVcTitle => 'Issue Salary Certificate';
 
   @override
   String chiefIssueSalaryVcContent(String name) {
-    return 'Issue SalaryRangeVC for $name?\n\nEmployee must have a payroll assigned.';
+    return 'Issue salary certificate for $name?\n\nEmployee must have a payroll record assigned.';
   }
 
   @override
@@ -1602,11 +1602,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Employment VC not yet issued — will appear automatically after Admin approves.';
 
   @override
-  String get walletVerifierScanTitle => 'Scan VP Request QR';
+  String get walletVerifierScanTitle => 'Receive Verification Request';
 
   @override
   String get walletVerifierScanSubtitle =>
-      'Point camera at QR on Verifier screen\n(tab \"Create VP Request\")';
+      'Point camera at QR from the verifier to share your information';
 
   @override
   String get walletShareInfo => 'Select information to share';
@@ -1721,7 +1721,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cccdManualInput => 'Enter manually';
 
   @override
-  String get verifierTitle => 'Verifier';
+  String get verifierTitle => 'Identity Verification';
 
   @override
   String get verifierVerifyVc => 'Scan & Verify';
@@ -1733,29 +1733,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifierScanAgain => 'Scan Again';
 
   @override
-  String get verifierScanInstruction =>
-      'Point camera at QR Code on employee\'s app';
+  String get verifierScanInstruction => 'Point camera at employee\'s QR code';
 
   @override
   String get verifierScanDescription =>
-      'Accepts 2 QR types:\n• QR from \"Export QR\" button — verify VC directly\n• QR from \"Present VP\" button — verify VP Token signed by Employee';
+      'Accepts 2 QR types:\n• QR from \"Export QR\" — verify credential directly\n• QR from \"Receive Request\" — verify via sharing request flow';
 
   @override
   String get verifierHowItWorks => 'How it works';
 
   @override
   String get verifierHowItWorksSteps =>
-      '1. Select information you want Employee to provide\n2. Tap \"Create VP Request QR\" → QR is generated\n3. Have Employee scan this QR with their app\n4. Employee reviews and sends Verifiable Presentation\n5. Tap \"Check Result\" to view the shared information';
+      '1. Select information you want the employee to provide\n2. Tap \"Create QR Code\" → QR is generated\n3. Have employee scan this QR code with their app\n4. Employee reviews and confirms sharing\n5. Tap \"Check Result\" to view the shared information';
 
   @override
-  String get verifierSelectAtLeastOne =>
-      'Please select at least 1 field in 1 VC';
+  String get verifierSelectAtLeastOne => 'Please select at least 1 field';
 
   @override
-  String get verifierCreateQrBtn => 'Step 2 — Create QR for Employee to scan';
+  String get verifierCreateQrBtn =>
+      'Step 2 — Create QR code for employee to scan';
 
   @override
-  String get verifierQrTitle => 'Step 3 — Have Employee scan this QR';
+  String get verifierQrTitle => 'Step 3 — Have employee scan this QR code';
 
   @override
   String get verifierCheckResult => 'Step 5 — Check Result';
@@ -1770,13 +1769,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verifierPollPending =>
-      'Waiting for Employee to scan QR and send VP...';
+      'Waiting for employee to scan QR and confirm sharing...';
 
   @override
-  String get verifierPollAccepted => 'Employee sent VP — Verified successfully';
+  String get verifierPollAccepted =>
+      'Employee confirmed — Information verified';
 
   @override
-  String get verifierPollRejected => 'VP invalid or rejected';
+  String get verifierPollRejected => 'Information not confirmed or invalid';
 
   @override
   String get verifierPollStillPending =>
@@ -1795,17 +1795,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifierDisclosedInfo => 'Disclosed Information';
 
   @override
-  String get verifierVpRejectedTitle => 'VP Rejected';
+  String get verifierVpRejectedTitle => 'Not Confirmed';
 
   @override
   String get verifierVpSharedTitle => 'Shared Information';
 
   @override
-  String get verifierVpInvalidDefault => 'VP invalid or rejected';
+  String get verifierVpInvalidDefault => 'Information invalid or not confirmed';
 
   @override
   String get verifierEmployeeConfirmedNoFields =>
-      'Employee confirmed but no fields were shared.';
+      'Employee confirmed but no information was shared.';
 
   @override
   String get verifierEmployeeSharedInfo =>
@@ -2183,4 +2183,105 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sdJwtSelectiveSubtitle => 'SD-JWT · Selective Disclosure';
+
+  @override
+  String get walletDidCardTitle => 'Digital Identity';
+
+  @override
+  String get walletDidLabel => 'Identifier';
+
+  @override
+  String get walletControllerLabel => 'Controller';
+
+  @override
+  String get walletIssuedAtLabel => 'Issued at';
+
+  @override
+  String get walletPublicKeyTitle => 'Public Key';
+
+  @override
+  String get adminTabDashboard => 'Overview';
+
+  @override
+  String get adminTabOnChain => 'Blockchain';
+
+  @override
+  String get walletQrSelectFieldsTitle => 'Select information to share';
+
+  @override
+  String auditRecordCount(int count) {
+    return '$count on-chain records';
+  }
+
+  @override
+  String auditEmployeeLabel(String id) {
+    return 'Employee: $id';
+  }
+
+  @override
+  String get auditKeyFields => 'KEY FIELDS';
+
+  @override
+  String get auditDataHash => 'DATA HASH';
+
+  @override
+  String auditNoTypeRecords(String type) {
+    return 'No $type records on-chain';
+  }
+
+  @override
+  String get auditSearchHint => 'Search by employee ID or updater...';
+
+  @override
+  String get auditFilterAll => 'All';
+
+  @override
+  String get auditFilterProfile => 'Profile';
+
+  @override
+  String get auditFilterContract => 'Contract';
+
+  @override
+  String get auditFilterPayroll => 'Payroll';
+
+  @override
+  String get auditFilterAttendance => 'Attendance';
+
+  @override
+  String get auditFilterDid => 'Identity';
+
+  @override
+  String get auditFilterStatusList => 'VC Status';
+
+  @override
+  String get auditFilterContractSignature => 'Signatures';
+
+  @override
+  String get auditFilterCompany => 'Company';
+
+  @override
+  String walletQrScanWrongCredential(String requested, String current) {
+    return 'Wrong credential type. The request needs $requested but this card is $current.';
+  }
+
+  @override
+  String get walletQrInvalidMissingStateNonce =>
+      'Invalid QR: missing session info';
+
+  @override
+  String get biometricUnlockReason =>
+      'Authenticate to open your identity wallet';
+
+  @override
+  String get biometricEnableReason => 'Confirm to enable App Lock';
+
+  @override
+  String get biometricSignReason => 'Authenticate to sign';
+
+  @override
+  String get biometricLockedHint =>
+      'Wallet is locked. Authenticate to continue.';
+
+  @override
+  String get biometricUnlock => 'Unlock';
 }

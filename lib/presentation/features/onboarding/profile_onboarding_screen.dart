@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/di/injection.dart';
 import 'package:identity_frontend/core/storage/secure_storage.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
 import 'package:identity_frontend/presentation/features/cccd/cccd_scan_screen.dart';
 import 'package:identity_frontend/presentation/features/profile/bloc/profile_bloc.dart';
 import 'package:identity_frontend/presentation/widgets/app_input.dart';
@@ -894,7 +895,7 @@ class _DatePickerField extends StatelessWidget {
 
   String _displayText(BuildContext context) => selectedDate == null
       ? context.l10n.onboardingSelectDob
-      : '${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}';
+      : formatDateOf(selectedDate!);
 
   Future<void> _pickDate(BuildContext context) async {
     if (locked) return;

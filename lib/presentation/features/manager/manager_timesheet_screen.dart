@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:identity_frontend/core/network/api_client.dart';
 import 'package:identity_frontend/core/network/api_constants.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
 
@@ -467,14 +468,7 @@ class _DetailRow extends StatelessWidget {
     };
   }
 
-  String _fmtDate(String raw) {
-    try {
-      final dt = DateTime.parse(raw);
-      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-    } catch (_) {
-      return raw;
-    }
-  }
+  String _fmtDate(String raw) => formatDate(raw);
 
   String _fmt(String? raw) {
     if (raw == null) return '--:--';

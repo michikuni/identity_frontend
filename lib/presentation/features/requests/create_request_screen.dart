@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
 import 'package:identity_frontend/presentation/widgets/primary_button.dart';
 import 'bloc/request_bloc.dart';
@@ -227,7 +228,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  date != null ? '${date.day}/${date.month}/${date.year}' : label,
+                  date != null ? formatDateOf(date) : label,
                   style: TextStyle(
                     fontSize: 13,
                     color: date != null ? AppColors.textPrimary : AppColors.textHint,

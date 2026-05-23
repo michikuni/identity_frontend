@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:identity_frontend/core/themes/app_colors.dart';
+import 'package:identity_frontend/core/utils/date_format.dart';
 import 'package:identity_frontend/core/utils/extensions.dart';
 import 'package:identity_frontend/domain/entities/attendance_entity.dart';
 import 'package:identity_frontend/l10n/app_localizations.dart';
@@ -406,14 +407,7 @@ class _DailyRow extends StatelessWidget {
     };
   }
 
-  String _fmtDate(String raw) {
-    try {
-      final dt = DateTime.parse(raw);
-      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-    } catch (_) {
-      return raw;
-    }
-  }
+  String _fmtDate(String raw) => formatDate(raw);
 
   String _fmt(String? raw) {
     if (raw == null) return '--:--';
